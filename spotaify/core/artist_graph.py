@@ -37,9 +37,9 @@ def fetch_artist_relations(mbid: str) -> dict:
     return {"mbid": mbid, "name": artist.get("name", ""), "type": artist.get("type", ""), "relations": relations}
 
 
-def traverse_graph(seed_name: str, depth: int = 2, graph_dir: str = GRAPH_DIR) -> dict:
+def traverse_graph(seed_name: str, depth: int = 2, max_nodes: int = 30, graph_dir: str = GRAPH_DIR) -> dict:
     slug = seed_name.lower().replace(" ", "_")
-    cache_path = Path(graph_dir) / f"{slug}_d{depth}.json"
+    cache_path = Path(graph_dir) / f"{slug}_d{depth}_n{max_nodes}.json"
     Path(graph_dir).mkdir(exist_ok=True)
 
     if cache_path.exists():
@@ -56,6 +56,8 @@ def traverse_graph(seed_name: str, depth: int = 2, graph_dir: str = GRAPH_DIR) -
     visited: set[str] = set()
 
     while queue:
+        if len(nodes) >= max_nodes:
+            break
         mbid, name, current_depth = queue.popleft()
         if mbid in visited or current_depth > depth:
             continue

@@ -19,7 +19,7 @@ def mock_deps(mocker):
     mocker.patch("spotaify.agent_tools.open_in_browser", create=True)
     mocker.patch("spotaify.agent_tools.traverse_graph")
     mocker.patch("spotaify.agent_tools.get_all_artist_names")
-    mocker.patch("spotaify.agent_tools.expand_bateman")
+    mocker.patch("spotaify.agent_tools.expand_track_dna")
 
 def test_tools_list_has_correct_count():
     assert len(agent_tools.TOOLS) == 12

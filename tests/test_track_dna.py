@@ -1,7 +1,7 @@
 # tests/test_track_dna.py
 import pytest
 from unittest.mock import patch
-from spotaify.core.track_dna import resolve_recording_mbid, fetch_recording_credits, expand_bateman
+from spotaify.core.track_dna import resolve_recording_mbid, fetch_recording_credits, expand_track_dna
 
 RECORDING_MBID = "b52a8f8a-aaaa-bbbb-cccc-123456789abc"
 
@@ -56,7 +56,7 @@ def test_fetch_recording_credits_extracts_samples(mock_mb):
     assert credits["samples"][0]["title"] == "Funky Drummer"
     assert credits["samples"][0]["artist"] == "James Brown"
 
-def test_expand_bateman_returns_artist_names(mock_mb):
+def test_expand_track_dna_returns_artist_names(mock_mb):
     mock_mb.search_recordings.return_value = {"recording-list": [{"id": RECORDING_MBID, "title": "Hurt"}]}
     mock_mb.get_recording_by_id.return_value = {
         "recording": {
@@ -70,6 +70,6 @@ def test_expand_bateman_returns_artist_names(mock_mb):
     }
     mock_mb.search_artists.return_value = {"artist-list": [{"id": "c1", "name": "Trent Reznor"}]}
     mock_mb.get_artist_by_id.return_value = {"artist": {"name": "Trent Reznor", "artist-relation-list": []}}
-    result = expand_bateman("Hurt", "Nine Inch Nails", depth=1)
+    result = expand_track_dna("Hurt", "Nine Inch Nails", depth=1)
     assert "persons" in result
     assert any(p["name"] == "Trent Reznor" for p in result["persons"])

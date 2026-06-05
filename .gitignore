@@ -12,3 +12,4 @@ data/history/*.json
 *.lock
 
 /learning/*
+data/cache/*

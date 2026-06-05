@@ -1,7 +1,7 @@
 # agent_tools.py
 from spotaify.clients.spotify_client import SpotifyClient
 from spotaify.core.artist_graph import traverse_graph, get_all_artist_names
-from spotaify.core.track_dna import expand_bateman
+from spotaify.core.track_dna import expand_track_dna
 from spotaify.clients.whosampled_client import fetch_samples as whosampled_fetch
 from spotaify.clients.genius_client import fetch_song_info as genius_fetch
 
@@ -39,25 +39,25 @@ TOOLS = [
     {"name": "map_artist_connections",
      "description": "Query MusicBrainz for all artists connected to a seed artist.",
      "input_schema": {"type": "object", "properties": {
-         "artist_name": {"type": "string"}, "depth": {"type": "integer", "default": 2}},
+         "artist_name": {"type": "string"}, "depth": {"type": "integer", "default": 1, "maximum": 3}},
          "required": ["artist_name"]}},
     {"name": "traverse_artist_graph",
      "description": "Return all artists in the connection graph with paths back to the seed.",
      "input_schema": {"type": "object", "properties": {
-         "artist_name": {"type": "string"}, "depth": {"type": "integer", "default": 2}},
+         "artist_name": {"type": "string"}, "depth": {"type": "integer", "default": 1, "maximum": 3}},
          "required": ["artist_name"]}},
     {"name": "fetch_artist_top_tracks",
      "description": "Get top tracks from a list of artist names. Returns merged track list.",
      "input_schema": {"type": "object", "properties": {
          "artist_names": {"type": "array", "items": {"type": "string"}},
-         "tracks_per_artist": {"type": "integer", "default": 5}}, "required": ["artist_names"]}},
+         "tracks_per_artist": {"type": "integer", "default": 3}}, "required": ["artist_names"]}},
     {"name": "explain_connection",
      "description": "Generate a plain-English explanation of how a track connects to the seed artist.",
      "input_schema": {"type": "object", "properties": {
          "track_id": {"type": "string"}, "seed_artist": {"type": "string"},
          "connection_path": {"type": "string"}}, "required": ["track_id", "seed_artist"]}},
     {"name": "deep_dive_track",
-     "description": "Bateman mode: resolve a track to MusicBrainz and fetch all credits (composers, producers, session musicians, samples).",
+     "description": "DNA mode: resolve a track to MusicBrainz and fetch all credits (composers, producers, session musicians, samples).",
      "input_schema": {"type": "object", "properties": {
          "title": {"type": "string"}, "artist": {"type": "string"},
          "depth": {"type": "integer", "default": 1}}, "required": ["title", "artist"]}},
@@ -67,7 +67,7 @@ TOOLS = [
          "person_name": {"type": "string"}, "role": {"type": "string"},
          "limit": {"type": "integer", "default": 20}}, "required": ["person_name"]}},
     {"name": "resolve_samples",
-     "description": "Find specific tracks on Spotify from a list of {title, artist, bateman_path, bateman_link_type} objects. Pass items from fetch_whosampled `samples` with bateman_link_type='samples_from', and items from `sampled_by` with bateman_link_type='sampled_by'. Returns only those exact tracks — no additional artist tracks.",
+     "description": "Find specific tracks on Spotify from a list of {title, artist, dna_path, dna_link_type} objects. Pass items from fetch_whosampled `samples` with dna_link_type='samples_from', and items from `sampled_by` with dna_link_type='sampled_by'. Returns only those exact tracks — no additional artist tracks.",
      "input_schema": {"type": "object", "properties": {
          "samples": {"type": "array", "items": {"type": "object"}}}, "required": ["samples"]},
      "cache_control": {"type": "ephemeral"}},
@@ -99,7 +99,7 @@ _CACHED_TOOLS = {"fetch_genius_info", "fetch_whosampled", "deep_dive_track",
                  "map_artist_connections", "traverse_artist_graph"}
 
 _SLIM_KEEP = {"track_id", "title", "artist", "artist_id", "popularity",
-              "is_new_discovery", "connection_artist", "bateman_path", "bateman_link_type",
+              "is_new_discovery", "connection_artist", "dna_path", "dna_link_type",
               "genius_about", "genius_url"}
 
 
@@ -153,13 +153,13 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
         return {"status": "created", "url": url}
 
     if name == "map_artist_connections":
-        graph = traverse_graph(inputs["artist_name"], depth=inputs.get("depth", 2))
-        artists = get_all_artist_names(graph)[:40]
-        return {"artists": artists, "total": len(graph["nodes"])}
+        graph = traverse_graph(inputs["artist_name"], depth=inputs.get("depth", 1))
+        artists = get_all_artist_names(graph)[:15]
+        return {"artists": artists, "total": len(artists)}
 
     if name == "traverse_artist_graph":
-        graph = traverse_graph(inputs["artist_name"], depth=inputs.get("depth", 2))
-        return {"artists": get_all_artist_names(graph)[:40]}
+        graph = traverse_graph(inputs["artist_name"], depth=inputs.get("depth", 1))
+        return {"artists": get_all_artist_names(graph)[:15]}
 
     if name == "fetch_artist_top_tracks":
         tracks = []
@@ -181,7 +181,7 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
         return {"explanation": f"{inputs['track_id']} connects to {inputs['seed_artist']} via: {path}"}
 
     if name == "deep_dive_track":
-        return expand_bateman(inputs["title"], inputs["artist"], depth=inputs.get("depth", 1))
+        return expand_track_dna(inputs["title"], inputs["artist"], depth=inputs.get("depth", 1))
 
     if name == "find_tracks_by_person":
         client = _get_spotify_client()
@@ -196,12 +196,12 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
         for sample in inputs["samples"]:
             title = sample.get("title", "")
             artist_name = sample.get("artist", "")
-            bateman_path = sample.get("bateman_path", "")
+            dna_path = sample.get("dna_path", "")
             if title and artist_name:
                 results = client.search_catalog(f"{title} {artist_name}", limit=1)
                 if results:
-                    results[0]["bateman_path"] = bateman_path
-                    results[0]["bateman_link_type"] = "sample"
+                    results[0]["dna_path"] = dna_path
+                    results[0]["dna_link_type"] = "sample"
                     tracks.append(results[0])
         return {"tracks": _slim(tracks), "count": len(tracks)}
 

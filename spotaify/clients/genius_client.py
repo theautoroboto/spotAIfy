@@ -1,8 +1,34 @@
 # genius_client.py
+import hashlib
+import json
 import re
 import time
 import requests
+from pathlib import Path
 from spotaify.config import GENIUS_ACCESS_TOKEN
+
+_GENIUS_CACHE_DIR = Path("data/cache/genius")
+
+
+def _disk_load(title: str, artist: str) -> dict | None:
+    key = hashlib.md5(f"{title.lower().strip()}|{artist.lower().strip()}".encode()).hexdigest()
+    p = _GENIUS_CACHE_DIR / f"{key}.json"
+    if p.exists():
+        try:
+            return json.loads(p.read_text())
+        except Exception:
+            pass
+    return None
+
+
+def _disk_save(title: str, artist: str, result: dict) -> None:
+    key = hashlib.md5(f"{title.lower().strip()}|{artist.lower().strip()}".encode()).hexdigest()
+    p = _GENIUS_CACHE_DIR / f"{key}.json"
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(result))
+    except Exception:
+        pass
 
 _BASE = "https://api.genius.com"
 _DELAY = 1.0
@@ -80,16 +106,16 @@ def _find_song_id(title: str, artist: str) -> tuple[int | None, str]:
 
 
 def fetch_song_info(title: str, artist: str) -> dict:
-    """
-    Fetch Genius metadata for a track.
+    cached = _disk_load(title, artist)
+    if cached is not None:
+        return cached
+    result = _fetch_song_info_raw(title, artist)
+    if "error" not in result:
+        _disk_save(title, artist, result)
+    return result
 
-    Returns:
-        about      — plain-text "About" description (capped at 800 chars)
-        url        — Genius song page URL
-        writers    — list of writer names from Genius credits
-        producers  — list of producer names from Genius credits
-        release_date
-    """
+
+def _fetch_song_info_raw(title: str, artist: str) -> dict:
     if not GENIUS_ACCESS_TOKEN:
         return {"error": "GENIUS_ACCESS_TOKEN not set in .env", "about": "", "url": ""}
 

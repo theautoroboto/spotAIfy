@@ -290,16 +290,27 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleCancel(w http.ResponseWriter, r *http.Request) {
+	runID := r.PathValue("id")
+	run, ok := getRun(runID)
+	if !ok {
+		http.Error(w, "run not found", http.StatusNotFound)
+		return
+	}
+	run.cancel()
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // ── Form → CLI args ───────────────────────────────────────────────────────────
 
 func buildArgs(r *http.Request) []string {
 	var args []string
 
 	switch r.FormValue("mode") {
-	case "bateman":
-		args = append(args, "--bateman", r.FormValue("bateman_track"))
-		if a := r.FormValue("bateman_artist"); a != "" {
-			args = append(args, "--bateman-artist", a)
+	case "dna":
+		args = append(args, "--dna", r.FormValue("dna_track"))
+		if a := r.FormValue("dna_artist"); a != "" {
+			args = append(args, "--dna-artist", a)
 		}
 	case "connection":
 		args = append(args, "--artist", r.FormValue("artist"), "--connections")
@@ -366,7 +377,11 @@ func writeTokenCache(username, accessToken string) (string, error) {
 
 func main() {
 	// Auth setup.
-	auth.SetSecret(envOr("SESSION_SECRET", "dev-secret-change-me"))
+	secret := envOr("SESSION_SECRET", "dev-secret-change-me")
+	if secret == "dev-secret-change-me" {
+		log.Printf("WARNING: SESSION_SECRET is not set — using insecure default. Set it in your .env file.")
+	}
+	auth.SetSecret(secret)
 	auth.Users = auth.ParseUsers(os.Getenv("USERS"))
 	if len(auth.Users) == 0 {
 		log.Fatal("USERS env var is required (e.g. alice:$2b$10$...)")
@@ -404,6 +419,7 @@ func main() {
 	protected.HandleFunc("GET /spotify/callback", handleSpotifyCallback)
 	protected.HandleFunc("POST /run", handleRun)
 	protected.HandleFunc("GET /stream/{id}", handleStream)
+	protected.HandleFunc("DELETE /run/{id}", handleCancel)
 
 	mux.Handle("/", auth.RequireAuth(protected))
 
