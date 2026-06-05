@@ -2,6 +2,7 @@
 from spotaify.clients.spotify_client import SpotifyClient
 from spotaify.core.artist_graph import traverse_graph, get_all_artist_names
 from spotaify.core.track_dna import expand_track_dna
+from spotaify.core.history_profile import enrich_candidates
 from spotaify.clients.whosampled_client import fetch_samples as whosampled_fetch
 from spotaify.clients.genius_client import fetch_song_info as genius_fetch
 
@@ -133,6 +134,7 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
     if name == "rank_and_select":
         candidates = inputs["candidates"]
         boost = inputs.get("boost_discovery", False)
+        enrich_candidates(candidates)
         for c in candidates:
             score = c.get("audio_sim", 0.5)
             score += c.get("completion_rate", 0.0) * 0.3
