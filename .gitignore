@@ -7,3 +7,8 @@ __pycache__/
 /.spotify_token_cache
 /.cache
 data/history/*.json
+
+*.log
+*.lock
+
+/learning/*

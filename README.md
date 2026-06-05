@@ -67,7 +67,7 @@ The MusicBrainz database is extensive but not exhaustive. The agent handles miss
 
 *   **Connection Mode (`--artist ...`)**: If the main seed artist (e.g., `--artist "My Obscure Garage Band"`) cannot be found in MusicBrainz, the program will stop with a `ValueError`. This is a hard failure because the entire graph traversal depends on this seed.
 
-*   **Bateman Mode (`--bateman ...`)**: This mode is more resilient. If the primary *recording* can't be found, the process will stop. However, if a person credited on the recording (like a specific producer or session musician) doesn't have their own separate artist page on MusicBrainz, the agent will simply note the credit and continue processing the others. It does not crash.
+*   **DNA Mode (`--dna ...`)**: This mode is more resilient. If the primary *recording* can't be found, the process will stop. However, if a person credited on the recording (like a specific producer or session musician) doesn't have their own separate artist page on MusicBrainz, the agent will simply note the credit and continue processing the others. It does not crash.
 
 ### How the Agent Thinks: Scoring and Ranking
 
@@ -110,7 +110,7 @@ This pattern is used for the `mock_deps` fixture to ensure that all external dep
 
 ### Prompt Engineering with `build_prompt`
 
-The `spotaify/agent.py` script contains a `build_prompt` function that acts as a dedicated "prompt engineer". Its job is to translate the various command-line flags (`--artist`, `--bateman`, `--energy`, etc.) into a single, coherent natural language prompt for the AI model.
+The `spotaify/agent.py` script contains a `build_prompt` function that acts as a dedicated "prompt engineer". Its job is to translate the various command-line flags (`--artist`, `--dna`, `--energy`, etc.) into a single, coherent natural language prompt for the AI model.
 
 For example, the command:
 `run.bat "industrial rock" --artist "Nine Inch Nails" --connections --energy 0.8-1.0`
@@ -134,14 +134,14 @@ This constructed prompt is what gives the agent its clear starting instructions,
         1.  Go to the [Anthropic Console](https://console.anthropic.com).
         2.  Go to `API Keys` and create a key for this project.
 
-    *   **Genius** (for Bateman mode track descriptions and credits):
+    *   **Genius** (for DNA mode track descriptions and credits):
         1.  Go to [genius.com/api-clients](https://genius.com/api-clients) and create an app.
         2.  Note your `Access Token`.
 
     *   **MusicBrainz**:
         MusicBrainz does not require an account, but their [API terms](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting) require a real contact email in the user-agent string. Without it, requests are aggressively throttled. Set `MUSICBRAINZ_CONTACT` in your `.env` to your real email address.
 
-    *   **WhoSampled** (optional, for Bateman mode sample data):
+    *   **WhoSampled** (optional, for DNA mode sample data):
         Create a free account at [whosampled.com](https://www.whosampled.com). Without credentials the scraper can still find tracks but individual sample pages require login.
 
     *   **Spotify Data Export** (optional, for personal listening history):
@@ -209,20 +209,20 @@ The simplest way to run spotAIfy is via the included launcher scripts, which han
 
 **Windows:**
 ```
-run.bat --bateman "Niggas in Paris"
+run.bat --dna "Niggas in Paris"
 run.bat --artist "Nine Inch Nails" --connections --depth 2
 run.bat "dark ambient playlist for late night coding" --count 25
 ```
 
 **Mac/Linux:**
 ```bash
-./run.sh --bateman "Play Your Part Pt. 1"
+./run.sh --dna "Play Your Part Pt. 1"
 ./run.sh --artist "Trent Reznor" --connections --new-only
 ```
 
 Or run directly with uv from any terminal:
 ```bash
-uv run python -m spotaify.agent --bateman "Hurt"
+uv run python -m spotaify.agent --dna "Hurt"
 ```
 
 On first run, uv automatically creates a virtual environment and installs all dependencies. Subsequent runs start immediately.
@@ -246,20 +246,20 @@ run.bat --artist "Trent Reznor" --connections --new-only
 run.bat --artist "Nine Inch Nails" --connections --match-sound
 ```
 
-**Bateman Mode** — deep-dive a single track's creative DNA:
+**DNA Mode** — deep-dive a single track's creative DNA:
 ```bash
-run.bat --bateman "Hurt"
-run.bat --bateman "Play Your Part Pt. 1"
+run.bat --dna "Hurt"
+run.bat --dna "Play Your Part Pt. 1"
 ```
 
-Bateman mode builds a playlist with a **literal musical relationship** to the seed:
+DNA mode builds a playlist with a **literal musical relationship** to the seed:
 - Songs the seed track **directly samples** (the agent resolves the exact source recording on Spotify)
 - Songs that **directly sampled** the seed track
 - The original recording of any **confirmed melody interpolation** surfaced by Genius or MusicBrainz
 
 No tangential picks — not songs by the same producers, not songs that share a common sample source, not thematic cousins. The agent narrates each connection explicitly ("X samples the break from Y" / "Y was later sampled by X"). Spotify playlist descriptions are kept to ≤300 characters; full narration appears in the terminal.
 
-> **Note**: `--depth` has no effect in Bateman mode. It only controls how many hops `traverse_artist_graph` follows in Connection mode.
+> **Note**: `--depth` has no effect in DNA mode. It only controls how many hops `traverse_artist_graph` follows in Connection mode.
 
 ---
 
@@ -304,7 +304,7 @@ spotAIfy/
 │       ├── history_importer.py    # Parses your Spotify data export (JSON files)
 │       ├── index.py               # Data pipeline: ingests Spotify data into FiftyOne
 │       ├── push.py                # Pushes a manually reviewed FiftyOne selection to Spotify
-│       └── track_dna.py           # MusicBrainz client for recording-level credits (Bateman mode)
+│       └── track_dna.py           # MusicBrainz client for recording-level credits (DNA mode)
 ├── tests/                         # Unit and integration tests
 ├── data/
 │   ├── graph/                     # Cached MusicBrainz artist graphs (JSON, auto-created)
@@ -344,7 +344,7 @@ spotAIfy/
 **What we are doing**: Connecting to the MusicBrainz API to map artist relationships (members, collaborations, etc.) and traversing this graph.  
 **Why we are doing it**: To discover artists via real-world human connections rather than purely sonic similarity, exposing you to supergroups and side projects.
 
-### Task 7: Track DNA (Bateman Mode)
+### Task 7: Track DNA (DNA Mode)
 **What we are doing**: Digging into a single track's complete creative lineage (writers, producers, session musicians, samples).  
 **Why we are doing it**: To build highly specific playlists connected by craft and shared personnel, narrating exactly why each track is included.
 
@@ -358,7 +358,7 @@ spotAIfy/
 
 ### Task 10: AI Agent (`agent.py`)
 **What we are doing**: Implementing the main Claude agent loop that handles user prompts, decides which tools to call, and narrates its reasoning.  
-**Why we are doing it**: This is the brain of the project. It orchestrates the Sonic, Connection, and Bateman modes based on your natural language requests.
+**Why we are doing it**: This is the brain of the project. It orchestrates the Sonic, Connection, and DNA modes based on your natural language requests.
 
 ### Task 11: Push to Spotify (`push.py`)
 **What we are doing**: Writing a script to read the tagged tracks from FiftyOne and create a real playlist in your Spotify account.  

@@ -15,9 +15,9 @@ _SYSTEM_PROMPT_TEXT = """You are an expert music curator. You build playlists in
 
 **Sonic mode**: Find tracks by similarity across genres. Use search_catalog across multiple targeted keyword queries to build a candidate pool, then rank_and_select. Refine via keyword searches.
 
-**Connection mode**: Map every artist connected to a seed (band members, side projects, collabs) via MusicBrainz. Use map_artist_connections, traverse_artist_graph, fetch_artist_top_tracks, then rank_and_select. Narrate connections in plain English.
+**Connection mode**: Map every artist connected to a seed (band members, side projects, collabs) via MusicBrainz. Call map_artist_connections at depth=1 (expand to depth=2 only if fewer than 8 artists are returned), then fetch_artist_top_tracks on at most 15 artists, then rank_and_select. Narrate connections in plain English.
 
-**Bateman mode**: Deep-dive a single track's creative DNA. Call fetch_whosampled(queried track) exactly once. Its response has two fields:
+**DNA mode**: Deep-dive a single track's creative DNA. Call fetch_whosampled(queried track) exactly once. Its response has two fields:
 - `samples`: recordings the queried track pulled material from → call resolve_samples on this list → include those tracks (the queried track borrows from them)
 - `sampled_by`: recordings that pulled material from the queried track → call resolve_samples on this list → include those tracks (they borrow from the queried track)
 
@@ -256,9 +256,9 @@ def run_agent(prompt: str) -> None:
 def build_prompt(args: argparse.Namespace) -> str:
     parts = []
 
-    if args.bateman:
-        track_ref = f"'{args.bateman}' by '{args.bateman_artist}'" if args.bateman_artist else f"'{args.bateman}'"
-        parts.append(f"Bateman mode: deep-dive the track {track_ref}. Include: (1) every recording it directly samples, (2) every recording that directly sampled it, (3) any original whose melody it confirmed interpolates. Nothing else.")
+    if args.dna:
+        track_ref = f"'{args.dna}' by '{args.dna_artist}'" if args.dna_artist else f"'{args.dna}'"
+        parts.append(f"DNA mode: deep-dive the track {track_ref}. Include: (1) every recording it directly samples, (2) every recording that directly sampled it, (3) any original whose melody it confirmed interpolates. Nothing else.")
 
     elif args.artist and args.connections:
         parts.append(f"Connection mode: build a playlist of every artist associated with '{args.artist}'.")
@@ -292,11 +292,11 @@ def build_prompt(args: argparse.Namespace) -> str:
 def main():
     parser = argparse.ArgumentParser(description="AI Playlist Agent")
     parser.add_argument("prompt", nargs="?", default="", help="Natural language playlist description")
-    parser.add_argument("--bateman", metavar="TRACK", help="Deep-dive a track's creative DNA")
-    parser.add_argument("--bateman-artist", metavar="ARTIST", default="", dest="bateman_artist", help="Artist for bateman track disambiguation")
+    parser.add_argument("--dna", metavar="TRACK", help="Deep-dive a track's creative DNA")
+    parser.add_argument("--dna-artist", metavar="ARTIST", default="", dest="dna_artist", help="Artist for DNA track disambiguation")
     parser.add_argument("--artist", help="Seed artist name for connection mode")
     parser.add_argument("--connections", action="store_true", help="Build from artist connection graph")
-    parser.add_argument("--depth", type=int, default=2, help="Connection/Bateman traversal depth")
+    parser.add_argument("--depth", type=int, default=2, help="Connection/DNA traversal depth")
     parser.add_argument("--new-only", action="store_true", dest="new_only", help="Discovery artists only")
     parser.add_argument("--match-sound", action="store_true", dest="match_sound", help="Filter by audio similarity")
     parser.add_argument("--connect", nargs=2, metavar=("ARTIST1", "ARTIST2"))

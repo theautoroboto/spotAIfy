@@ -69,7 +69,7 @@ def fetch_recording_credits(recording_mbid: str) -> dict:
     }
 
 
-def expand_bateman(title: str, artist: str, depth: int = 1) -> dict:
+def expand_track_dna(title: str, artist: str, depth: int = 1) -> dict:
     mbid = resolve_recording_mbid(title, artist)
     if not mbid:
         return {"error": f"Recording not found: {title} by {artist}"}
@@ -88,7 +88,7 @@ def expand_bateman(title: str, artist: str, depth: int = 1) -> dict:
             "name": person["name"],
             "mbid": mbid_p or artist_mbid,
             "link_type": person.get("role", "contributor"),
-            "bateman_path": f"{title} by {artist} → {person.get('role', 'credit')} → {person['name']}",
+            "dna_path": f"{title} by {artist} → {person.get('role', 'credit')} → {person['name']}",
         })
 
     sample_origins = []
@@ -97,7 +97,7 @@ def expand_bateman(title: str, artist: str, depth: int = 1) -> dict:
             "title": sample["title"],
             "artist": sample["artist"],
             "recording_mbid": sample["recording_mbid"],
-            "bateman_path": f"{title} by {artist} → samples → {sample['title']} by {sample['artist']}",
+            "dna_path": f"{title} by {artist} → samples → {sample['title']} by {sample['artist']}",
         })
 
     return {
