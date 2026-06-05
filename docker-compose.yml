@@ -1,0 +1,18 @@
+services:
+  web:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    volumes:
+      - spotaify-data:/data
+    environment:
+      DB_PATH: /data/spotaify.db
+      GRAPH_DIR: /data/graph
+      HISTORY_DIR: /data/history
+      PYTHONUNBUFFERED: "1"
+    restart: unless-stopped
+
+volumes:
+  spotaify-data:

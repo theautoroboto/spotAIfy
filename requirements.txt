@@ -1,0 +1,11 @@
+requests>=2.31.0
+python-dotenv>=1.0.0
+spotipy>=2.23.0
+anthropic>=0.40.0
+musicbrainzngs>=0.7.1
+pytest>=8.0.0
+pytest-mock>=3.14.0
+beautifulsoup4>=4.12.0
+cloudscraper>=1.2.71
+curl-cffi>=0.7.0
+keyring>=25.0.0

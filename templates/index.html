@@ -1,0 +1,223 @@
+{{template "base" .}}
+
+{{define "content"}}
+{{if not .SpotifyLinked}}
+<div class="banner-warning">
+  Your Spotify account isn't connected yet.
+  <a href="/spotify/connect" class="btn btn-sm btn-spotify">Connect Spotify</a>
+</div>
+{{end}}
+
+<div class="layout">
+  <!-- ── Form ── -->
+  <section class="form-panel">
+    <h2>Build a playlist</h2>
+
+    <form id="run-form">
+      <!-- Mode selector -->
+      <fieldset class="mode-tabs">
+        <legend class="sr-only">Mode</legend>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="sonic" checked onchange="switchMode(this.value)"> Sonic
+          <span class="info-icon" data-tip="Describe a mood, vibe, or style and let the AI find matching tracks by audio similarity.">?</span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="connection" onchange="switchMode(this.value)"> Connection
+          <span class="info-icon" data-tip="Explore an artist's network — fans, collaborators, and influences — and build a playlist from their constellation.">?</span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="bateman" onchange="switchMode(this.value)"> Bateman
+          <span class="info-icon" data-tip="Map a track's sample DNA — every track it sampled, every track that sampled it, and any melodic interpolations.">?</span>
+        </label>
+      </fieldset>
+
+      <!-- Sonic fields -->
+      <div id="fields-sonic" class="mode-fields">
+        <label for="prompt">Describe the playlist <span class="info-icon" data-tip="Natural language description of the sound you want — mood, genre, activity, or vibe.">?</span></label>
+        <input id="prompt" name="prompt" type="text"
+               placeholder="dark ambient for late-night coding" autocomplete="off">
+      </div>
+
+      <!-- Connection fields -->
+      <div id="fields-connection" class="mode-fields hidden">
+        <label for="artist">Seed artist <span class="info-icon" data-tip="The artist to start from. The agent will explore their collaborators, influences, and fans to build a constellation playlist.">?</span></label>
+        <input id="artist" name="artist" type="text" placeholder="Nine Inch Nails" autocomplete="off">
+        <div class="row">
+          <label class="checkbox-label">
+            <input type="checkbox" name="new_only"> Discoveries only <span class="info-icon" data-tip="Prefer artists not already in your Spotify listening history — great for finding new music.">?</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" name="match_sound"> Match sound <span class="info-icon" data-tip="Also filter results by audio similarity to the seed artist's sound, not just graph connections.">?</span>
+          </label>
+        </div>
+        <label for="depth">Graph depth <span class="info-icon" data-tip="How many hops away from the seed artist to explore. 2 = friends of friends. Higher values find more obscure connections but take longer.">?</span></label>
+        <input id="depth" name="depth" type="number" value="2" min="1" max="4">
+      </div>
+
+      <!-- Bateman fields -->
+      <div id="fields-bateman" class="mode-fields hidden">
+        <label for="bateman_track">Track <span class="info-icon" data-tip="The track to deep-dive. The agent will find every sample it contains, every track that sampled it, and any melodic interpolations.">?</span></label>
+        <input id="bateman_track" name="bateman_track" type="text"
+               placeholder="Hurt" autocomplete="off">
+        <label for="bateman_artist">Artist <span class="muted">(optional)</span> <span class="info-icon" data-tip="Disambiguates tracks with common names — e.g. 'Hurt' exists by Nine Inch Nails and Johnny Cash. Leave blank if the track name is unique.">?</span></label>
+        <input id="bateman_artist" name="bateman_artist" type="text"
+               placeholder="Nine Inch Nails" autocomplete="off">
+      </div>
+
+      <!-- Shared filters -->
+      <details class="filters">
+        <summary>Filters <span class="muted">(optional)</span></summary>
+        <div class="filter-grid">
+          <div>
+            <label for="count">Tracks <span class="info-icon" data-tip="Number of tracks to include in the final playlist (5–50).">?</span></label>
+            <input id="count" name="count" type="number" value="20" min="5" max="50">
+          </div>
+          <div>
+            <label>Energy range <span class="info-icon" data-tip="Audio energy from 0.0 (calm/quiet) to 1.0 (intense/loud). Use the spinners to set a min–max range.">?</span></label>
+            <div class="range-pair">
+              <input id="energy_min" name="energy_min" type="number" min="0" max="1" step="0.05" placeholder="0.0" autocomplete="off"
+                     oninput="clampRange('energy_min','energy_max',0,1,false)">
+              <span class="range-sep">–</span>
+              <input id="energy_max" name="energy_max" type="number" min="0" max="1" step="0.05" placeholder="1.0" autocomplete="off"
+                     oninput="clampRange('energy_min','energy_max',0,1,true)">
+            </div>
+          </div>
+          <div>
+            <label>Valence range <span class="info-icon" data-tip="Emotional positivity from 0.0 (dark/sad) to 1.0 (bright/happy). Use the spinners to set a min–max range.">?</span></label>
+            <div class="range-pair">
+              <input id="valence_min" name="valence_min" type="number" min="0" max="1" step="0.05" placeholder="0.0" autocomplete="off"
+                     oninput="clampRange('valence_min','valence_max',0,1,false)">
+              <span class="range-sep">–</span>
+              <input id="valence_max" name="valence_max" type="number" min="0" max="1" step="0.05" placeholder="1.0" autocomplete="off"
+                     oninput="clampRange('valence_min','valence_max',0,1,true)">
+            </div>
+          </div>
+          <div>
+            <label>Tempo BPM <span class="info-icon" data-tip="Beats per minute range. E.g. 120–140 for dance music, 60–80 for slow ballads.">?</span></label>
+            <div class="range-pair">
+              <input id="tempo_min" name="tempo_min" type="number" min="40" max="300" step="1" placeholder="60" autocomplete="off"
+                     oninput="clampRange('tempo_min','tempo_max',40,300,false)">
+              <span class="range-sep">–</span>
+              <input id="tempo_max" name="tempo_max" type="number" min="40" max="300" step="1" placeholder="200" autocomplete="off"
+                     oninput="clampRange('tempo_min','tempo_max',40,300,true)">
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <button id="run-btn" type="submit" class="btn btn-primary btn-full"
+              {{if not .SpotifyLinked}}disabled title="Connect Spotify first"{{end}}>
+        Generate playlist
+      </button>
+    </form>
+  </section>
+
+  <!-- ── Output pane ── -->
+  <section class="output-panel">
+    <div class="output-header">
+      <span>Agent output</span>
+      <button id="clear-btn" class="btn btn-sm btn-ghost" onclick="clearOutput()" style="display:none">Clear</button>
+    </div>
+    <div id="output" class="output-log" aria-live="polite">
+      <span class="muted">Output will appear here once the agent starts…</span>
+    </div>
+  </section>
+</div>
+
+<script>
+function switchMode(mode) {
+  document.querySelectorAll('.mode-fields').forEach(el => el.classList.add('hidden'));
+  document.getElementById('fields-' + mode).classList.remove('hidden');
+  document.querySelector('.filters').classList.toggle('hidden', mode === 'bateman');
+}
+
+function clearOutput() {
+  const out = document.getElementById('output');
+  out.innerHTML = '<span class="muted">Output will appear here once the agent starts…</span>';
+  document.getElementById('clear-btn').style.display = 'none';
+}
+
+let activeSource = null;
+
+document.getElementById('run-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (activeSource) { activeSource.close(); activeSource = null; }
+
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+
+  const out = document.getElementById('output');
+  out.innerHTML = '';
+  document.getElementById('clear-btn').style.display = 'none';
+
+  const data = new FormData(e.target);
+  // Combine range pairs → "min-max" strings; omit if both empty
+  [['energy_min','energy_max','energy',0,1],['valence_min','valence_max','valence',0,1],['tempo_min','tempo_max','tempo',40,300]].forEach(([mk,xk,out,defLo,defHi]) => {
+    const lo = data.get(mk), hi = data.get(xk);
+    data.delete(mk); data.delete(xk);
+    if (lo !== '' || hi !== '') data.set(out, (lo !== '' ? lo : defLo) + '-' + (hi !== '' ? hi : defHi));
+  });
+  let resp;
+  try {
+    resp = await fetch('/run', { method: 'POST', body: new URLSearchParams(data) });
+  } catch (err) {
+    appendLine(out, '[error] Network error: ' + err.message, 'err');
+    btn.disabled = false; btn.textContent = 'Generate playlist';
+    return;
+  }
+
+  if (!resp.ok) {
+    const msg = await resp.text();
+    appendLine(out, '[error] ' + msg, 'err');
+    btn.disabled = false; btn.textContent = 'Generate playlist';
+    return;
+  }
+
+  const { runId } = await resp.json();
+  const es = new EventSource('/stream/' + runId);
+  activeSource = es;
+
+  es.onmessage = (ev) => {
+    const line = ev.data;
+    if (line.startsWith('->')) appendLine(out, line, 'tool-call');
+    else if (line.startsWith('  <-')) appendLine(out, line, 'tool-result');
+    else if (line.startsWith('[error]')) appendLine(out, line, 'err');
+    else appendLine(out, line, '');
+    out.scrollTop = out.scrollHeight;
+  };
+
+  es.addEventListener('done', () => {
+    es.close(); activeSource = null;
+    btn.disabled = false; btn.textContent = 'Generate playlist';
+    document.getElementById('clear-btn').style.display = '';
+  });
+
+  es.onerror = () => {
+    es.close(); activeSource = null;
+    btn.disabled = false; btn.textContent = 'Generate playlist';
+    document.getElementById('clear-btn').style.display = '';
+  };
+});
+
+function clampRange(minId, maxId, absMin, absMax, changedMax) {
+  const minEl = document.getElementById(minId);
+  const maxEl = document.getElementById(maxId);
+  const lo = minEl.value !== '' ? parseFloat(minEl.value) : null;
+  const hi = maxEl.value !== '' ? parseFloat(maxEl.value) : null;
+  if (lo !== null) minEl.value = Math.min(Math.max(lo, absMin), absMax);
+  if (hi !== null) maxEl.value = Math.min(Math.max(hi, absMin), absMax);
+  if (lo !== null && hi !== null) {
+    if (changedMax && hi < lo) maxEl.value = minEl.value;
+    else if (!changedMax && lo > hi) minEl.value = maxEl.value;
+  }
+}
+
+function appendLine(container, text, cls) {
+  const el = document.createElement('div');
+  el.className = 'log-line' + (cls ? ' ' + cls : '');
+  el.textContent = text;
+  container.appendChild(el);
+}
+</script>
+{{end}}

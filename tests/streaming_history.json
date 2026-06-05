@@ -1,0 +1,29 @@
+[
+  {
+    "ts": "2023-01-15T08:30:00Z",
+    "ms_played": 222000,
+    "master_metadata_track_name": "Hurt",
+    "master_metadata_album_artist_name": "Nine Inch Nails",
+    "master_metadata_album_album_name": "The Downward Spiral",
+    "spotify_track_uri": "spotify:track:6eUW0wxWtzkFdaEFsTJto6",
+    "reason_end": "trackdone"
+  },
+  {
+    "ts": "2022-06-10T20:00:00Z",
+    "ms_played": 45000,
+    "master_metadata_track_name": "Hurt",
+    "master_metadata_album_artist_name": "Nine Inch Nails",
+    "master_metadata_album_album_name": "The Downward Spiral",
+    "spotify_track_uri": "spotify:track:6eUW0wxWtzkFdaEFsTJto6",
+    "reason_end": "fwdbtn"
+  },
+  {
+    "ts": "2023-03-01T12:00:00Z",
+    "ms_played": 200000,
+    "master_metadata_track_name": "Closer",
+    "master_metadata_album_artist_name": "Nine Inch Nails",
+    "master_metadata_album_album_name": "The Downward Spiral",
+    "spotify_track_uri": "spotify:track:othertrack123",
+    "reason_end": "trackdone"
+  }
+]
