@@ -1,0 +1,454 @@
+package spotify
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"sort"
+	"strings"
+	"sync"
+	"time"
+)
+
+// ── Public data types ─────────────────────────────────────────────────────────
+
+type UserInfo struct {
+	DisplayName string
+	ImageURL    string
+	Followers   int
+	SpotifyURL  string
+}
+
+type TopArtist struct {
+	Name       string
+	Genres     []string
+	ImageURL   string
+	Popularity int
+	SpotifyURL string
+}
+
+type TopTrack struct {
+	Title       string
+	Artist      string
+	Album       string
+	ImageURL    string
+	SpotifyURL  string
+	Popularity  int
+	ReleaseYear int
+}
+
+type RecentTrack struct {
+	Title      string
+	Artist     string
+	ImageURL   string
+	SpotifyURL string
+	PlayedAt   time.Time
+}
+
+type GenreCount struct {
+	Genre string
+	Count int
+}
+
+type EraCount struct {
+	Era string
+	Pct int
+}
+
+type TasteInsights struct {
+	MainstreamScore int
+	ObscurityLabel  string
+	TopGenres       []GenreCount
+	EraBreakdown    []EraCount
+}
+
+type ProfileData struct {
+	User          UserInfo
+	TopArtists    map[string][]TopArtist // "short" | "medium" | "long"
+	TopTracks     map[string][]TopTrack  // "short" | "medium" | "long"
+	Recent        []RecentTrack
+	Insights      TasteInsights
+	MissingScopes bool
+}
+
+// ── Internal Spotify response shapes ─────────────────────────────────────────
+
+type spImage struct {
+	URL string `json:"url"`
+}
+
+type spArtistItem struct {
+	ID           string            `json:"id"`
+	Name         string            `json:"name"`
+	Genres       []string          `json:"genres"`
+	Images       []spImage         `json:"images"`
+	Popularity   int               `json:"popularity"`
+	ExternalURLs map[string]string `json:"external_urls"`
+}
+
+type spTrackItem struct {
+	Name    string `json:"name"`
+	Artists []struct {
+		Name string `json:"name"`
+	} `json:"artists"`
+	Album struct {
+		Name        string    `json:"name"`
+		Images      []spImage `json:"images"`
+		ReleaseDate string    `json:"release_date"`
+	} `json:"album"`
+	Popularity   int               `json:"popularity"`
+	ExternalURLs map[string]string `json:"external_urls"`
+}
+
+// ── Low-level helpers ─────────────────────────────────────────────────────────
+
+func spotifyGet(token, path string, out any) error {
+	req, _ := http.NewRequest("GET", "https://api.spotify.com/v1"+path, nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("scope_missing:%d", resp.StatusCode)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("spotify %s: HTTP %d", path, resp.StatusCode)
+	}
+	return json.NewDecoder(resp.Body).Decode(out)
+}
+
+func bestImage(imgs []spImage) string {
+	if len(imgs) == 0 {
+		return ""
+	}
+	return imgs[0].URL
+}
+
+func releaseYear(date string) int {
+	if len(date) < 4 {
+		return 0
+	}
+	y := 0
+	for _, c := range date[:4] {
+		if c < '0' || c > '9' {
+			return 0
+		}
+		y = y*10 + int(c-'0')
+	}
+	return y
+}
+
+// ── Main fetch ────────────────────────────────────────────────────────────────
+
+func FetchProfileData(token string) (*ProfileData, error) {
+	var (
+		wg      sync.WaitGroup
+		mu      sync.Mutex
+		pd      ProfileData
+	)
+	pd.TopArtists = make(map[string][]TopArtist)
+	pd.TopTracks = make(map[string][]TopTrack)
+
+	// User profile
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var me struct {
+			DisplayName  string            `json:"display_name"`
+			Images       []spImage         `json:"images"`
+			Followers    struct{ Total int } `json:"followers"`
+			ExternalURLs map[string]string `json:"external_urls"`
+		}
+		if err := spotifyGet(token, "/me", &me); err != nil {
+			return
+		}
+		mu.Lock()
+		pd.User = UserInfo{
+			DisplayName: me.DisplayName,
+			ImageURL:    bestImage(me.Images),
+			Followers:   me.Followers.Total,
+			SpotifyURL:  me.ExternalURLs["spotify"],
+		}
+		mu.Unlock()
+	}()
+
+	// Top artists & tracks — 3 time ranges each
+	timeRanges := [3][2]string{
+		{"short_term", "short"},
+		{"medium_term", "medium"},
+		{"long_term", "long"},
+	}
+	for _, tr := range timeRanges {
+		apiRange, key := tr[0], tr[1]
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var resp struct {
+				Items []spArtistItem `json:"items"`
+			}
+			err := spotifyGet(token, "/me/top/artists?time_range="+apiRange+"&limit=10", &resp)
+			if err != nil {
+				if strings.HasPrefix(err.Error(), "scope_missing") {
+					mu.Lock()
+					pd.MissingScopes = true
+					mu.Unlock()
+				}
+				return
+			}
+			artists := make([]TopArtist, 0, len(resp.Items))
+			for _, a := range resp.Items {
+				artists = append(artists, TopArtist{
+					Name:       a.Name,
+					Genres:     a.Genres,
+					ImageURL:   bestImage(a.Images),
+					Popularity: a.Popularity,
+					SpotifyURL: a.ExternalURLs["spotify"],
+				})
+			}
+			mu.Lock()
+			pd.TopArtists[key] = artists
+			mu.Unlock()
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var resp struct {
+				Items []spTrackItem `json:"items"`
+			}
+			if err := spotifyGet(token, "/me/top/tracks?time_range="+apiRange+"&limit=10", &resp); err != nil {
+				return
+			}
+			tracks := make([]TopTrack, 0, len(resp.Items))
+			for _, t := range resp.Items {
+				artist := ""
+				if len(t.Artists) > 0 {
+					artist = t.Artists[0].Name
+				}
+				tracks = append(tracks, TopTrack{
+					Title:       t.Name,
+					Artist:      artist,
+					Album:       t.Album.Name,
+					ImageURL:    bestImage(t.Album.Images),
+					SpotifyURL:  t.ExternalURLs["spotify"],
+					Popularity:  t.Popularity,
+					ReleaseYear: releaseYear(t.Album.ReleaseDate),
+				})
+			}
+			mu.Lock()
+			pd.TopTracks[key] = tracks
+			mu.Unlock()
+		}()
+	}
+
+	// Recently played
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var resp struct {
+			Items []struct {
+				Track    spTrackItem `json:"track"`
+				PlayedAt time.Time   `json:"played_at"`
+			} `json:"items"`
+		}
+		if err := spotifyGet(token, "/me/player/recently-played?limit=20", &resp); err != nil {
+			return
+		}
+		recent := make([]RecentTrack, 0, len(resp.Items))
+		for _, item := range resp.Items {
+			t := item.Track
+			artist := ""
+			if len(t.Artists) > 0 {
+				artist = t.Artists[0].Name
+			}
+			recent = append(recent, RecentTrack{
+				Title:      t.Name,
+				Artist:     artist,
+				ImageURL:   bestImage(t.Album.Images),
+				SpotifyURL: t.ExternalURLs["spotify"],
+				PlayedAt:   item.PlayedAt,
+			})
+		}
+		mu.Lock()
+		pd.Recent = recent
+		mu.Unlock()
+	}()
+
+	wg.Wait()
+	pd.Insights = deriveInsights(pd.TopArtists, pd.TopTracks)
+	return &pd, nil
+}
+
+// ── Metadata enrichment ───────────────────────────────────────────────────────
+
+type TrackMeta struct {
+	ImageURL   string
+	SpotifyURL string
+	ArtistID   string // first artist's ID — used to batch-fetch artist images
+}
+
+// FetchTracksMeta fetches track metadata for up to 50 IDs per call and returns
+// a map keyed by track ID. IDs beyond 50 are silently ignored.
+func FetchTracksMeta(token string, trackIDs []string) map[string]TrackMeta {
+	result := map[string]TrackMeta{}
+	for i := 0; i < len(trackIDs); i += 50 {
+		batch := trackIDs[i:]
+		if len(batch) > 50 {
+			batch = batch[:50]
+		}
+		var resp struct {
+			Tracks []struct {
+				ID      string `json:"id"`
+				Artists []struct {
+					ID string `json:"id"`
+				} `json:"artists"`
+				Album        struct{ Images []spImage } `json:"album"`
+				ExternalURLs map[string]string          `json:"external_urls"`
+			} `json:"tracks"`
+		}
+		ids := ""
+		for j, id := range batch {
+			if j > 0 {
+				ids += ","
+			}
+			ids += id
+		}
+		if err := spotifyGet(token, "/tracks?ids="+ids, &resp); err != nil {
+			continue
+		}
+		for _, t := range resp.Tracks {
+			if t.ID == "" {
+				continue
+			}
+			artistID := ""
+			if len(t.Artists) > 0 {
+				artistID = t.Artists[0].ID
+			}
+			result[t.ID] = TrackMeta{
+				ImageURL:   bestImage(t.Album.Images),
+				SpotifyURL: t.ExternalURLs["spotify"],
+				ArtistID:   artistID,
+			}
+		}
+	}
+	return result
+}
+
+type ArtistMeta struct {
+	ImageURL   string
+	SpotifyURL string
+	Genres     []string
+}
+
+// FetchArtistsMeta fetches artist metadata for up to 50 IDs per call.
+func FetchArtistsMeta(token string, artistIDs []string) map[string]ArtistMeta {
+	result := map[string]ArtistMeta{}
+	for i := 0; i < len(artistIDs); i += 50 {
+		batch := artistIDs[i:]
+		if len(batch) > 50 {
+			batch = batch[:50]
+		}
+		var resp struct {
+			Artists []spArtistItem `json:"artists"`
+		}
+		ids := ""
+		for j, id := range batch {
+			if j > 0 {
+				ids += ","
+			}
+			ids += id
+		}
+		if err := spotifyGet(token, "/artists?ids="+ids, &resp); err != nil {
+			continue
+		}
+		for _, a := range resp.Artists {
+			if a.ID == "" {
+				continue
+			}
+			result[a.ID] = ArtistMeta{
+				ImageURL:   bestImage(a.Images),
+				SpotifyURL: a.ExternalURLs["spotify"],
+				Genres:     a.Genres,
+			}
+		}
+	}
+	return result
+}
+
+// ── Taste insights ────────────────────────────────────────────────────────────
+
+func deriveInsights(artists map[string][]TopArtist, tracks map[string][]TopTrack) TasteInsights {
+	longArtists := artists["long"]
+	longTracks := tracks["long"]
+
+	// Mainstream score: average popularity of long-term top tracks.
+	score := 0
+	if len(longTracks) > 0 {
+		sum := 0
+		for _, t := range longTracks {
+			sum += t.Popularity
+		}
+		score = sum / len(longTracks)
+	}
+	label := "Underground"
+	switch {
+	case score >= 75:
+		label = "Chart-Topper"
+	case score >= 55:
+		label = "Mainstream"
+	case score >= 35:
+		label = "Indie"
+	}
+
+	// Genre frequencies from long-term top artists.
+	genreFreq := map[string]int{}
+	for _, a := range longArtists {
+		for _, g := range a.Genres {
+			genreFreq[g]++
+		}
+	}
+	type kv struct{ g string; n int }
+	var glist []kv
+	for g, n := range genreFreq {
+		glist = append(glist, kv{g, n})
+	}
+	sort.Slice(glist, func(i, j int) bool { return glist[i].n > glist[j].n })
+	topGenres := make([]GenreCount, 0, 8)
+	for i, g := range glist {
+		if i >= 8 {
+			break
+		}
+		topGenres = append(topGenres, GenreCount{Genre: g.g, Count: g.n})
+	}
+
+	// Era breakdown from long-term top tracks.
+	eraFreq := map[string]int{}
+	total := 0
+	for _, t := range longTracks {
+		if t.ReleaseYear == 0 {
+			continue
+		}
+		era := fmt.Sprintf("%ds", (t.ReleaseYear/10)*10)
+		eraFreq[era]++
+		total++
+	}
+	var eras []EraCount
+	for era, n := range eraFreq {
+		pct := 0
+		if total > 0 {
+			pct = (n * 100) / total
+		}
+		eras = append(eras, EraCount{Era: era, Pct: pct})
+	}
+	sort.Slice(eras, func(i, j int) bool { return eras[i].Era < eras[j].Era })
+
+	return TasteInsights{
+		MainstreamScore: score,
+		ObscurityLabel:  label,
+		TopGenres:       topGenres,
+		EraBreakdown:    eras,
+	}
+}

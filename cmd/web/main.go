@@ -19,6 +19,7 @@ import (
 
 	"spotaify-web/internal/auth"
 	"spotaify-web/internal/db"
+	"spotaify-web/internal/history"
 	"spotaify-web/internal/spotify"
 )
 
@@ -61,11 +62,16 @@ func deleteRun(id string) {
 
 var tmpls map[string]*template.Template
 
+var tmplFuncs = template.FuncMap{
+	"add": func(a, b int) int { return a + b },
+	"pct": func(f float64) int { return int(f * 100) },
+}
+
 func loadTemplates() {
 	tmpls = make(map[string]*template.Template)
-	for _, name := range []string{"index.html", "login.html"} {
+	for _, name := range []string{"index.html", "login.html", "profile.html"} {
 		tmpls[name] = template.Must(
-			template.ParseFiles("templates/base.html", "templates/"+name),
+			template.New("").Funcs(tmplFuncs).ParseFiles("templates/base.html", "templates/"+name),
 		)
 	}
 }
@@ -290,6 +296,84 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ── Profile handler ───────────────────────────────────────────────────────────
+
+func handleProfile(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+
+	// Load local streaming history (primary data source).
+	histDir := envOr("HISTORY_DIR", "data/history")
+	hist, err := history.Load(histDir)
+	if err != nil {
+		http.Error(w, "failed to load history: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Fetch Spotify API data for user info + metadata enrichment.
+	accessToken, spotifyErr := spotify.FreshToken(username)
+	var pd *spotify.ProfileData
+	if spotifyErr == nil {
+		pd, _ = spotify.FetchProfileData(accessToken)
+	}
+
+	// Enrich top tracks with album art + Spotify URLs.
+	if spotifyErr == nil && len(hist.TopTracks) > 0 {
+		ids := make([]string, 0, len(hist.TopTracks))
+		for _, t := range hist.TopTracks {
+			ids = append(ids, t.TrackID)
+		}
+		trackMeta := spotify.FetchTracksMeta(accessToken, ids)
+
+		// Collect unique artist IDs so we can fetch artist images in one batch.
+		artistIDByTrackID := map[string]string{}
+		uniqueArtistIDs := map[string]struct{}{}
+		for _, t := range hist.TopTracks {
+			if m, ok := trackMeta[t.TrackID]; ok {
+				t.ImageURL = m.ImageURL
+				t.SpotifyURL = m.SpotifyURL
+				if m.ArtistID != "" {
+					artistIDByTrackID[t.TrackID] = m.ArtistID
+					uniqueArtistIDs[m.ArtistID] = struct{}{}
+				}
+			}
+		}
+
+		// Build artist name → artist ID map for enriching top artists.
+		artistIDByName := map[string]string{}
+		for _, t := range hist.TopTracks {
+			if aid, ok := artistIDByTrackID[t.TrackID]; ok && t.ArtistName != "" {
+				artistIDByName[t.ArtistName] = aid
+			}
+		}
+
+		// Batch-fetch artist metadata.
+		ids2 := make([]string, 0, len(uniqueArtistIDs))
+		for id := range uniqueArtistIDs {
+			ids2 = append(ids2, id)
+		}
+		artistMeta := spotify.FetchArtistsMeta(accessToken, ids2)
+
+		// Enrich top artists.
+		for _, a := range hist.TopArtists {
+			if aid, ok := artistIDByName[a.ArtistName]; ok {
+				if m, ok := artistMeta[aid]; ok {
+					a.ImageURL = m.ImageURL
+					a.SpotifyURL = m.SpotifyURL
+					a.Genres = m.Genres
+				}
+			}
+		}
+	}
+
+	render(w, "profile.html", map[string]any{
+		"Title":         "Profile",
+		"Username":      username,
+		"SpotifyLinked": db.HasToken(username),
+		"History":       hist,
+		"Spotify":       pd, // may be nil if not connected
+	})
+}
+
 // ── History handlers ──────────────────────────────────────────────────────────
 
 func handleHistoryGet(w http.ResponseWriter, r *http.Request) {
@@ -472,6 +556,7 @@ func main() {
 	protected.HandleFunc("POST /run", handleRun)
 	protected.HandleFunc("GET /stream/{id}", handleStream)
 	protected.HandleFunc("DELETE /run/{id}", handleCancel)
+	protected.HandleFunc("GET /profile", handleProfile)
 	protected.HandleFunc("GET /history", handleHistoryGet)
 	protected.HandleFunc("POST /history", handleHistorySave)
 	protected.HandleFunc("DELETE /history", handleHistoryClear)

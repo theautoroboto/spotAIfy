@@ -7,6 +7,7 @@ services:
       - "${PORT:-8000}:${PORT:-8000}"
     volumes:
       - spotaify-data:/data
+      - ./data/history:/data/history:ro
     environment:
       DB_PATH: /data/spotaify.db
       GRAPH_DIR: /data/graph
