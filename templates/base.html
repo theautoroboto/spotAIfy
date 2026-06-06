@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
   <title>spotAIfy{{if .Title}} — {{.Title}}{{end}}</title>
   <link rel="stylesheet" href="/static/style.css">
   <script>(function(){var t=localStorage.getItem('spotaify-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);})()</script>
@@ -13,10 +14,10 @@
   <header>
     <a href="/" class="logo">spotAIfy</a>
     <nav>
-      <div class="theme-switcher" id="theme-switcher">
-        <button class="theme-btn" data-t="light" onclick="setTheme('light')">Light</button>
-        <button class="theme-btn" data-t="dark"  onclick="setTheme('dark')">Dark</button>
-        <button class="theme-btn" data-t="system" onclick="setTheme('system')">System</button>
+      <div class="theme-switcher" id="theme-switcher" role="group" aria-label="Color theme">
+        <button class="theme-btn" data-t="light" onclick="setTheme('light')" aria-pressed="false">Light</button>
+        <button class="theme-btn" data-t="dark"  onclick="setTheme('dark')" aria-pressed="false">Dark</button>
+        <button class="theme-btn" data-t="system" onclick="setTheme('system')" aria-pressed="false">System</button>
       </div>
       {{if .Username}}
       <span class="user">{{.Username}}</span>
@@ -41,12 +42,14 @@
       else document.documentElement.setAttribute('data-theme', t);
       document.querySelectorAll('.theme-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.t === t);
+        b.setAttribute('aria-pressed', b.dataset.t === t ? 'true' : 'false');
       });
     }
     (function() {
       var saved = localStorage.getItem('spotaify-theme') || 'system';
       document.querySelectorAll('.theme-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.t === saved);
+        b.setAttribute('aria-pressed', b.dataset.t === saved ? 'true' : 'false');
       });
     })();
   </script>

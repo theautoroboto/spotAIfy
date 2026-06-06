@@ -2,12 +2,15 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	_ "modernc.org/sqlite"
 )
 
 var DB *sql.DB
+
+const runsMax = 20
 
 func Init(path string) error {
 	var err error
@@ -23,6 +26,20 @@ func Init(path string) error {
 		scope        TEXT NOT NULL DEFAULT '',
 		expires_at   INTEGER NOT NULL
 	)`)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec(`CREATE TABLE IF NOT EXISTS runs (
+		id       INTEGER PRIMARY KEY AUTOINCREMENT,
+		username TEXT    NOT NULL,
+		ts       INTEGER NOT NULL,
+		label    TEXT    NOT NULL,
+		lines    TEXT    NOT NULL DEFAULT '[]'
+	)`)
+	if err != nil {
+		return err
+	}
+	_, err = DB.Exec(`CREATE INDEX IF NOT EXISTS runs_user_ts ON runs (username, ts DESC)`)
 	return err
 }
 
@@ -64,4 +81,63 @@ func UpsertToken(username string, t *SpotifyToken) error {
 func HasToken(username string) bool {
 	_, err := GetToken(username)
 	return err == nil
+}
+
+// ── Run history ───────────────────────────────────────────────────────────────
+
+type Run struct {
+	Ts    int64    `json:"ts"`    // Unix ms (ready for new Date(ts) in JS)
+	Label string   `json:"label"`
+	Lines []string `json:"lines"`
+}
+
+func InsertRun(username, label string, lines []string) error {
+	linesJSON, err := json.Marshal(lines)
+	if err != nil {
+		return err
+	}
+	ts := time.Now().Unix()
+	if _, err := DB.Exec(
+		`INSERT INTO runs (username, ts, label, lines) VALUES (?, ?, ?, ?)`,
+		username, ts, label, string(linesJSON),
+	); err != nil {
+		return err
+	}
+	// Prune oldest rows beyond the cap.
+	_, err = DB.Exec(`
+		DELETE FROM runs WHERE username = ? AND id NOT IN (
+			SELECT id FROM runs WHERE username = ? ORDER BY ts DESC LIMIT ?
+		)`, username, username, runsMax)
+	return err
+}
+
+func GetRuns(username string) ([]Run, error) {
+	rows, err := DB.Query(
+		`SELECT ts, label, lines FROM runs WHERE username = ? ORDER BY ts DESC LIMIT ?`,
+		username, runsMax,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var runs []Run
+	for rows.Next() {
+		var r Run
+		var ts int64
+		var linesJSON string
+		if err := rows.Scan(&ts, &r.Label, &linesJSON); err != nil {
+			return nil, err
+		}
+		r.Ts = ts * 1000 // convert seconds → ms for JS new Date()
+		if err := json.Unmarshal([]byte(linesJSON), &r.Lines); err != nil {
+			r.Lines = []string{}
+		}
+		runs = append(runs, r)
+	}
+	return runs, rows.Err()
+}
+
+func DeleteRuns(username string) error {
+	_, err := DB.Exec(`DELETE FROM runs WHERE username = ?`, username)
+	return err
 }

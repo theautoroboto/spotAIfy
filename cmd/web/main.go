@@ -290,6 +290,50 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ── History handlers ──────────────────────────────────────────────────────────
+
+func handleHistoryGet(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+	runs, err := db.GetRuns(username)
+	if err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+	if runs == nil {
+		runs = []db.Run{} // encode as [] not null
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(runs)
+}
+
+type saveRunReq struct {
+	Label string   `json:"label"`
+	Lines []string `json:"lines"`
+}
+
+func handleHistorySave(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+	var req saveRunReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	if err := db.InsertRun(username, req.Label, req.Lines); err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func handleHistoryClear(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+	if err := db.DeleteRuns(username); err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func handleCancel(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
 	run, ok := getRun(runID)
@@ -428,6 +472,9 @@ func main() {
 	protected.HandleFunc("POST /run", handleRun)
 	protected.HandleFunc("GET /stream/{id}", handleStream)
 	protected.HandleFunc("DELETE /run/{id}", handleCancel)
+	protected.HandleFunc("GET /history", handleHistoryGet)
+	protected.HandleFunc("POST /history", handleHistorySave)
+	protected.HandleFunc("DELETE /history", handleHistoryClear)
 
 	mux.Handle("/", auth.RequireAuth(protected))
 
