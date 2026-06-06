@@ -5,6 +5,7 @@ export (data/history/Streaming_History_Audio_*.json).
 Signals computed per track:
   completion_rate  — fraction of plays where reason_end == "trackdone"
   skip_rate        — fraction of plays where skipped == True
+  ms_played_total  — total milliseconds listened across all plays
 
 Artist-level signal:
   is_new_discovery — True when a candidate's artist has never appeared in history
@@ -13,7 +14,7 @@ All data is loaded lazily on first use and held in memory for the session.
 """
 
 from __future__ import annotations
-import glob
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 
@@ -46,9 +47,14 @@ def _load() -> None:
                 artists.add(artist.lower())
 
             stats = track_stats.setdefault(track_id, {
-                "play_count": 0, "completion_count": 0, "skip_count": 0
+                "play_count": 0, "completion_count": 0, "skip_count": 0,
+                "ms_played_total": 0, "last_played_ts": "",
             })
             stats["play_count"] += 1
+            stats["ms_played_total"] += r.get("ms_played") or 0
+            ts = r.get("ts") or ""
+            if ts > stats["last_played_ts"]:
+                stats["last_played_ts"] = ts
             if r.get("reason_end") == "trackdone":
                 stats["completion_count"] += 1
             if r.get("skipped"):
@@ -68,6 +74,41 @@ def _get_profile() -> tuple[dict[str, dict], set[str]]:
     if _profile is None:
         _load()
     return _profile, _known_artists  # type: ignore[return-value]
+
+
+def get_top_track_ids(n: int = 100) -> list[str]:
+    """Return the top-N track IDs ranked by total milliseconds played."""
+    profile, _ = _get_profile()
+    ranked = sorted(profile.items(), key=lambda kv: -kv[1]["ms_played_total"])
+    return [tid for tid, _ in ranked[:n]]
+
+
+def get_forgotten_favorites(
+    min_plays: int = 3,
+    min_completion: float = 0.4,
+    stale_days: int = 90,
+) -> list[str]:
+    """
+    Return track IDs the user used to love but hasn't played recently.
+
+    Criteria: play_count >= min_plays AND completion_rate >= min_completion
+    AND last played more than stale_days ago.
+    Sorted by ms_played_total descending (most-loved first).
+    """
+    profile, _ = _get_profile()
+    cutoff_ts = (
+        datetime.now(timezone.utc) - timedelta(days=stale_days)
+    ).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    candidates = [
+        (tid, stats)
+        for tid, stats in profile.items()
+        if (stats["play_count"] >= min_plays
+            and stats["completion_rate"] >= min_completion
+            and stats.get("last_played_ts", "") < cutoff_ts)
+    ]
+    candidates.sort(key=lambda kv: -kv[1]["ms_played_total"])
+    return [tid for tid, _ in candidates]
 
 
 def enrich_candidates(candidates: list[dict]) -> None:
@@ -95,4 +136,7 @@ def enrich_candidates(candidates: list[dict]) -> None:
         else:
             c.setdefault("completion_rate", 0.0)
             c.setdefault("skip_rate", 0.0)
-            c["is_new_discovery"] = artist not in known_artists if artist else False
+            if artist:
+                c["is_new_discovery"] = artist not in known_artists
+            else:
+                c.setdefault("is_new_discovery", False)

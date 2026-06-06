@@ -20,9 +20,13 @@ def mock_deps(mocker):
     mocker.patch("spotaify.agent_tools.traverse_graph")
     mocker.patch("spotaify.agent_tools.get_all_artist_names")
     mocker.patch("spotaify.agent_tools.expand_track_dna")
+    mocker.patch("spotaify.agent_tools.enrich_candidates")
+    mocker.patch("spotaify.agent_tools.get_forgotten_favorites")
+    mocker.patch("spotaify.agent_tools.build_taste_profile")
+    mocker.patch("spotaify.agent_tools._load_taste_profile")
 
 def test_tools_list_has_correct_count():
-    assert len(agent_tools.TOOLS) == 12
+    assert len(agent_tools.TOOLS) == 14
 
 def test_all_tools_have_required_fields():
     for tool in agent_tools.TOOLS:

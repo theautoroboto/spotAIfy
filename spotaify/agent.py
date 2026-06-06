@@ -17,6 +17,8 @@ _SYSTEM_PROMPT_TEXT = """You are an expert music curator. You build playlists in
 
 **Connection mode**: Map every artist connected to a seed (band members, side projects, collabs) via MusicBrainz. Call map_artist_connections at depth=1 (expand to depth=2 only if fewer than 8 artists are returned), then fetch_artist_top_tracks on at most 15 artists, then rank_and_select. Narrate connections in plain English.
 
+**Rediscovery mode**: Build a playlist from tracks the user historically loved but hasn't played recently. Call forgotten_favorites (passing stale_days and min_plays from the prompt), then rank_and_select (boost_discovery=False), then create_spotify_playlist. Optionally call get_taste_profile first to surface the user's audio fingerprint for context.
+
 **DNA mode**: Deep-dive a single track's creative DNA. Call fetch_whosampled(queried track) exactly once. Its response has two fields:
 - `samples`: recordings the queried track pulled material from → call resolve_samples on this list → include those tracks (the queried track borrows from them)
 - `sampled_by`: recordings that pulled material from the queried track → call resolve_samples on this list → include those tracks (they borrow from the queried track)
@@ -91,6 +93,10 @@ def _fmt_call(name: str, inp: dict) -> str:
         role = inp.get("role", "")
         return f'Tracks by {inp["person_name"]}{f" ({role})" if role else ""}'
     if name == "create_spotify_playlist": return f'Creating playlist: "{inp["name"]}"'
+    if name == "forgotten_favorites":
+        return f'Forgotten favorites (stale {inp.get("stale_days", 90)}d, min {inp.get("min_plays", 3)} plays)'
+    if name == "get_taste_profile":
+        return "Loading taste profile"
     return f'{name}({json.dumps(inp)[:80]})'
 
 
@@ -129,6 +135,14 @@ def _fmt_result(name: str, result: dict) -> str:
             n = len(result.get(key, []))
             if n: parts.append(f'{n} {label}{"s" if n != 1 else ""}')
         return ", ".join(parts) if parts else "No credits found"
+    if name == "forgotten_favorites":
+        n = result.get("count", 0); total = result.get("total_found", n)
+        return f'{n} tracks (of {total} forgotten)'
+    if name == "get_taste_profile":
+        fp = result.get("fingerprint", {})
+        era = result.get("era_distribution", {})
+        top = max(era, key=era.get) if era else "unknown"
+        return f'energy={fp.get("energy", 0):.2f} valence={fp.get("valence", 0):.2f} · top era: {top}'
     return str(result)[:120]
 
 
@@ -256,7 +270,11 @@ def run_agent(prompt: str) -> None:
 def build_prompt(args: argparse.Namespace) -> str:
     parts = []
 
-    if args.dna:
+    if args.rediscovery:
+        parts.append(f"Rediscovery mode: build a playlist from tracks I used to love but haven't played in at least {args.stale_days} days.")
+        parts.append(f"Use minimum {args.min_plays} past plays as the loved threshold.")
+
+    elif args.dna:
         track_ref = f"'{args.dna}' by '{args.dna_artist}'" if args.dna_artist else f"'{args.dna}'"
         parts.append(f"DNA mode: deep-dive the track {track_ref}. Include: (1) every recording it directly samples, (2) every recording that directly sampled it, (3) any original whose melody it confirmed interpolates. Nothing else.")
 
@@ -304,6 +322,9 @@ def main():
     parser.add_argument("--energy", help="Energy range e.g. 0.7-1.0")
     parser.add_argument("--valence", help="Valence range e.g. 0.3-0.6")
     parser.add_argument("--tempo", help="Tempo range e.g. 120-180")
+    parser.add_argument("--rediscovery", action="store_true", help="Build rediscovery playlist from listening history")
+    parser.add_argument("--stale-days", type=int, default=90, dest="stale_days", help="Days since last play threshold")
+    parser.add_argument("--min-plays", type=int, default=3, dest="min_plays", help="Minimum past play count")
     parser.add_argument("--count", type=int, default=20, help="Target playlist length")
     args = parser.parse_args()
 
