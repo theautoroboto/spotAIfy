@@ -3,6 +3,11 @@
 {{define "content"}}
 {{if not .SpotifyLinked}}
 <div class="banner-warning">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;color:var(--err)">
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/>
+    <line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
   Your Spotify account isn't connected yet.
   <a href="/spotify/connect" class="btn btn-sm btn-spotify">Connect Spotify</a>
 </div>
@@ -84,30 +89,30 @@
             <label for="count">Tracks <span class="info-icon" data-tip="Number of tracks to include in the final playlist (5–50)." tabindex="0" aria-label="More info">?</span></label>
             <input id="count" name="count" type="number" value="20" min="5" max="50">
           </div>
-          <div>
+          <div class="audio-filter">
             <label>Energy <span class="info-icon" data-tip="Audio energy from 0.0 (calm/quiet) to 1.0 (intense/loud)." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-energy-fill"></div></div>
-              <input type="range" class="dr-thumb" id="energy_min" name="energy_min" min="0" max="100" value="0" step="5" oninput="syncDR('energy',0,100,100)">
-              <input type="range" class="dr-thumb" id="energy_max" name="energy_max" min="0" max="100" value="100" step="5" oninput="syncDR('energy',0,100,100)">
+              <input type="range" class="dr-thumb" id="energy_min" name="energy_min" min="0" max="100" value="0" step="5" oninput="syncDR('energy',0,100,100)" aria-label="Energy minimum">
+              <input type="range" class="dr-thumb" id="energy_max" name="energy_max" min="0" max="100" value="100" step="5" oninput="syncDR('energy',0,100,100)" aria-label="Energy maximum">
               <div class="dr-vals"><span id="dr-energy-lo">0.00</span><span id="dr-energy-hi">1.00</span></div>
             </div>
           </div>
-          <div>
+          <div class="audio-filter">
             <label>Valence <span class="info-icon" data-tip="Emotional positivity from 0.0 (dark/sad) to 1.0 (bright/happy)." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-valence-fill"></div></div>
-              <input type="range" class="dr-thumb" id="valence_min" name="valence_min" min="0" max="100" value="0" step="5" oninput="syncDR('valence',0,100,100)">
-              <input type="range" class="dr-thumb" id="valence_max" name="valence_max" min="0" max="100" value="100" step="5" oninput="syncDR('valence',0,100,100)">
+              <input type="range" class="dr-thumb" id="valence_min" name="valence_min" min="0" max="100" value="0" step="5" oninput="syncDR('valence',0,100,100)" aria-label="Valence minimum">
+              <input type="range" class="dr-thumb" id="valence_max" name="valence_max" min="0" max="100" value="100" step="5" oninput="syncDR('valence',0,100,100)" aria-label="Valence maximum">
               <div class="dr-vals"><span id="dr-valence-lo">0.00</span><span id="dr-valence-hi">1.00</span></div>
             </div>
           </div>
-          <div>
+          <div class="audio-filter">
             <label>Tempo BPM <span class="info-icon" data-tip="Beats per minute. E.g. 120–140 for dance, 60–80 for ballads." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-tempo-fill"></div></div>
-              <input type="range" class="dr-thumb" id="tempo_min" name="tempo_min" min="40" max="300" value="40" step="1" oninput="syncDR('tempo',40,300,0)">
-              <input type="range" class="dr-thumb" id="tempo_max" name="tempo_max" min="40" max="300" value="300" step="1" oninput="syncDR('tempo',40,300,0)">
+              <input type="range" class="dr-thumb" id="tempo_min" name="tempo_min" min="40" max="300" value="40" step="1" oninput="syncDR('tempo',40,300,0)" aria-label="Tempo minimum BPM">
+              <input type="range" class="dr-thumb" id="tempo_max" name="tempo_max" min="40" max="300" value="300" step="1" oninput="syncDR('tempo',40,300,0)" aria-label="Tempo maximum BPM">
               <div class="dr-vals"><span id="dr-tempo-lo">40</span><span id="dr-tempo-hi">300</span></div>
             </div>
           </div>
@@ -125,11 +130,17 @@
   <!-- ── Output pane ── -->
   <section class="output-panel">
     <div class="output-header">
-      <span>Agent output</span>
+      <span>Agent output <span id="run-dot" class="run-dot hidden"></span></span>
       <button id="clear-btn" class="btn btn-sm btn-ghost" onclick="clearOutput()" style="display:none">Clear</button>
     </div>
     <div id="output" class="output-log" aria-live="polite">
-      <span class="muted">Output will appear here once the agent starts…</span>
+      <div class="output-empty">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.5rem;opacity:0.4">
+          <circle cx="9" cy="21" r="1"/><circle cx="15" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Output will appear here once the agent starts.
+      </div>
     </div>
   </section>
 </div>
@@ -146,13 +157,21 @@
 <script>
 function switchMode(mode) {
   document.querySelectorAll('.mode-fields').forEach(el => el.classList.add('hidden'));
-  document.getElementById('fields-' + mode).classList.remove('hidden');
-  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery');
+  const next = document.getElementById('fields-' + mode);
+  next.classList.remove('hidden');
+  next.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna');
+  document.querySelectorAll('.audio-filter').forEach(el =>
+    el.classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery'));
 }
 
 function clearOutput() {
   const out = document.getElementById('output');
-  out.innerHTML = '<span class="muted">Output will appear here once the agent starts…</span>';
+  const empty = document.createElement('div');
+  empty.className = 'output-empty';
+  empty.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.5rem;opacity:0.4"><circle cx="9" cy="21" r="1"/><circle cx="15" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Output will appear here once the agent starts.';
+  out.innerHTML = '';
+  out.appendChild(empty);
   document.getElementById('clear-btn').style.display = 'none';
 }
 
@@ -175,20 +194,35 @@ syncDR('energy', 0, 100, 100);
 syncDR('valence', 0, 100, 100);
 syncDR('tempo', 40, 300, 0);
 
+function _shakeField(id) {
+  const el = document.getElementById(id);
+  el.classList.add('field-error');
+  el.focus();
+  el.addEventListener('input', () => el.classList.remove('field-error'), { once: true });
+  setTimeout(() => el.classList.remove('field-error'), 1500);
+}
+
 let activeSource = null;
 let currentRunId = null;
 
 document.getElementById('run-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const mode = document.querySelector('input[name="mode"]:checked')?.value || 'sonic';
+  if (mode === 'sonic' && !document.getElementById('prompt').value.trim()) { _shakeField('prompt'); return; }
+  if (mode === 'connection' && !document.getElementById('artist').value.trim()) { _shakeField('artist'); return; }
+  if (mode === 'dna' && !document.getElementById('dna_track').value.trim()) { _shakeField('dna_track'); return; }
   if (activeSource) { activeSource.close(); activeSource = null; }
 
   const btn = document.getElementById('run-btn');
   const cancelBtn = document.getElementById('cancel-btn');
   btn.disabled = true; btn.textContent = 'Running…';
+  cancelBtn.disabled = false; cancelBtn.textContent = 'Stop';
   cancelBtn.style.display = '';
+  document.querySelector('.output-panel').classList.add('running');
+  document.getElementById('run-dot').classList.remove('hidden');
 
   const out = document.getElementById('output');
-  if (out.children.length > 0 && !out.querySelector('.muted')) {
+  if (out.children.length > 0 && !out.querySelector('.output-empty')) {
     const sep = document.createElement('div');
     sep.className = 'run-separator';
     out.appendChild(sep);
@@ -196,6 +230,9 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
     out.innerHTML = '';
   }
   document.getElementById('clear-btn').style.display = 'none';
+  if (window.innerWidth <= 860) {
+    document.querySelector('.output-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   const data = new FormData(e.target);
   const runLabel = _histLabel(data);
@@ -218,13 +255,19 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
   } catch (err) {
     appendLine(out, '[error] Network error: ' + err.message, 'err');
     btn.disabled = false; btn.textContent = 'Generate playlist';
-    cancelBtn.style.display = 'none'; return;
+    cancelBtn.style.display = 'none';
+    document.querySelector('.output-panel').classList.remove('running');
+    document.getElementById('run-dot').classList.add('hidden');
+    return;
   }
   if (!resp.ok) {
     const msg = await resp.text();
     appendLine(out, '[error] ' + msg, 'err');
     btn.disabled = false; btn.textContent = 'Generate playlist';
-    cancelBtn.style.display = 'none'; return;
+    cancelBtn.style.display = 'none';
+    document.querySelector('.output-panel').classList.remove('running');
+    document.getElementById('run-dot').classList.add('hidden');
+    return;
   }
 
   const { runId } = await resp.json();
@@ -239,13 +282,16 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
     else if (line.startsWith('  <-')) appendLine(out, line, 'tool-result');
     else if (line.startsWith('[error]')) appendLine(out, line, 'err');
     else appendLine(out, line, '');
-    out.scrollTop = out.scrollHeight;
+    const atBottom = out.scrollHeight - out.scrollTop - out.clientHeight < 50;
+    if (atBottom) out.scrollTop = out.scrollHeight;
   };
 
   const onDone = () => {
     es.close(); activeSource = null; currentRunId = null;
     btn.disabled = false; btn.textContent = 'Generate playlist';
     cancelBtn.style.display = 'none';
+    document.querySelector('.output-panel').classList.remove('running');
+    document.getElementById('run-dot').classList.add('hidden');
     document.getElementById('clear-btn').style.display = '';
     _saveHistory(runLabel, runLines);
   };
@@ -255,38 +301,46 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
 
 async function cancelRun() {
   if (!currentRunId) return;
+  const cancelBtn = document.getElementById('cancel-btn');
+  cancelBtn.disabled = true; cancelBtn.textContent = 'Stopping…';
   await fetch('/run/' + currentRunId, { method: 'DELETE' }).catch(() => {});
 }
 
 // ── History ──────────────────────────────────────────────────────────────────
-const _HIST_KEY = 'spotaify-history';
-const _HIST_MAX = 5;
 
 function _histLabel(data) {
   const mode = data.get('mode');
   if (mode === 'dna') return `DNA: "${data.get('dna_track') || ''}"`;
   if (mode === 'connection') return `Connection: "${data.get('artist') || ''}"`;
+  if (mode === 'rediscovery') return 'Rediscovery';
   const p = (data.get('prompt') || '').trim();
   return p ? `Sonic: "${p}"` : 'Sonic run';
 }
 
-function _saveHistory(label, lines) {
+async function _saveHistory(label, lines) {
   try {
-    const runs = JSON.parse(localStorage.getItem(_HIST_KEY) || '[]');
-    runs.unshift({ ts: new Date().toISOString(), label, lines: lines.slice(0, 100) });
-    if (runs.length > _HIST_MAX) runs.length = _HIST_MAX;
-    localStorage.setItem(_HIST_KEY, JSON.stringify(runs));
+    await fetch('/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label, lines: lines.slice(0, 100) }),
+    });
   } catch(e) {}
   _renderHistory();
 }
 
-function clearHistory() {
-  localStorage.removeItem(_HIST_KEY);
+async function clearHistory() {
+  try {
+    await fetch('/history', { method: 'DELETE' });
+  } catch(e) {}
   _renderHistory();
 }
 
-function _renderHistory() {
-  const runs = JSON.parse(localStorage.getItem(_HIST_KEY) || '[]');
+async function _renderHistory() {
+  let runs = [];
+  try {
+    const r = await fetch('/history');
+    if (r.ok) runs = await r.json();
+  } catch(e) {}
   const panel = document.getElementById('history-panel');
   const list = document.getElementById('history-list');
   panel.classList.toggle('hidden', runs.length === 0);
@@ -298,9 +352,22 @@ function _renderHistory() {
     d.className = 'history-item';
     const s = document.createElement('summary');
     s.className = 'history-summary';
-    s.innerHTML = `<span class="history-time">${new Date(run.ts).toLocaleString()}</span>` +
-                  `<span class="history-label">${run.label}</span>` +
-                  (url ? `<a href="${url}" target="_blank" rel="noopener" class="playlist-link history-link" onclick="event.stopPropagation()">Open playlist</a>` : '');
+    const timeEl = document.createElement('span');
+    timeEl.className = 'history-time';
+    timeEl.textContent = new Date(run.ts).toLocaleString();
+    const labelEl = document.createElement('span');
+    labelEl.className = 'history-label';
+    labelEl.textContent = run.label;
+    s.appendChild(timeEl);
+    s.appendChild(labelEl);
+    if (url) {
+      const linkEl = document.createElement('a');
+      linkEl.href = url; linkEl.target = '_blank'; linkEl.rel = 'noopener';
+      linkEl.className = 'playlist-link history-link';
+      linkEl.textContent = 'Open playlist';
+      linkEl.onclick = e => e.stopPropagation();
+      s.appendChild(linkEl);
+    }
     const c = document.createElement('div');
     c.className = 'history-content output-log';
     (run.lines || []).forEach(line => {
@@ -321,6 +388,7 @@ function appendLine(container, text, cls) {
   el.className = 'log-line' + (cls ? ' ' + cls : '');
   const m = text.match(/(Done — )(https?:\/\/\S+)/);
   if (m) {
+    el.classList.add('log-done');
     el.appendChild(document.createTextNode(m[1]));
     const a = document.createElement('a');
     a.href = m[2]; a.textContent = 'Open playlist';
