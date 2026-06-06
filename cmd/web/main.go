@@ -316,13 +316,15 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		pd, _ = spotify.FetchProfileData(accessToken)
 	}
 
-	// Enrich top tracks with album art + Spotify URLs.
+	// Enrich top tracks with album art + Spotify URLs + audio features.
+	var audioFeatures *spotify.AudioFeaturesSummary
 	if spotifyErr == nil && len(hist.TopTracks) > 0 {
 		ids := make([]string, 0, len(hist.TopTracks))
 		for _, t := range hist.TopTracks {
 			ids = append(ids, t.TrackID)
 		}
 		trackMeta := spotify.FetchTracksMeta(accessToken, ids)
+		audioFeatures = spotify.FetchAudioFeaturesSummary(accessToken, ids)
 
 		// Collect unique artist IDs so we can fetch artist images in one batch.
 		artistIDByTrackID := map[string]string{}
@@ -370,7 +372,8 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		"Username":      username,
 		"SpotifyLinked": db.HasToken(username),
 		"History":       hist,
-		"Spotify":       pd, // may be nil if not connected
+		"Spotify":       pd,     // may be nil if not connected
+		"Audio":         audioFeatures, // may be nil if not connected
 	})
 }
 

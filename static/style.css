@@ -985,6 +985,147 @@ input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
 .track-stat-secondary { font-size: 0.7rem; color: var(--muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
 .track-time   { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 
+/* ── Aura hero wrap ──────────────────────────────────────────────────────────── */
+.aura-wrap { position: relative; }
+.has-aura  {
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  min-height: 200px;
+  background: var(--surface);
+}
+#music-aura {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.aura-inner { position: relative; z-index: 1; padding: 1.75rem 1.5rem 0.5rem; }
+.has-aura .profile-hero { margin-bottom: 0.5rem; }
+.has-aura .profile-name { text-shadow: 0 1px 8px rgba(0,0,0,0.6); }
+.has-aura .profile-avatar {
+  border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.3);
+}
+
+/* ── Vibe strip ───────────────────────────────────────────────────────────────── */
+.vibe-strip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.5rem 1.125rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 100%);
+}
+.vibe-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex: 1;
+  min-width: 0;
+}
+.vibe-emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.5));
+}
+.vibe-text { min-width: 0; }
+.vibe-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+  letter-spacing: -0.01em;
+}
+.vibe-desc {
+  font-size: 0.76rem;
+  color: rgba(255,255,255,0.72);
+  margin-top: 0.15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vibe-tempo {
+  text-align: right;
+  flex-shrink: 0;
+}
+.vibe-tempo-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+  font-variant-numeric: tabular-nums;
+  display: block;
+  line-height: 1;
+}
+.vibe-tempo-unit {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Sound DNA section ───────────────────────────────────────────────────────── */
+.dna-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+.radar-wrap {
+  display: flex;
+  justify-content: center;
+}
+#radar-chart { display: block; }
+
+.attr-list { display: flex; flex-direction: column; gap: 0.7rem; }
+.attr-row  { display: flex; align-items: center; gap: 0.625rem; }
+.attr-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 6rem;
+  flex-shrink: 0;
+}
+.attr-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.attr-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.attr-bar-energy       { background: linear-gradient(90deg, #ef4444, #f97316); }
+.attr-bar-dance        { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+.attr-bar-valence      { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.attr-bar-acoustic     { background: linear-gradient(90deg, #10b981, #34d399); }
+.attr-bar-instrumental { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.attr-bar-live         { background: linear-gradient(90deg, #14b8a6, #2dd4bf); }
+.attr-pct {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 2.25rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .dna-layout { grid-template-columns: 1fr; }
+  .radar-wrap { justify-content: flex-start; }
+  .vibe-desc  { white-space: normal; }
+  .has-aura   { min-height: 170px; }
+}
+
 /* ── Chart color palette ─────────────────────────────────────────────────────── */
 :root {
   --c1: #f59e0b; --c1-bg: rgba(245,158,11,0.12);

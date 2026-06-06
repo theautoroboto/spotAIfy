@@ -282,6 +282,131 @@ func FetchProfileData(token string) (*ProfileData, error) {
 	return &pd, nil
 }
 
+// ── Audio features ────────────────────────────────────────────────────────────
+
+type spAudioFeature struct {
+	ID               string  `json:"id"`
+	Danceability     float64 `json:"danceability"`
+	Energy           float64 `json:"energy"`
+	Speechiness      float64 `json:"speechiness"`
+	Acousticness     float64 `json:"acousticness"`
+	Instrumentalness float64 `json:"instrumentalness"`
+	Liveness         float64 `json:"liveness"`
+	Valence          float64 `json:"valence"`
+	Tempo            float64 `json:"tempo"`
+}
+
+// AudioFeaturesSummary holds averaged audio attributes across the user's top tracks.
+type AudioFeaturesSummary struct {
+	Danceability     float64
+	Energy           float64
+	Valence          float64
+	Acousticness     float64
+	Instrumentalness float64
+	Liveness         float64
+	Tempo            float64
+	TrackCount       int
+	VibeLabel        string
+	VibeEmoji        string
+	VibeDesc         string
+	PrimaryHue       int // 0–360 — drives canvas colour palette
+	Saturation       int // 0–100
+}
+
+// FetchAudioFeaturesSummary fetches Spotify audio features for up to 100 track IDs
+// and returns averaged attributes. Returns nil on any failure.
+func FetchAudioFeaturesSummary(token string, trackIDs []string) *AudioFeaturesSummary {
+	if len(trackIDs) == 0 {
+		return nil
+	}
+	ids := trackIDs
+	if len(ids) > 100 {
+		ids = ids[:100]
+	}
+
+	var all []spAudioFeature
+	for i := 0; i < len(ids); i += 100 {
+		batch := ids[i:]
+		if len(batch) > 100 {
+			batch = batch[:100]
+		}
+		var resp struct {
+			AudioFeatures []spAudioFeature `json:"audio_features"`
+		}
+		if err := spotifyGet(token, "/audio-features?ids="+strings.Join(batch, ","), &resp); err != nil {
+			continue
+		}
+		all = append(all, resp.AudioFeatures...)
+	}
+
+	var (
+		sumD, sumE, sumV, sumA, sumI, sumL, sumT float64
+		n                                         float64
+	)
+	for _, f := range all {
+		if f.ID == "" {
+			continue
+		}
+		sumD += f.Danceability
+		sumE += f.Energy
+		sumV += f.Valence
+		sumA += f.Acousticness
+		sumI += f.Instrumentalness
+		sumL += f.Liveness
+		sumT += f.Tempo
+		n++
+	}
+	if n == 0 {
+		return nil
+	}
+
+	s := &AudioFeaturesSummary{
+		Danceability:     sumD / n,
+		Energy:           sumE / n,
+		Valence:          sumV / n,
+		Acousticness:     sumA / n,
+		Instrumentalness: sumI / n,
+		Liveness:         sumL / n,
+		Tempo:            sumT / n,
+		TrackCount:       int(n),
+	}
+	// Hue mapping: valence 0 → 230 (cool blue/indigo), valence 1 → 30 (warm amber)
+	s.PrimaryHue = int(230 - s.Valence*200)
+	s.Saturation = int(35 + s.Energy*60)
+	s.VibeLabel, s.VibeEmoji, s.VibeDesc = computeVibe(s)
+	return s
+}
+
+func computeVibe(s *AudioFeaturesSummary) (label, emoji, desc string) {
+	e, v, d, a, in := s.Energy, s.Valence, s.Danceability, s.Acousticness, s.Instrumentalness
+	switch {
+	case in > 0.55:
+		return "Instrumental Dreamer", "🎹", "Pure sound, no words needed — music that speaks in texture and feeling"
+	case e > 0.75 && v > 0.65 && d > 0.65:
+		return "Dance Floor Legend", "🕺", "High-energy, euphoric, built to move — the life of every party"
+	case e > 0.75 && v < 0.35:
+		return "Dark Energy", "⚡", "Intense and raw — music that hits hard with a brooding emotional core"
+	case e > 0.70 && d > 0.65:
+		return "Relentless Groover", "🔥", "High-tempo, off-the-charts danceability — you simply don't stop moving"
+	case e > 0.65 && v >= 0.35 && v <= 0.65:
+		return "Driven Explorer", "🚀", "Powerful and focused — music that fuels ambition and momentum"
+	case a > 0.65 && e < 0.45:
+		return "Acoustic Soul", "🎸", "Intimate and organic — raw sounds stripped to their emotional core"
+	case e < 0.35 && v > 0.55:
+		return "Zen Wanderer", "🌅", "Calm and luminous — music that soothes without losing warmth"
+	case e < 0.40 && v < 0.35:
+		return "Midnight Poet", "🌙", "Deep, reflective, beautifully melancholic — music for quiet hours"
+	case e < 0.50 && v < 0.45 && a > 0.40:
+		return "Introspective", "🌧", "Quiet intensity — acoustic textures carrying real emotional weight"
+	case d > 0.70:
+		return "Groove Architect", "🎧", "Rhythmically precise and endlessly listenable — built for the groove"
+	case v > 0.65:
+		return "Eternal Optimist", "☀️", "Consistently warm and uplifting — music as a source of pure joy"
+	default:
+		return "Eclectic Mind", "🎶", "A rich, balanced palette — curious, open, and impossible to pin down"
+	}
+}
+
 // ── Metadata enrichment ───────────────────────────────────────────────────────
 
 type TrackMeta struct {

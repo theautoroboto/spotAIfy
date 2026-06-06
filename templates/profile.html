@@ -3,31 +3,64 @@
 {{define "content"}}
 {{$h := .History}}
 {{$sp := .Spotify}}
+{{$af := .Audio}}
 
-<!-- ── Hero ── -->
-<div class="profile-hero">
-  {{if and $sp $sp.User.ImageURL}}
-  <img class="profile-avatar" src="{{$sp.User.ImageURL}}" alt="" width="80" height="80">
-  {{else}}
-  <div class="profile-avatar profile-avatar-placeholder">
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-    </svg>
-  </div>
+<!-- ── Hero with canvas aura ── -->
+<div class="aura-wrap{{if $af}} has-aura{{end}}">
+  {{if $af}}
+  <canvas id="music-aura" aria-hidden="true"
+    data-hue="{{$af.PrimaryHue}}"
+    data-sat="{{$af.Saturation}}"
+    data-energy="{{printf "%.3f" $af.Energy}}"
+    data-valence="{{printf "%.3f" $af.Valence}}"
+    data-dance="{{printf "%.3f" $af.Danceability}}"
+    data-acoustic="{{printf "%.3f" $af.Acousticness}}"
+    data-tempo="{{printf "%.1f" $af.Tempo}}"
+  ></canvas>
   {{end}}
-  <div class="profile-hero-info">
-    <h1 class="profile-name">
-      {{if and $sp $sp.User.DisplayName}}{{$sp.User.DisplayName}}{{else}}{{.Username}}{{end}}
-    </h1>
-    <div class="profile-meta">
-      {{if and $sp $sp.User.Followers}}<span>{{$sp.User.Followers}} followers</span>{{end}}
-      {{if and $sp $sp.User.SpotifyURL}}
-        <a href="{{$sp.User.SpotifyURL}}" target="_blank" rel="noopener" class="playlist-link">Open in Spotify</a>
+  <div class="aura-inner">
+    <div class="profile-hero">
+      {{if and $sp $sp.User.ImageURL}}
+      <img class="profile-avatar" src="{{$sp.User.ImageURL}}" alt="" width="80" height="80">
+      {{else}}
+      <div class="profile-avatar profile-avatar-placeholder">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
       {{end}}
-      {{if and $sp $sp.MissingScopes}}
-        <a href="/spotify/connect" class="btn btn-sm btn-spotify" style="margin-left:0.5rem">Reconnect for full stats</a>
-      {{end}}
+      <div class="profile-hero-info">
+        <h1 class="profile-name">
+          {{if and $sp $sp.User.DisplayName}}{{$sp.User.DisplayName}}{{else}}{{.Username}}{{end}}
+        </h1>
+        <div class="profile-meta">
+          {{if and $sp $sp.User.Followers}}<span>{{$sp.User.Followers}} followers</span>{{end}}
+          {{if and $sp $sp.User.SpotifyURL}}
+            <a href="{{$sp.User.SpotifyURL}}" target="_blank" rel="noopener" class="playlist-link">Open in Spotify</a>
+          {{end}}
+          {{if and $sp $sp.MissingScopes}}
+            <a href="/spotify/connect" class="btn btn-sm btn-spotify" style="margin-left:0.5rem">Reconnect for full stats</a>
+          {{end}}
+        </div>
+      </div>
     </div>
+
+    {{if $af}}
+    <!-- Vibe badge overlaid on aura -->
+    <div class="vibe-strip">
+      <div class="vibe-badge">
+        <span class="vibe-emoji" aria-hidden="true">{{$af.VibeEmoji}}</span>
+        <div class="vibe-text">
+          <div class="vibe-label">{{$af.VibeLabel}}</div>
+          <div class="vibe-desc">{{$af.VibeDesc}}</div>
+        </div>
+      </div>
+      <div class="vibe-tempo">
+        <span class="vibe-tempo-val">{{printf "%.0f" $af.Tempo}}</span>
+        <span class="vibe-tempo-unit">avg BPM</span>
+      </div>
+    </div>
+    {{end}}
   </div>
 </div>
 
@@ -52,6 +85,76 @@
     <div class="stat-pill-label">listening since</div>
   </div>
   {{end}}
+</div>
+{{end}}
+
+<!-- ── Sound DNA ── -->
+{{if $af}}
+<div class="profile-section">
+  <h2 class="section-title">Sound DNA <span class="section-sub">from {{$af.TrackCount}} tracks</span></h2>
+  <div class="dna-layout">
+
+    <!-- Radar chart -->
+    <div class="radar-wrap">
+      <canvas id="radar-chart" width="220" height="220"
+        data-hue="{{$af.PrimaryHue}}"
+        data-sat="{{$af.Saturation}}"
+        data-dance="{{printf "%.3f" $af.Danceability}}"
+        data-energy="{{printf "%.3f" $af.Energy}}"
+        data-valence="{{printf "%.3f" $af.Valence}}"
+        data-acoustic="{{printf "%.3f" $af.Acousticness}}"
+        data-instrumental="{{printf "%.3f" $af.Instrumentalness}}"
+        data-liveness="{{printf "%.3f" $af.Liveness}}"
+      ></canvas>
+    </div>
+
+    <!-- Attribute bars -->
+    <div class="attr-list">
+      <div class="attr-row">
+        <span class="attr-name">Energy</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-energy" style="width:{{pct $af.Energy}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Energy}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Danceability</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-dance" style="width:{{pct $af.Danceability}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Danceability}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Positivity</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-valence" style="width:{{pct $af.Valence}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Valence}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Acousticness</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-acoustic" style="width:{{pct $af.Acousticness}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Acousticness}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Instrumental</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-instrumental" style="width:{{pct $af.Instrumentalness}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Instrumentalness}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Liveness</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-live" style="width:{{pct $af.Liveness}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Liveness}}%</span>
+      </div>
+    </div>
+
+  </div>
 </div>
 {{end}}
 
@@ -167,7 +270,7 @@
 </div>
 {{end}}
 
-<!-- ── Full top artists list ── -->
+<!-- ── Full top artists grid ── -->
 {{if $h.TopArtists}}
 <div class="profile-section">
   <h2 class="section-title">All Artists <span class="section-sub">by listening time</span></h2>
@@ -294,13 +397,256 @@
 </div>
 {{end}}
 
+<!-- ── Scripts ── -->
 <script>
-// Hourly chart
+// ── Musical Aura canvas (Round 1) ──────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('music-aura');
+  if (!canvas) return;
+  const d      = canvas.dataset;
+  const hue    = parseInt(d.hue)   || 200;
+  const sat    = parseInt(d.sat)   || 60;
+  const energy = parseFloat(d.energy)   || 0.5;
+  const valence= parseFloat(d.valence)  || 0.5;
+  const dance  = parseFloat(d.dance)    || 0.5;
+  const acoustic = parseFloat(d.acoustic) || 0.5;
+  const tempo  = parseFloat(d.tempo)    || 120;
+  const ctx    = canvas.getContext('2d');
+  let W, H, blobs, particles;
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight || 280;
+    init();
+  }
+
+  function init() {
+    // Atmospheric blobs
+    blobs = [];
+    const bc = 4 + Math.round(energy * 3);
+    for (let i = 0; i < bc; i++) {
+      blobs.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: 100 + Math.random() * 220,
+        hue: hue + (i * 30 % 80) - 40,
+        speed: 0.15 + Math.random() * 0.35 * energy,
+        phase: Math.random() * Math.PI * 2,
+        alpha: 0.12 + Math.random() * 0.18,
+      });
+    }
+    // Flow particles
+    particles = [];
+    const pc = Math.round(50 + energy * 130);
+    for (let i = 0; i < pc; i++) {
+      particles.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: 0.8 + Math.random() * (1.2 + energy * 2),
+        hue: hue + (Math.random() - 0.5) * 50,
+        spd: 0.4 + Math.random() * energy * 1.8,
+        phase: Math.random() * Math.PI * 2,
+        alpha: 0.35 + Math.random() * 0.5,
+      });
+    }
+  }
+
+  function flowAngle(x, y, t) {
+    return Math.sin(x * 0.004 + t * 0.5) * Math.PI
+         + Math.cos(y * 0.005 - t * 0.37) * Math.PI * 0.7
+         + Math.sin((x + y) * 0.003 + t * 0.28) * Math.PI * 0.3;
+  }
+
+  let t = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Layer 1 — rich base gradient
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0,   `hsl(${hue},     ${sat}%,     8%)`);
+    bg.addColorStop(0.4, `hsl(${hue+20},  ${sat-10}%,  6%)`);
+    bg.addColorStop(0.7, `hsl(${hue-15},  ${sat+10}%,  10%)`);
+    bg.addColorStop(1,   `hsl(${hue+40},  ${sat}%,     7%)`);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Layer 2 — atmospheric blobs
+    blobs.forEach((b, i) => {
+      b.x += Math.sin(t * b.speed + b.phase) * 0.55;
+      b.y += Math.cos(t * b.speed * 0.72 + b.phase) * 0.42;
+      if (b.x < -b.r) b.x = W + b.r;
+      if (b.x > W+b.r) b.x = -b.r;
+      if (b.y < -b.r) b.y = H + b.r;
+      if (b.y > H+b.r) b.y = -b.r;
+      const rg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      rg.addColorStop(0, `hsla(${b.hue}, ${sat+20}%, 55%, ${b.alpha})`);
+      rg.addColorStop(1, `hsla(${b.hue}, ${sat}%,   30%, 0)`);
+      ctx.fillStyle = rg;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Layer 3 — sine wave interference
+    const wc = Math.round(3 + energy * 4);
+    for (let w = 0; w < wc; w++) {
+      ctx.beginPath();
+      const wAlpha = (0.035 + acoustic * 0.05) * (1 - w * 0.12);
+      ctx.strokeStyle = `hsla(${hue + w * 22}, ${sat+10}%, 72%, ${wAlpha})`;
+      ctx.lineWidth = 1.2 + acoustic;
+      const freq = (tempo / 120) * (0.007 + w * 0.003);
+      const amp  = H * 0.13 * (0.5 + energy * 0.5);
+      const yBase = H * (0.18 + w * 0.14);
+      for (let x = 0; x <= W; x += 2) {
+        const y = yBase
+          + Math.sin(x * freq + t * (0.8 + dance * 0.6) + w) * amp
+          + Math.sin(x * freq * 1.7 - t * 0.5 + w * 1.5) * amp * 0.35;
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    // Layer 4 — flow field particles
+    ctx.save();
+    particles.forEach(p => {
+      const angle = flowAngle(p.x, p.y, t);
+      p.x += Math.cos(angle) * p.spd;
+      p.y += Math.sin(angle) * p.spd;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      ctx.shadowBlur = acoustic > 0.5 ? 5 : 2;
+      ctx.shadowColor = `hsla(${p.hue}, ${sat}%, 70%, 0.4)`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${p.hue}, ${sat+20}%, 75%, ${p.alpha})`;
+      ctx.fill();
+    });
+    ctx.restore();
+
+    // Layer 5 — readability vignette
+    const vg = ctx.createLinearGradient(0, 0, 0, H);
+    vg.addColorStop(0,   'rgba(0,0,0,0.0)');
+    vg.addColorStop(0.45,'rgba(0,0,0,0.1)');
+    vg.addColorStop(1,   'rgba(0,0,0,0.7)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, W, H);
+
+    t += 0.008 + energy * 0.011;
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+})();
+
+// ── Radar chart ───────────────────────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('radar-chart');
+  if (!canvas) return;
+  const d   = canvas.dataset;
+  const hue = parseInt(d.hue || 200);
+  const sat = parseInt(d.sat || 60);
+  const vals   = [
+    parseFloat(d.dance        || 0),
+    parseFloat(d.energy       || 0),
+    parseFloat(d.valence      || 0),
+    parseFloat(d.acoustic     || 0),
+    parseFloat(d.instrumental || 0),
+    parseFloat(d.liveness     || 0),
+  ];
+  const labels = ['Dance','Energy','Mood','Acoustic','Instru.','Live'];
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R  = Math.min(W, H) / 2 - 36;
+  const N  = 6;
+
+  function pt(axis, val) {
+    const a = (axis / N) * Math.PI * 2 - Math.PI / 2;
+    return { x: cx + Math.cos(a) * R * val, y: cy + Math.sin(a) * R * val };
+  }
+
+  let prog = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid rings
+    for (let ring = 1; ring <= 4; ring++) {
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) {
+        const p = pt(i, ring / 4);
+        i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `hsla(${hue}, 30%, 60%, ${ring === 4 ? 0.25 : 0.12})`;
+      ctx.lineWidth = ring === 4 ? 1.5 : 1;
+      ctx.stroke();
+    }
+
+    // Axis spokes
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, 1);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(p.x, p.y);
+      ctx.strokeStyle = `hsla(${hue}, 25%, 55%, 0.2)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Animated data polygon
+    const av = vals.map(v => v * prog);
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, av[i]);
+      i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = `hsla(${hue}, ${sat}%, 60%, 0.22)`;
+    ctx.fill();
+    ctx.strokeStyle = `hsla(${hue}, ${sat+10}%, 72%, 0.9)`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Vertex dots
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, av[i]);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${hue}, ${sat+10}%, 78%)`;
+      ctx.fill();
+    }
+
+    // Labels
+    ctx.font = 'bold 9.5px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, 1.28);
+      ctx.fillStyle = `hsla(${hue}, 20%, 72%, 0.9)`;
+      ctx.fillText(labels[i], p.x, p.y);
+      // Show percentage near vertex
+      const pv = pt(i, av[i]);
+      if (prog > 0.95) {
+        ctx.font = '8px system-ui';
+        ctx.fillStyle = `hsla(${hue}, ${sat}%, 82%, 0.8)`;
+        ctx.fillText(Math.round(vals[i] * 100) + '%', pv.x, pv.y - 8);
+        ctx.font = 'bold 9.5px system-ui, sans-serif';
+      }
+    }
+
+    if (prog < 1) {
+      prog = Math.min(1, prog + 0.025);
+      requestAnimationFrame(draw);
+    }
+  }
+  draw();
+})();
+
+// ── Hourly chart ───────────────────────────────────────────────────────────────
 (function() {
   const wrap = document.getElementById('hourly-chart');
   if (!wrap) return;
   const vals = wrap.dataset.vals.trim().split(/\s+/).map(Number);
-  const max = Math.max(...vals, 1);
+  const max  = Math.max(...vals, 1);
   vals.forEach((v, i) => {
     const bar = document.createElement('div');
     bar.className = 'hourly-bar';
@@ -311,7 +657,7 @@
   });
 })();
 
-// Relative timestamps for recently played
+// ── Relative timestamps ────────────────────────────────────────────────────────
 document.querySelectorAll('.track-time[data-ts]').forEach(el => {
   const diff = Math.floor((Date.now() - parseInt(el.dataset.ts, 10) * 1000) / 1000);
   if (diff < 60)         el.textContent = 'just now';
