@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -17,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"spotaify-web/internal/ai"
 	"spotaify-web/internal/auth"
 	"spotaify-web/internal/db"
 	"spotaify-web/internal/history"
@@ -63,8 +65,9 @@ func deleteRun(id string) {
 var tmpls map[string]*template.Template
 
 var tmplFuncs = template.FuncMap{
-	"add": func(a, b int) int { return a + b },
-	"pct": func(f float64) int { return int(f * 100) },
+	"add":        func(a, b int) int { return a + b },
+	"pct":        func(f float64) int { return int(f * 100) },
+	"paragraphs": func(s string) []string { return strings.Split(strings.TrimSpace(s), "\n\n") },
 }
 
 func loadTemplates() {
@@ -103,6 +106,67 @@ func envOr(key, fallback string) string {
 	return fallback
 }
 
+// realIP returns the client IP, preferring X-Forwarded-For set by Caddy.
+func realIP(r *http.Request) string {
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		if ip := strings.TrimSpace(strings.SplitN(xff, ",", 2)[0]); ip != "" {
+			return ip
+		}
+	}
+	host, _, _ := net.SplitHostPort(r.RemoteAddr)
+	if host != "" {
+		return host
+	}
+	return r.RemoteAddr
+}
+
+// safeNext validates the redirect target to prevent open-redirect attacks.
+func safeNext(next string) string {
+	if next == "" || !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") {
+		return "/"
+	}
+	return next
+}
+
+// requestLogger logs method, path, and response status for every request.
+func requestLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rw := &statusWriter{ResponseWriter: w, status: 200}
+		next.ServeHTTP(rw, r)
+		log.Printf("%s %s %d [%s]", r.Method, r.URL.RequestURI(), rw.status, realIP(r))
+	})
+}
+
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (sw *statusWriter) WriteHeader(code int) {
+	sw.status = code
+	sw.ResponseWriter.WriteHeader(code)
+}
+
+// securityHeaders adds defensive HTTP headers to every response.
+func securityHeaders(next http.Handler) http.Handler {
+	const csp = "default-src 'self'; " +
+		"script-src 'self' 'unsafe-inline' https://unpkg.com; " +
+		"style-src 'self' 'unsafe-inline'; " +
+		"img-src 'self' data: https://*.scdn.co https://*.spotifycdn.com; " +
+		"connect-src 'self'; " +
+		"frame-ancestors 'none'"
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("X-Frame-Options", "DENY")
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		h.Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+		h.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		h.Set("Content-Security-Policy", csp)
+		next.ServeHTTP(w, r)
+	})
+}
+
 // ── Handlers ─────────────────────────────────────────────────────────────────
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -122,12 +186,18 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		render(w, "login.html", map[string]any{"Next": r.URL.Query().Get("next")})
 		return
 	}
+	next := safeNext(r.FormValue("next"))
+
+	if !auth.LoginAllowed(realIP(r)) {
+		render(w, "login.html", map[string]any{
+			"Error": "Too many login attempts. Please try again later.",
+			"Next":  next,
+		})
+		return
+	}
+
 	username := strings.TrimSpace(r.FormValue("username"))
 	password := r.FormValue("password")
-	next := r.FormValue("next")
-	if next == "" {
-		next = "/"
-	}
 	if !auth.CheckPassword(username, password) {
 		render(w, "login.html", map[string]any{"Error": "Invalid username or password.", "Next": next})
 		return
@@ -275,14 +345,14 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 				flusher.Flush()
 				return
 			}
-			fmt.Fprintf(w, "data: %s\n\n", template.HTMLEscapeString(line))
+			fmt.Fprintf(w, "data: %s\n\n", line)
 			flusher.Flush()
 		case <-run.done:
 			// Drain remaining lines.
 			for {
 				select {
 				case line := <-run.lines:
-					fmt.Fprintf(w, "data: %s\n\n", template.HTMLEscapeString(line))
+					fmt.Fprintf(w, "data: %s\n\n", line)
 					flusher.Flush()
 				default:
 					fmt.Fprintf(w, "event: done\ndata: \n\n")
@@ -303,7 +373,7 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Load local streaming history (primary data source).
 	histDir := envOr("HISTORY_DIR", "data/history")
-	hist, err := history.Load(histDir)
+	hist, err := history.Load(filepath.Join(histDir, username))
 	if err != nil {
 		http.Error(w, "failed to load history: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -318,6 +388,8 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Enrich top tracks with album art + Spotify URLs + audio features.
 	var audioFeatures *spotify.AudioFeaturesSummary
+	var recommendations []spotify.Recommendation
+	var persona *ai.Persona
 	if spotifyErr == nil && len(hist.TopTracks) > 0 {
 		ids := make([]string, 0, len(hist.TopTracks))
 		for _, t := range hist.TopTracks {
@@ -365,15 +437,127 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
+
+		// ── Recommendations + Persona (parallel) ─────────────────────────────
+
+		// Seed artist IDs: top 5 from listening history.
+		var seedArtistIDs []string
+		for _, a := range hist.TopArtists {
+			if len(seedArtistIDs) >= 5 {
+				break
+			}
+			if aid, ok := artistIDByName[a.ArtistName]; ok {
+				seedArtistIDs = append(seedArtistIDs, aid)
+			}
+		}
+
+		// Known artists set for filtering recommendations.
+		knownArtists := make(map[string]struct{}, len(hist.TopArtists))
+		for _, a := range hist.TopArtists {
+			knownArtists[a.ArtistName] = struct{}{}
+		}
+
+		// Persona input: aggregate stats.
+		var totalPlays, totalSkip, totalCompl int
+		for _, t := range hist.TopTracks {
+			totalPlays += t.PlayCount
+			totalSkip += t.SkipCount
+			totalCompl += t.CompletionCount
+		}
+		avgSkip, avgCompl := 0.0, 0.0
+		if totalPlays > 0 {
+			avgSkip = float64(totalSkip) / float64(totalPlays)
+			avgCompl = float64(totalCompl) / float64(totalPlays)
+		}
+		peak := 0
+		for h, v := range hist.HourlyPattern {
+			if v > hist.HourlyPattern[peak] {
+				peak = h
+			}
+		}
+		var topArtistNames []string
+		for _, a := range hist.TopArtists {
+			topArtistNames = append(topArtistNames, a.ArtistName)
+			if len(topArtistNames) >= 5 {
+				break
+			}
+		}
+		var topGenres []string
+		if pd != nil {
+			for _, g := range pd.Insights.TopGenres {
+				topGenres = append(topGenres, g.Genre)
+				if len(topGenres) >= 5 {
+					break
+				}
+			}
+		}
+		if len(topGenres) == 0 {
+			seen := map[string]bool{}
+			for _, a := range hist.TopArtists {
+				for _, g := range a.Genres {
+					if !seen[g] {
+						topGenres = append(topGenres, g)
+						seen[g] = true
+					}
+					if len(topGenres) >= 5 {
+						break
+					}
+				}
+				if len(topGenres) >= 5 {
+					break
+				}
+			}
+		}
+
+		var wg2 sync.WaitGroup
+		wg2.Add(2)
+		go func() {
+			defer wg2.Done()
+			recommendations = spotify.FetchRecommendations(accessToken, seedArtistIDs, audioFeatures, knownArtists)
+		}()
+		go func() {
+			defer wg2.Done()
+			if audioFeatures != nil {
+				earliestYear := 0
+				if !hist.EarliestPlay.IsZero() {
+					earliestYear = hist.EarliestPlay.Year()
+				}
+				inp := ai.PersonaInput{
+					Energy:            audioFeatures.Energy,
+					Danceability:      audioFeatures.Danceability,
+					Valence:           audioFeatures.Valence,
+					Acousticness:      audioFeatures.Acousticness,
+					Instrumentalness:  audioFeatures.Instrumentalness,
+					Liveness:          audioFeatures.Liveness,
+					Tempo:             audioFeatures.Tempo,
+					VibeLabel:         audioFeatures.VibeLabel,
+					VibeDesc:          audioFeatures.VibeDesc,
+					TotalHours:        hist.TotalHours(),
+					EarliestYear:      earliestYear,
+					YearsActive:       len(hist.YearlyTrend),
+					UniqueArtists:     hist.UniqueArtistCount,
+					UniqueTracks:      hist.UniqueTrackCount,
+					TopArtistNames:    topArtistNames,
+					TopGenres:         topGenres,
+					PeakHour:          peak,
+					AvgSkipRate:       avgSkip,
+					AvgCompletionRate: avgCompl,
+				}
+				persona, _ = ai.GeneratePersona(inp)
+			}
+		}()
+		wg2.Wait()
 	}
 
 	render(w, "profile.html", map[string]any{
-		"Title":         "Profile",
-		"Username":      username,
-		"SpotifyLinked": db.HasToken(username),
-		"History":       hist,
-		"Spotify":       pd,     // may be nil if not connected
-		"Audio":         audioFeatures, // may be nil if not connected
+		"Title":           "Profile",
+		"Username":        username,
+		"SpotifyLinked":   db.HasToken(username),
+		"History":         hist,
+		"Spotify":         pd,
+		"Audio":           audioFeatures,
+		"Recommendations": recommendations,
+		"Persona":         persona,
 	})
 }
 
@@ -568,7 +752,7 @@ func main() {
 
 	port := envOr("PORT", "8000")
 	log.Printf("spotAIfy web — listening on :%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, requestLogger(securityHeaders(mux))); err != nil {
 		log.Fatal(err)
 	}
 }

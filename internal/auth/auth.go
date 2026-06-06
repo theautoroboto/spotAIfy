@@ -6,16 +6,66 @@ import (
 	"encoding/base64"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	Users         map[string]string // username → bcrypt hash
+	Users         map[string]string
 	sessionSecret []byte
+	dummyHash     []byte
 )
 
-// ParseUsers parses "alice:$2b$...,bob:$2b$..." from the USERS env var.
+func init() {
+	// Pre-compute a dummy hash so unknown-username lookups take the same
+	// time as valid ones, preventing username enumeration via timing.
+	dummyHash, _ = bcrypt.GenerateFromPassword([]byte("dummy-timing-defense"), bcrypt.DefaultCost)
+}
+
+// ── Rate limiter ──────────────────────────────────────────────────────────────
+
+const (
+	maxLoginAttempts = 10
+	loginWindow      = 15 * time.Minute
+)
+
+type ipBucket struct {
+	mu      sync.Mutex
+	count   int
+	resetAt time.Time
+}
+
+var (
+	rateMu  sync.Mutex
+	buckets = make(map[string]*ipBucket)
+)
+
+// LoginAllowed returns true if the IP is within the rate limit and increments
+// the counter. Call before checking credentials.
+func LoginAllowed(ip string) bool {
+	rateMu.Lock()
+	b, ok := buckets[ip]
+	if !ok {
+		b = &ipBucket{}
+		buckets[ip] = b
+	}
+	rateMu.Unlock()
+
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	now := time.Now()
+	if now.After(b.resetAt) {
+		b.count = 0
+		b.resetAt = now.Add(loginWindow)
+	}
+	b.count++
+	return b.count <= maxLoginAttempts
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
 func ParseUsers(usersEnv string) map[string]string {
 	out := make(map[string]string)
 	for _, pair := range strings.Split(usersEnv, ",") {
@@ -34,6 +84,8 @@ func SetSecret(secret string) { sessionSecret = []byte(secret) }
 func CheckPassword(username, password string) bool {
 	hash, ok := Users[username]
 	if !ok {
+		// Always run bcrypt to prevent username enumeration via timing.
+		bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
 		return false
 	}
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
@@ -53,7 +105,8 @@ func SetSession(w http.ResponseWriter, username string) {
 		Value:    value,
 		Path:     "/",
 		HttpOnly: true,
-		SameSite: http.SameSiteDefaultMode,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 		MaxAge:   86400 * 7,
 	})
 }
@@ -79,7 +132,12 @@ func GetSession(r *http.Request) (string, bool) {
 }
 
 func ClearSession(w http.ResponseWriter) {
-	http.SetCookie(w, &http.Cookie{Name: "session", MaxAge: -1, Path: "/"})
+	http.SetCookie(w, &http.Cookie{
+		Name:   "session",
+		MaxAge: -1,
+		Path:   "/",
+		Secure: true,
+	})
 }
 
 // RequireAuth wraps a handler and redirects to /login if not authenticated.

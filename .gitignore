@@ -6,10 +6,13 @@ __pycache__/
 
 /.spotify_token_cache
 /.cache
-data/history/*.json
+data/history/**/*.json
 
 *.log
 *.lock
+
+/certs/
+/Caddyfile
 
 /learning/*
 data/cache/*
