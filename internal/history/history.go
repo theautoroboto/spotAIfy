@@ -1,6 +1,6 @@
 // Package history reads Spotify Extended Streaming History JSON exports
-// (Streaming_History_Audio_*.json) and computes per-track and per-artist
-// listening stats for the profile page.
+// (Streaming_History_Audio_*.json) and computes per-track, per-artist,
+// and per-year listening stats for the profile page.
 package history
 
 import (
@@ -15,14 +15,14 @@ import (
 // ── Raw record shape from the export ─────────────────────────────────────────
 
 type rawRecord struct {
-	Ts          string  `json:"ts"`
-	MsPlayed    int64   `json:"ms_played"`
-	TrackName   string  `json:"master_metadata_track_name"`
-	ArtistName  string  `json:"master_metadata_album_artist_name"`
-	AlbumName   string  `json:"master_metadata_album_album_name"`
-	TrackURI    string  `json:"spotify_track_uri"`
-	ReasonEnd   string  `json:"reason_end"`
-	Skipped     *bool   `json:"skipped"`
+	Ts         string `json:"ts"`
+	MsPlayed   int64  `json:"ms_played"`
+	TrackName  string `json:"master_metadata_track_name"`
+	ArtistName string `json:"master_metadata_album_artist_name"`
+	AlbumName  string `json:"master_metadata_album_album_name"`
+	TrackURI   string `json:"spotify_track_uri"`
+	ReasonEnd  string `json:"reason_end"`
+	Skipped    *bool  `json:"skipped"`
 }
 
 // ── Public types ──────────────────────────────────────────────────────────────
@@ -48,9 +48,7 @@ func (t *TrackStats) CompletionRate() float64 {
 	return float64(t.CompletionCount) / float64(t.PlayCount)
 }
 
-func (t *TrackStats) HoursPlayed() float64 {
-	return float64(t.MsPlayedTotal) / 3_600_000
-}
+func (t *TrackStats) HoursPlayed() float64 { return float64(t.MsPlayedTotal) / 3_600_000 }
 
 type ArtistStats struct {
 	ArtistName       string
@@ -63,19 +61,35 @@ type ArtistStats struct {
 	Genres     []string
 }
 
-func (a *ArtistStats) HoursPlayed() float64 {
-	return float64(a.MsPlayedTotal) / 3_600_000
+func (a *ArtistStats) HoursPlayed() float64 { return float64(a.MsPlayedTotal) / 3_600_000 }
+
+type YearTopArtist struct {
+	Name          string
+	MsPlayedTotal int64
+	PlayCount     int
 }
+
+func (y *YearTopArtist) HoursPlayed() float64 { return float64(y.MsPlayedTotal) / 3_600_000 }
+
+type YearTopTrack struct {
+	TrackName     string
+	ArtistName    string
+	MsPlayedTotal int64
+	PlayCount     int
+}
+
+func (y *YearTopTrack) HoursPlayed() float64 { return float64(y.MsPlayedTotal) / 3_600_000 }
 
 type YearStats struct {
-	Year        int
-	PlayCount   int
-	MsPlayed    int64
+	Year       int
+	PlayCount  int
+	MsPlayed   int64
+	BarPct     int             // 0–100, normalized to busiest year
+	TopArtists []YearTopArtist // top 5 by ms played
+	TopTracks  []YearTopTrack  // top 5 by ms played
 }
 
-func (y *YearStats) HoursPlayed() float64 {
-	return float64(y.MsPlayed) / 3_600_000
-}
+func (y *YearStats) HoursPlayed() float64 { return float64(y.MsPlayed) / 3_600_000 }
 
 type Stats struct {
 	TotalMsPlayed     int64
@@ -102,11 +116,17 @@ func Load(dir string) (*Stats, error) {
 		return nil, err
 	}
 
-	trackMap := map[string]*TrackStats{}
+	trackMap  := map[string]*TrackStats{}
 	artistMap := map[string]*ArtistStats{}
-	yearMap := map[int]*YearStats{}
+	yearMap   := map[int]*YearStats{}
 	var hourly [24]int
 	var earliest, latest time.Time
+
+	// Per-year ms and play-count accumulators keyed by artist name / track ID.
+	yearArtistMs := map[int]map[string]int64{}
+	yearArtistCt := map[int]map[string]int{}
+	yearTrackMs  := map[int]map[string]int64{}
+	yearTrackCt  := map[int]map[string]int{}
 
 	for _, f := range files {
 		data, err := os.ReadFile(f)
@@ -126,29 +146,28 @@ func Load(dir string) (*Stats, error) {
 				continue
 			}
 			trackID := strings.TrimPrefix(r.TrackURI, "spotify:track:")
-
 			ts, _ := time.Parse(time.RFC3339, r.Ts)
 
 			// Track stats
-			ts_ := trackMap[trackID]
-			if ts_ == nil {
-				ts_ = &TrackStats{
+			tk := trackMap[trackID]
+			if tk == nil {
+				tk = &TrackStats{
 					TrackID:    trackID,
 					TrackName:  r.TrackName,
 					ArtistName: r.ArtistName,
 				}
-				trackMap[trackID] = ts_
+				trackMap[trackID] = tk
 			}
-			ts_.PlayCount++
-			ts_.MsPlayedTotal += r.MsPlayed
+			tk.PlayCount++
+			tk.MsPlayedTotal += r.MsPlayed
 			if r.ReasonEnd == "trackdone" {
-				ts_.CompletionCount++
+				tk.CompletionCount++
 			}
 			if r.Skipped != nil && *r.Skipped {
-				ts_.SkipCount++
+				tk.SkipCount++
 			}
-			if ts.After(ts_.LastPlayedAt) {
-				ts_.LastPlayedAt = ts
+			if ts.After(tk.LastPlayedAt) {
+				tk.LastPlayedAt = ts
 			}
 
 			// Artist stats
@@ -157,11 +176,9 @@ func Load(dir string) (*Stats, error) {
 			if as == nil {
 				as = &ArtistStats{ArtistName: artist}
 				artistMap[artist] = as
-				as.UniqueTrackCount = 0
 			}
 			as.MsPlayedTotal += r.MsPlayed
 			as.PlayCount++
-			// Count unique tracks per artist (approximated by checking trackMap later)
 
 			// Global timeline
 			if !ts.IsZero() {
@@ -172,6 +189,7 @@ func Load(dir string) (*Stats, error) {
 					latest = ts
 				}
 				hourly[ts.Local().Hour()]++
+
 				yr := ts.Year()
 				ys := yearMap[yr]
 				if ys == nil {
@@ -180,24 +198,36 @@ func Load(dir string) (*Stats, error) {
 				}
 				ys.PlayCount++
 				ys.MsPlayed += r.MsPlayed
+
+				// Per-year accumulators
+				if yearArtistMs[yr] == nil {
+					yearArtistMs[yr] = map[string]int64{}
+					yearArtistCt[yr] = map[string]int{}
+					yearTrackMs[yr]  = map[string]int64{}
+					yearTrackCt[yr]  = map[string]int{}
+				}
+				yearArtistMs[yr][artist] += r.MsPlayed
+				yearArtistCt[yr][artist]++
+				yearTrackMs[yr][trackID] += r.MsPlayed
+				yearTrackCt[yr][trackID]++
 			}
 		}
 	}
 
 	// Count unique tracks per artist
-	for _, ts := range trackMap {
-		if as, ok := artistMap[ts.ArtistName]; ok {
+	for _, tk := range trackMap {
+		if as, ok := artistMap[tk.ArtistName]; ok {
 			as.UniqueTrackCount++
 		}
 	}
 
 	// Total ms played
 	var totalMs int64
-	for _, ts := range trackMap {
-		totalMs += ts.MsPlayedTotal
+	for _, tk := range trackMap {
+		totalMs += tk.MsPlayedTotal
 	}
 
-	// Sort and cap top tracks
+	// Sort and cap top tracks (50)
 	allTracks := make([]*TrackStats, 0, len(trackMap))
 	for _, t := range trackMap {
 		allTracks = append(allTracks, t)
@@ -209,7 +239,7 @@ func Load(dir string) (*Stats, error) {
 		allTracks = allTracks[:50]
 	}
 
-	// Sort and cap top artists
+	// Sort and cap top artists (20)
 	allArtists := make([]*ArtistStats, 0, len(artistMap))
 	for _, a := range artistMap {
 		allArtists = append(allArtists, a)
@@ -219,6 +249,66 @@ func Load(dir string) (*Stats, error) {
 	})
 	if len(allArtists) > 20 {
 		allArtists = allArtists[:20]
+	}
+
+	// Find busiest year for BarPct normalization
+	var maxYearMs int64
+	for _, ys := range yearMap {
+		if ys.MsPlayed > maxYearMs {
+			maxYearMs = ys.MsPlayed
+		}
+	}
+
+	// Compute per-year top artists and tracks, and BarPct
+	type msEntry struct {
+		key string
+		ms  int64
+		ct  int
+	}
+	for yr, ys := range yearMap {
+		if maxYearMs > 0 {
+			ys.BarPct = int(ys.MsPlayed * 100 / maxYearMs)
+		}
+
+		// Top 5 artists this year
+		artistEntries := make([]msEntry, 0, len(yearArtistMs[yr]))
+		for k, ms := range yearArtistMs[yr] {
+			artistEntries = append(artistEntries, msEntry{k, ms, yearArtistCt[yr][k]})
+		}
+		sort.Slice(artistEntries, func(i, j int) bool { return artistEntries[i].ms > artistEntries[j].ms })
+		for i, e := range artistEntries {
+			if i >= 5 {
+				break
+			}
+			ys.TopArtists = append(ys.TopArtists, YearTopArtist{
+				Name:          e.key,
+				MsPlayedTotal: e.ms,
+				PlayCount:     e.ct,
+			})
+		}
+
+		// Top 5 tracks this year
+		trackEntries := make([]msEntry, 0, len(yearTrackMs[yr]))
+		for k, ms := range yearTrackMs[yr] {
+			trackEntries = append(trackEntries, msEntry{k, ms, yearTrackCt[yr][k]})
+		}
+		sort.Slice(trackEntries, func(i, j int) bool { return trackEntries[i].ms > trackEntries[j].ms })
+		for i, e := range trackEntries {
+			if i >= 5 {
+				break
+			}
+			name, artistName := e.key, ""
+			if tk := trackMap[e.key]; tk != nil {
+				name = tk.TrackName
+				artistName = tk.ArtistName
+			}
+			ys.TopTracks = append(ys.TopTracks, YearTopTrack{
+				TrackName:     name,
+				ArtistName:    artistName,
+				MsPlayedTotal: e.ms,
+				PlayCount:     e.ct,
+			})
+		}
 	}
 
 	// Yearly trend sorted ascending

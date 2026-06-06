@@ -985,6 +985,202 @@ input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
 .track-stat-secondary { font-size: 0.7rem; color: var(--muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
 .track-time   { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 
+/* ── Chart color palette ─────────────────────────────────────────────────────── */
+:root {
+  --c1: #f59e0b; --c1-bg: rgba(245,158,11,0.12);
+  --c2: #ef4444; --c2-bg: rgba(239,68,68,0.12);
+  --c3: #3b82f6; --c3-bg: rgba(59,130,246,0.12);
+  --c4: #8b5cf6; --c4-bg: rgba(139,92,246,0.12);
+  --c5: #10b981; --c5-bg: rgba(16,185,129,0.12);
+}
+
+/* ── Accent stat pill ────────────────────────────────────────────────────────── */
+.stat-pill-accent { border-color: var(--accent); }
+.stat-pill-accent .stat-pill-value { color: var(--accent); }
+
+/* ── Year timeline ───────────────────────────────────────────────────────────── */
+.year-timeline { display: flex; flex-direction: column; gap: 0.625rem; }
+
+.year-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.875rem 1.125rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.year-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+
+.year-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.year-number {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.75rem;
+  flex-shrink: 0;
+}
+.year-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.year-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent) 0%, #17c964 100%);
+  border-radius: 3px;
+  min-width: 2px;
+}
+.year-hours {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.year-plays {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.year-details { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.35rem; }
+
+.year-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.year-row-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-top: 0.2rem;
+  min-width: 3.25rem;
+  flex-shrink: 0;
+}
+.year-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+
+.ytag {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: default;
+}
+.ytag-1,  .ytag-t1 { color: var(--c1); background: var(--c1-bg); }
+.ytag-2,  .ytag-t2 { color: var(--c2); background: var(--c2-bg); }
+.ytag-3,  .ytag-t3 { color: var(--c3); background: var(--c3-bg); }
+.ytag-4,  .ytag-t4 { color: var(--c4); background: var(--c4-bg); }
+.ytag-5,  .ytag-t5 { color: var(--c5); background: var(--c5-bg); }
+.ytag-t1, .ytag-t2, .ytag-t3, .ytag-t4, .ytag-t5 { opacity: 0.85; }
+
+/* ── Hall of Fame ────────────────────────────────────────────────────────────── */
+.hof-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+.hof-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.hof-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.12s, border-color 0.12s;
+}
+.hof-row:hover { background: var(--surface2); border-color: var(--accent); }
+.hof-row-nolink { cursor: default; }
+.hof-row-nolink:hover { background: var(--surface); border-color: var(--border); }
+
+.hof-rank {
+  font-size: 0.9rem;
+  font-weight: 800;
+  min-width: 1.25rem;
+  text-align: center;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.hof-rank-1 { color: #f59e0b; }
+.hof-rank-2 { color: #94a3b8; }
+.hof-rank-3 { color: #b45309; }
+
+.hof-img {
+  width: 40px; height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.hof-img-placeholder {
+  width: 40px; height: 40px;
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.hof-info { flex: 1; min-width: 0; }
+.hof-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hof-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.hof-genre {
+  font-size: 0.65rem;
+  color: var(--tool);
+  background: var(--tool-border);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hof-pct {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ── Genre tag color variants ────────────────────────────────────────────────── */
+.gtag-1 { color: var(--c1) !important; background: var(--c1-bg) !important; border-color: var(--c1) !important; }
+.gtag-2 { color: var(--c2) !important; background: var(--c2-bg) !important; border-color: var(--c2) !important; }
+.gtag-3 { color: var(--c3) !important; background: var(--c3-bg) !important; border-color: var(--c3) !important; }
+.gtag-4 { color: var(--c4) !important; background: var(--c4-bg) !important; border-color: var(--c4) !important; }
+.gtag-5 { color: var(--c5) !important; background: var(--c5-bg) !important; border-color: var(--c5) !important; }
+
 /* ── Profile mobile ──────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .profile-hero { gap: 0.875rem; }
@@ -996,6 +1192,9 @@ input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
   .insights-grid { grid-template-columns: 1fr; }
   .top-grid { grid-template-columns: 1fr; }
   .track-stat-secondary { display: none; }
+  .hof-grid { grid-template-columns: 1fr; }
+  .year-plays { display: none; }
+  .ytag { max-width: 140px; }
 }
 
 /* ── Reduced motion ─────────────────────────────────────────────────────────── */

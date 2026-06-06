@@ -31,7 +31,7 @@
   </div>
 </div>
 
-<!-- ── All-time stats ── -->
+<!-- ── All-time stat pills ── -->
 {{if $h.TotalMsPlayed}}
 <div class="stat-row">
   <div class="stat-pill">
@@ -47,7 +47,7 @@
     <div class="stat-pill-label">unique artists</div>
   </div>
   {{if not $h.EarliestPlay.IsZero}}
-  <div class="stat-pill">
+  <div class="stat-pill stat-pill-accent">
     <div class="stat-pill-value">{{$h.EarliestPlay.Year}}</div>
     <div class="stat-pill-label">listening since</div>
   </div>
@@ -55,49 +55,111 @@
 </div>
 {{end}}
 
-<!-- ── Two-col insights: taste profile + listening patterns ── -->
-{{if or (and $sp $sp.Insights.TopGenres) $h.YearlyTrend}}
-<div class="insights-grid">
-
-  {{if and $sp $sp.Insights.TopGenres}}
-  <div class="stat-card">
-    <div class="stat-card-label">Taste Profile</div>
-    <div class="stat-card-value">{{$sp.Insights.ObscurityLabel}}</div>
-    <div class="mainstream-bar-wrap" title="Mainstream score: {{$sp.Insights.MainstreamScore}}/100">
-      <div class="mainstream-bar" style="width:{{$sp.Insights.MainstreamScore}}%"></div>
-    </div>
-    <div class="mainstream-labels"><span>Underground</span><span>Mainstream</span></div>
-    <div class="genre-list" style="margin-top:1rem">
-      {{range $sp.Insights.TopGenres}}
-      <span class="genre-tag">{{.Genre}}</span>
-      {{end}}
-    </div>
-  </div>
-  {{end}}
-
-  {{if $h.YearlyTrend}}
-  <div class="stat-card">
-    <div class="stat-card-label">Listening by Year</div>
-    <div class="era-bars">
-      {{range $h.YearlyTrend}}
-      <div class="era-row">
-        <span class="era-label">{{.Year}}</span>
-        <div class="era-bar-track">
-          <div class="era-bar-fill history-bar" style="width:{{printf "%.0f" .HoursPlayed}}px" data-val="{{printf "%.0f" .HoursPlayed}}h"></div>
+<!-- ── Year-by-year timeline ── -->
+{{if $h.YearlyTrend}}
+<div class="profile-section">
+  <h2 class="section-title">Year by Year <span class="section-sub">listening history</span></h2>
+  <div class="year-timeline">
+    {{range $h.YearlyTrend}}
+    <div class="year-card">
+      <div class="year-header">
+        <span class="year-number">{{.Year}}</span>
+        <div class="year-bar-wrap">
+          <div class="year-bar-fill" style="width:{{.BarPct}}%"></div>
         </div>
-        <span class="era-pct">{{printf "%.0f" .HoursPlayed}}h</span>
+        <span class="year-hours">{{printf "%.0f" .HoursPlayed}}h</span>
+        <span class="year-plays">{{.PlayCount}} plays</span>
+      </div>
+      {{if or .TopArtists .TopTracks}}
+      <div class="year-details">
+        {{if .TopArtists}}
+        <div class="year-row">
+          <span class="year-row-label">Artists</span>
+          <div class="year-tags">
+            {{range $i, $a := .TopArtists}}
+            <span class="ytag ytag-{{add $i 1}}" title="{{printf "%.0f" $a.HoursPlayed}}h · {{$a.PlayCount}} plays">{{$a.Name}}</span>
+            {{end}}
+          </div>
+        </div>
+        {{end}}
+        {{if .TopTracks}}
+        <div class="year-row">
+          <span class="year-row-label">Tracks</span>
+          <div class="year-tags">
+            {{range $i, $t := .TopTracks}}
+            <span class="ytag ytag-t{{add $i 1}}" title="{{$t.ArtistName}} · {{$t.PlayCount}} plays">{{$t.TrackName}}</span>
+            {{end}}
+          </div>
+        </div>
+        {{end}}
       </div>
       {{end}}
     </div>
+    {{end}}
+  </div>
+</div>
+{{end}}
+
+<!-- ── Hall of Fame ── -->
+{{if or $h.TopArtists $h.TopTracks}}
+<div class="hof-grid">
+
+  {{if $h.TopArtists}}
+  <div class="profile-section">
+    <h2 class="section-title">Top Artists <span class="section-sub">all time</span></h2>
+    <div class="hof-list">
+      {{range $i, $a := $h.TopArtists}}
+      {{if lt $i 5}}
+      <a class="hof-row{{if $a.SpotifyURL}}{{else}} hof-row-nolink{{end}}"
+         {{if $a.SpotifyURL}}href="{{$a.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+        <span class="hof-rank hof-rank-{{add $i 1}}">{{add $i 1}}</span>
+        {{if $a.ImageURL}}
+        <img class="hof-img" src="{{$a.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+        {{else}}
+        <div class="hof-img hof-img-placeholder">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        {{end}}
+        <div class="hof-info">
+          <div class="hof-name">{{$a.ArtistName}}</div>
+          <div class="hof-sub">{{printf "%.1f" $a.HoursPlayed}}h · {{$a.PlayCount}} plays</div>
+        </div>
+        {{if $a.Genres}}<span class="hof-genre">{{index $a.Genres 0}}</span>{{end}}
+      </a>
+      {{end}}
+      {{end}}
+    </div>
   </div>
   {{end}}
 
-  {{if $h.HourlyPattern}}
-  <div class="stat-card">
-    <div class="stat-card-label">When You Listen</div>
-    <div class="hourly-chart" id="hourly-chart" data-vals="{{range $h.HourlyPattern}}{{.}} {{end}}"></div>
-    <div class="hourly-labels">
-      <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+  {{if $h.TopTracks}}
+  <div class="profile-section">
+    <h2 class="section-title">Top Tracks <span class="section-sub">all time</span></h2>
+    <div class="hof-list">
+      {{range $i, $t := $h.TopTracks}}
+      {{if lt $i 5}}
+      <a class="hof-row{{if $t.SpotifyURL}}{{else}} hof-row-nolink{{end}}"
+         {{if $t.SpotifyURL}}href="{{$t.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+        <span class="hof-rank hof-rank-{{add $i 1}}">{{add $i 1}}</span>
+        {{if $t.ImageURL}}
+        <img class="hof-img" src="{{$t.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+        {{else}}
+        <div class="hof-img hof-img-placeholder">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+        </div>
+        {{end}}
+        <div class="hof-info">
+          <div class="hof-name">{{$t.TrackName}}</div>
+          <div class="hof-sub">{{$t.ArtistName}} · {{printf "%.1f" $t.HoursPlayed}}h</div>
+        </div>
+        <span class="hof-pct">{{pct $t.CompletionRate}}%</span>
+      </a>
+      {{end}}
+      {{end}}
     </div>
   </div>
   {{end}}
@@ -105,10 +167,10 @@
 </div>
 {{end}}
 
-<!-- ── Top Artists ── -->
+<!-- ── Full top artists list ── -->
 {{if $h.TopArtists}}
 <div class="profile-section">
-  <h2 class="section-title">Top Artists <span class="section-sub">by listening time</span></h2>
+  <h2 class="section-title">All Artists <span class="section-sub">by listening time</span></h2>
   <div class="top-grid">
     {{range $i, $a := $h.TopArtists}}
     {{if lt $i 10}}
@@ -136,10 +198,10 @@
 </div>
 {{end}}
 
-<!-- ── Top Tracks ── -->
+<!-- ── Full top tracks list ── -->
 {{if $h.TopTracks}}
 <div class="profile-section">
-  <h2 class="section-title">Top Tracks <span class="section-sub">by listening time</span></h2>
+  <h2 class="section-title">All Tracks <span class="section-sub">by listening time</span></h2>
   <div class="track-list">
     {{range $i, $t := $h.TopTracks}}
     {{if lt $i 20}}
@@ -170,7 +232,40 @@
 </div>
 {{end}}
 
-<!-- ── Recently Played (from Spotify API) ── -->
+<!-- ── Taste DNA + Listening patterns ── -->
+{{if or (and $sp $sp.Insights.TopGenres) $h.HourlyPattern}}
+<div class="insights-grid">
+
+  {{if and $sp $sp.Insights.TopGenres}}
+  <div class="stat-card">
+    <div class="stat-card-label">Taste Profile</div>
+    <div class="stat-card-value">{{$sp.Insights.ObscurityLabel}}</div>
+    <div class="mainstream-bar-wrap" title="Mainstream score: {{$sp.Insights.MainstreamScore}}/100">
+      <div class="mainstream-bar" style="width:{{$sp.Insights.MainstreamScore}}%"></div>
+    </div>
+    <div class="mainstream-labels"><span>Underground</span><span>Mainstream</span></div>
+    <div class="genre-list" style="margin-top:1rem">
+      {{range $i, $g := $sp.Insights.TopGenres}}
+      <span class="genre-tag gtag-{{add $i 1}}">{{$g.Genre}}</span>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+
+  {{if $h.HourlyPattern}}
+  <div class="stat-card">
+    <div class="stat-card-label">When You Listen</div>
+    <div class="hourly-chart" id="hourly-chart" data-vals="{{range $h.HourlyPattern}}{{.}} {{end}}"></div>
+    <div class="hourly-labels">
+      <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+    </div>
+  </div>
+  {{end}}
+
+</div>
+{{end}}
+
+<!-- ── Recently Played (Spotify API) ── -->
 {{if and $sp $sp.Recent}}
 <div class="profile-section">
   <h2 class="section-title">Recently Played</h2>
@@ -213,18 +308,6 @@
     bar.title = `${i}:00 — ${v} plays`;
     if (i >= 8 && i <= 22) bar.classList.add('hourly-bar-active');
     wrap.appendChild(bar);
-  });
-})();
-
-// Scale era bars to max width
-(function() {
-  const bars = document.querySelectorAll('.history-bar');
-  let maxVal = 0;
-  bars.forEach(b => { maxVal = Math.max(maxVal, parseFloat(b.dataset.val) || 0); });
-  if (!maxVal) return;
-  bars.forEach(b => {
-    const v = parseFloat(b.dataset.val) || 0;
-    b.style.width = Math.round((v / maxVal) * 100) + '%';
   });
 })();
 
