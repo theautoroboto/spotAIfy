@@ -18,17 +18,21 @@ from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 
-_HISTORY_DIR = Path(__file__).parent.parent.parent / "data" / "history"
+from spotaify.config import history_dir_for as _history_dir_for
+import os as _os
+_HISTORY_DIR = Path(_history_dir_for(_os.environ.get("SPOTAIFY_USERNAME", "")))
 _GLOB = "Streaming_History_Audio_*.json"
 
 _profile: dict[str, dict] | None = None   # track_id → stats
 _known_artists: set[str] | None = None
+_artist_ms: dict[str, int] | None = None  # artist_name → total ms played
 
 
 def _load() -> None:
-    global _profile, _known_artists
+    global _profile, _known_artists, _artist_ms
     track_stats: dict[str, dict] = {}
     artists: set[str] = set()
+    artist_ms: dict[str, int] = {}
 
     for path in sorted(_HISTORY_DIR.glob(_GLOB)):
         try:
@@ -45,6 +49,7 @@ def _load() -> None:
             artist = (r.get("master_metadata_album_artist_name") or "").strip()
             if artist:
                 artists.add(artist.lower())
+                artist_ms[artist] = artist_ms.get(artist, 0) + (r.get("ms_played") or 0)
 
             stats = track_stats.setdefault(track_id, {
                 "play_count": 0, "completion_count": 0, "skip_count": 0,
@@ -68,12 +73,21 @@ def _load() -> None:
 
     _profile = track_stats
     _known_artists = artists
+    _artist_ms = artist_ms
 
 
 def _get_profile() -> tuple[dict[str, dict], set[str]]:
     if _profile is None:
         _load()
     return _profile, _known_artists  # type: ignore[return-value]
+
+
+def get_top_artists(n: int = 10) -> list[str]:
+    """Return top-N artist names by total ms played."""
+    _get_profile()
+    if not _artist_ms:
+        return []
+    return [name for name, _ in sorted(_artist_ms.items(), key=lambda kv: -kv[1])[:n]]
 
 
 def get_top_track_ids(n: int = 100) -> list[str]:

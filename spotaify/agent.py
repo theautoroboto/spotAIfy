@@ -19,6 +19,21 @@ _SYSTEM_PROMPT_TEXT = """You are an expert music curator. You build playlists in
 
 **Rediscovery mode**: Build a playlist from tracks the user historically loved but hasn't played recently. Call forgotten_favorites (passing stale_days and min_plays from the prompt), then rank_and_select (boost_discovery=False), then create_spotify_playlist. Optionally call get_taste_profile first to surface the user's audio fingerprint for context.
 
+**Setlist mode**: Build a playlist from an artist's actual live repertoire.
+1. Call get_setlist_tracks(artist_name) — returns songs ranked by `appearances` (how many shows featured them).
+2. Call rank_and_select on the returned tracks. Weight high-appearances tracks as fan favourites; treat low-appearances tracks as rarities worth highlighting.
+3. Call create_spotify_playlist.
+Narrate which songs are live staples vs. rarities based on appearance count.
+
+**Expand mode**: Discover new music beyond the user's current listening. Steps:
+1. Call get_history_top_artists(n=8) to find the most-played artists.
+2. Call map_artist_connections(depth=1) on the top 3-5 of those artists.
+3. Call get_spotify_recommendations to get Spotify's recommendation engine output seeded from history.
+4. Call fetch_artist_top_tracks on all unique connected artists from step 2.
+5. Merge both candidate pools and call rank_and_select with boost_discovery=True, prioritising is_new_discovery=True tracks.
+6. Call create_spotify_playlist.
+Narrate why each artist or track expands beyond the user's existing taste.
+
 **DNA mode**: Deep-dive a single track's creative DNA. Call fetch_whosampled(queried track) exactly once. Its response has two fields:
 - `samples`: recordings the queried track pulled material from → call resolve_samples on this list → include those tracks (the queried track borrows from them)
 - `sampled_by`: recordings that pulled material from the queried track → call resolve_samples on this list → include those tracks (they borrow from the queried track)
@@ -97,6 +112,12 @@ def _fmt_call(name: str, inp: dict) -> str:
         return f'Forgotten favorites (stale {inp.get("stale_days", 90)}d, min {inp.get("min_plays", 3)} plays)'
     if name == "get_taste_profile":
         return "Loading taste profile"
+    if name == "get_setlist_tracks":
+        return f'Setlist: {inp["artist_name"]} ({inp.get("setlist_pages", 3)} pages)'
+    if name == "get_history_top_artists":
+        return f'Top artists from history (n={inp.get("n", 10)})'
+    if name == "get_spotify_recommendations":
+        return f'Spotify recommendations (limit={inp.get("limit", 50)})'
     return f'{name}({json.dumps(inp)[:80]})'
 
 
@@ -143,6 +164,15 @@ def _fmt_result(name: str, result: dict) -> str:
         era = result.get("era_distribution", {})
         top = max(era, key=era.get) if era else "unknown"
         return f'energy={fp.get("energy", 0):.2f} valence={fp.get("valence", 0):.2f} · top era: {top}'
+    if name == "get_setlist_tracks":
+        n = result.get("count", 0)
+        return f'{n} live track{"s" if n != 1 else ""} resolved'
+    if name == "get_history_top_artists":
+        n = result.get("count", 0)
+        return f'{n} artists'
+    if name == "get_spotify_recommendations":
+        n = result.get("count", 0)
+        return f'{n} recommendation{"s" if n != 1 else ""}'
     return str(result)[:120]
 
 
@@ -270,7 +300,14 @@ def run_agent(prompt: str) -> None:
 def build_prompt(args: argparse.Namespace) -> str:
     parts = []
 
-    if args.rediscovery:
+    if args.setlist:
+        parts.append(f"Setlist mode: build a playlist from '{args.setlist_artist}'s live repertoire.")
+        parts.append(f"Scan {args.setlist_pages} pages of recent setlists.")
+
+    elif args.expand:
+        parts.append("Expand mode: discover new music I haven't heard before, using my listening history as a springboard. Map connected artists and pull Spotify recommendations.")
+
+    elif args.rediscovery:
         parts.append(f"Rediscovery mode: build a playlist from tracks I used to love but haven't played in at least {args.stale_days} days.")
         parts.append(f"Use minimum {args.min_plays} past plays as the loved threshold.")
 
@@ -323,6 +360,10 @@ def main():
     parser.add_argument("--valence", help="Valence range e.g. 0.3-0.6")
     parser.add_argument("--tempo", help="Tempo range e.g. 120-180")
     parser.add_argument("--rediscovery", action="store_true", help="Build rediscovery playlist from listening history")
+    parser.add_argument("--expand", action="store_true", help="Discover new music beyond current listening history")
+    parser.add_argument("--setlist", action="store_true", help="Build playlist from artist's live setlists")
+    parser.add_argument("--setlist-artist", default="", dest="setlist_artist", help="Artist name for setlist mode")
+    parser.add_argument("--setlist-pages", type=int, default=3, dest="setlist_pages", help="Number of setlist pages to scan (1-5)")
     parser.add_argument("--stale-days", type=int, default=90, dest="stale_days", help="Days since last play threshold")
     parser.add_argument("--min-plays", type=int, default=3, dest="min_plays", help="Minimum past play count")
     parser.add_argument("--count", type=int, default=20, help="Target playlist length")

@@ -147,6 +147,12 @@ func (sw *statusWriter) WriteHeader(code int) {
 	sw.ResponseWriter.WriteHeader(code)
 }
 
+func (sw *statusWriter) Flush() {
+	if f, ok := sw.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
 // securityHeaders adds defensive HTTP headers to every response.
 func securityHeaders(next http.Handler) http.Handler {
 	const csp = "default-src 'self'; " +
@@ -241,15 +247,18 @@ func handleSpotifyCallback(w http.ResponseWriter, r *http.Request) {
 	// Verify the session belongs to the same user (prevents CSRF).
 	sessionUser, ok := auth.GetSession(r)
 	if !ok || sessionUser != username {
-		http.Error(w, "Session mismatch", http.StatusForbidden)
+		log.Printf("spotify callback: session mismatch — session=%q state_user=%q ok=%v", sessionUser, username, ok)
+		http.Error(w, "Session mismatch — please log in and try connecting again.", http.StatusForbidden)
 		return
 	}
 
 	if err := spotify.ExchangeAndStore(username, code); err != nil {
+		log.Printf("spotify callback: exchange failed for %q: %v", username, err)
 		http.Error(w, "Token exchange failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/?connected=1", http.StatusFound)
+	log.Printf("spotify callback: connected %q successfully", username)
+	http.Redirect(w, r, "/profile", http.StatusFound)
 }
 
 // handleRun accepts the playlist form, spawns the Python agent subprocess, and
@@ -291,6 +300,7 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 		cmd.Env = append(os.Environ(),
 			"SPOTIFY_CACHE_PATH="+cachePath,
 			"PYTHONUNBUFFERED=1",
+			"SPOTAIFY_USERNAME="+username,
 		)
 		cmd.Stderr = os.Stderr // surface Python errors in server logs
 
@@ -371,12 +381,13 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 func handleProfile(w http.ResponseWriter, r *http.Request) {
 	username, _ := auth.GetSession(r)
 
-	// Load local streaming history (primary data source).
+	// Load local streaming history (primary data source). A missing directory
+	// is not an error — the profile renders with whatever data is available.
 	histDir := envOr("HISTORY_DIR", "data/history")
 	hist, err := history.Load(filepath.Join(histDir, username))
 	if err != nil {
-		http.Error(w, "failed to load history: "+err.Error(), http.StatusInternalServerError)
-		return
+		log.Printf("profile[%s]: history load error (continuing): %v", username, err)
+		hist = &history.Stats{}
 	}
 
 	// Fetch Spotify API data for user info + metadata enrichment.
@@ -390,6 +401,11 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 	var audioFeatures *spotify.AudioFeaturesSummary
 	var recommendations []spotify.Recommendation
 	var persona *ai.Persona
+	if spotifyErr != nil {
+		log.Printf("profile[%s]: spotify token error: %v", username, spotifyErr)
+	} else if len(hist.TopTracks) == 0 {
+		log.Printf("profile[%s]: no top tracks in history, skipping enrichment", username)
+	}
 	if spotifyErr == nil && len(hist.TopTracks) > 0 {
 		ids := make([]string, 0, len(hist.TopTracks))
 		for _, t := range hist.TopTracks {
@@ -517,37 +533,59 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		}()
 		go func() {
 			defer wg2.Done()
+			// Use cached persona if available.
+			if cached, err := db.GetPersonaJSON(username); err == nil {
+				var p ai.Persona
+				if json.Unmarshal([]byte(cached), &p) == nil {
+					persona = &p
+					return
+				}
+			}
+			earliestYear := 0
+			if !hist.EarliestPlay.IsZero() {
+				earliestYear = hist.EarliestPlay.Year()
+			}
+			inp := ai.PersonaInput{
+				TotalHours:        hist.TotalHours(),
+				EarliestYear:      earliestYear,
+				YearsActive:       len(hist.YearlyTrend),
+				UniqueArtists:     hist.UniqueArtistCount,
+				UniqueTracks:      hist.UniqueTrackCount,
+				TopArtistNames:    topArtistNames,
+				TopGenres:         topGenres,
+				PeakHour:          peak,
+				AvgSkipRate:       avgSkip,
+				AvgCompletionRate: avgCompl,
+			}
 			if audioFeatures != nil {
-				earliestYear := 0
-				if !hist.EarliestPlay.IsZero() {
-					earliestYear = hist.EarliestPlay.Year()
+				inp.Energy = audioFeatures.Energy
+				inp.Danceability = audioFeatures.Danceability
+				inp.Valence = audioFeatures.Valence
+				inp.Acousticness = audioFeatures.Acousticness
+				inp.Instrumentalness = audioFeatures.Instrumentalness
+				inp.Liveness = audioFeatures.Liveness
+				inp.Tempo = audioFeatures.Tempo
+				inp.VibeLabel = audioFeatures.VibeLabel
+				inp.VibeDesc = audioFeatures.VibeDesc
+			}
+			var perr error
+			persona, perr = ai.GeneratePersona(inp)
+			if perr != nil {
+				log.Printf("persona: generation failed: %v", perr)
+			} else if persona == nil {
+				log.Printf("persona: API key missing or returned nil")
+			} else {
+				log.Printf("persona: generated archetype=%q", persona.Archetype)
+				if b, err := json.Marshal(persona); err == nil {
+					db.SavePersonaJSON(username, string(b))
 				}
-				inp := ai.PersonaInput{
-					Energy:            audioFeatures.Energy,
-					Danceability:      audioFeatures.Danceability,
-					Valence:           audioFeatures.Valence,
-					Acousticness:      audioFeatures.Acousticness,
-					Instrumentalness:  audioFeatures.Instrumentalness,
-					Liveness:          audioFeatures.Liveness,
-					Tempo:             audioFeatures.Tempo,
-					VibeLabel:         audioFeatures.VibeLabel,
-					VibeDesc:          audioFeatures.VibeDesc,
-					TotalHours:        hist.TotalHours(),
-					EarliestYear:      earliestYear,
-					YearsActive:       len(hist.YearlyTrend),
-					UniqueArtists:     hist.UniqueArtistCount,
-					UniqueTracks:      hist.UniqueTrackCount,
-					TopArtistNames:    topArtistNames,
-					TopGenres:         topGenres,
-					PeakHour:          peak,
-					AvgSkipRate:       avgSkip,
-					AvgCompletionRate: avgCompl,
-				}
-				persona, _ = ai.GeneratePersona(inp)
 			}
 		}()
 		wg2.Wait()
 	}
+
+	// Derive per-user aura parameters from listening history when audio features unavailable.
+	aura := computeAura(hist, audioFeatures, username)
 
 	render(w, "profile.html", map[string]any{
 		"Title":           "Profile",
@@ -556,6 +594,7 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		"History":         hist,
 		"Spotify":         pd,
 		"Audio":           audioFeatures,
+		"Aura":            aura,
 		"Recommendations": recommendations,
 		"Persona":         persona,
 	})
@@ -638,6 +677,16 @@ func buildArgs(r *http.Request) []string {
 		if r.FormValue("match_sound") == "on" {
 			args = append(args, "--match-sound")
 		}
+	case "setlist":
+		args = append(args, "--setlist")
+		if a := r.FormValue("setlist_artist"); a != "" {
+			args = append(args, "--setlist-artist", a)
+		}
+		if v := r.FormValue("setlist_pages"); v != "" {
+			args = append(args, "--setlist-pages", v)
+		}
+	case "expand":
+		args = append(args, "--expand")
 	case "rediscovery":
 		args = append(args, "--rediscovery")
 		if v := r.FormValue("stale_days"); v != "" {
@@ -665,6 +714,98 @@ func buildArgs(r *http.Request) []string {
 		args = append(args, "--tempo", v)
 	}
 	return args
+}
+
+// ── Aura ─────────────────────────────────────────────────────────────────────
+
+type auraParams struct {
+	Hue      int
+	Sat      int
+	Energy   float64
+	Valence  float64
+	Dance    float64
+	Acoustic float64
+	Tempo    float64
+}
+
+// computeAura derives canvas background parameters from listening history,
+// falling back to Spotify audio features when available. The username is used
+// to seed a unique palette for users with no local export data.
+func computeAura(hist *history.Stats, af *spotify.AudioFeaturesSummary, username string) auraParams {
+	if af != nil {
+		return auraParams{
+			Hue:      af.PrimaryHue,
+			Sat:      af.Saturation,
+			Energy:   af.Energy,
+			Valence:  af.Valence,
+			Dance:    af.Danceability,
+			Acoustic: af.Acousticness,
+			Tempo:    af.Tempo,
+		}
+	}
+	if hist.TotalMsPlayed == 0 {
+		// No export data — derive a stable, unique palette from the username so
+		// every user looks distinct rather than getting the same hardcoded defaults.
+		return usernameAura(username)
+	}
+	a := auraParams{}
+	// Peak listening hour → hue (night=250, morning=35, afternoon=130, evening=210)
+	peak := 0
+	for h := range hist.HourlyPattern {
+		if hist.HourlyPattern[h] > hist.HourlyPattern[peak] {
+			peak = h
+		}
+	}
+	a.Hue = (260 - peak*8 + 360) % 360
+	// Skip rate → energy (frequent skipper = restless/high-energy listener)
+	a.Energy = clamp01(float64(hist.SkipPct)/100.0*1.4 + 0.15)
+	// Completion rate → valence (finishers tend toward positive, upbeat music)
+	a.Valence = clamp01(float64(hist.CompletionPct)/100.0*1.2 + 0.1)
+	// Library breadth → saturation (wider taste = more vivid palette)
+	diversity := clamp01(float64(hist.UniqueArtistCount) / 400.0)
+	a.Sat = 35 + int(diversity*45)
+	// Danceability proxy: high completion + midday peak = more rhythmic
+	a.Dance = clamp01((a.Valence + (1 - float64(peak)/24)) / 2)
+	// Acousticness: patient listeners (low skip) lean acoustic
+	a.Acoustic = clamp01(1.0 - a.Energy*0.8)
+	// Tempo: peak hour maps to BPM range (late night=slow, daytime=fast)
+	a.Tempo = 70 + float64(peak)/24*80
+	return a
+}
+
+// usernameAura produces a deterministic, visually varied aura seeded by username.
+// Ranges are intentionally wide so different usernames produce clearly distinct looks.
+func usernameAura(username string) auraParams {
+	// FNV-1a — well-distributed; use different bit windows for independent axes.
+	const offset, prime = uint32(2166136261), uint32(16777619)
+	h := offset
+	for _, c := range username {
+		h ^= uint32(c)
+		h *= prime
+	}
+	hue := int(h % 360)                          // 0–359°, full spectrum
+	energy := 0.10 + float64((h>>8)%100)/111.0   // 0.10–1.00
+	valence := 0.30 + float64((h>>16)%100)/143.0 // 0.30–1.00
+	sat := 62 + int((h>>24)%28)                  // 62–89 — vivid throughout
+	return auraParams{
+		Hue:      hue,
+		Sat:      sat,
+		Energy:   energy,
+		Valence:  valence,
+		Dance:    (valence + energy) / 2,
+		Acoustic: clamp01(1.0 - energy*0.8),
+		Tempo:    80 + float64((h>>4)%100), // 80–180 BPM
+	}
+}
+
+func clamp01(v float64) float64 {
+	if v < 0 {
+		return 0
+	}
+	if v > 1 {
+		return 1
+	}
+	return v
 }
 
 // writeTokenCache writes a spotipy-compatible JSON token cache and returns the path.

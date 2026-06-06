@@ -10,13 +10,13 @@
 <!-- ── Hero with canvas aura ── -->
 <div class="aura-wrap has-aura">
   <canvas id="music-aura" aria-hidden="true"
-    data-hue="{{if $af}}{{$af.PrimaryHue}}{{else}}210{{end}}"
-    data-sat="{{if $af}}{{$af.Saturation}}{{else}}60{{end}}"
-    data-energy="{{if $af}}{{printf "%.3f" $af.Energy}}{{else}}0.55{{end}}"
-    data-valence="{{if $af}}{{printf "%.3f" $af.Valence}}{{else}}0.50{{end}}"
-    data-dance="{{if $af}}{{printf "%.3f" $af.Danceability}}{{else}}0.50{{end}}"
-    data-acoustic="{{if $af}}{{printf "%.3f" $af.Acousticness}}{{else}}0.30{{end}}"
-    data-tempo="{{if $af}}{{printf "%.1f" $af.Tempo}}{{else}}120{{end}}"
+    data-hue="{{.Aura.Hue}}"
+    data-sat="{{.Aura.Sat}}"
+    data-energy="{{printf "%.3f" .Aura.Energy}}"
+    data-valence="{{printf "%.3f" .Aura.Valence}}"
+    data-dance="{{printf "%.3f" .Aura.Dance}}"
+    data-acoustic="{{printf "%.3f" .Aura.Acoustic}}"
+    data-tempo="{{printf "%.1f" .Aura.Tempo}}"
   ></canvas>
   <div class="aura-inner">
     <div class="profile-hero">
@@ -107,6 +107,10 @@
     <div class="stat-pill-value">{{$h.UniqueArtistCount}}</div>
     <div class="stat-pill-label">unique artists</div>
   </div>
+  <div class="stat-pill">
+    <div class="stat-pill-value">{{$h.SkipPct}}%</div>
+    <div class="stat-pill-label">skip rate</div>
+  </div>
   {{if not $h.EarliestPlay.IsZero}}
   <div class="stat-pill stat-pill-accent">
     <div class="stat-pill-value">{{$h.EarliestPlay.Year}}</div>
@@ -114,6 +118,61 @@
   </div>
   {{end}}
 </div>
+{{end}}
+
+<!-- ── Unlock full stats card (no export yet) ── -->
+{{if eq $h.TotalMsPlayed 0}}
+<div class="unlock-card">
+  <div class="unlock-title">Unlock your full listening history</div>
+  <div class="unlock-desc">Your profile is showing live Spotify data only. To unlock years of listening stats, all-time top tracks and artists, yearly trends, and your musical persona, request your Extended Streaming History export from Spotify.</div>
+  <div class="unlock-steps">
+    <div class="unlock-step">
+      <div class="unlock-step-num">1</div>
+      <div>Open Spotify → <strong>Settings → Security and privacy → Account privacy</strong> and scroll to <strong>Download your data</strong></div>
+    </div>
+    <div class="unlock-step">
+      <div class="unlock-step-num">2</div>
+      <div>Choose <strong>Extended streaming history</strong> (not just "Account data") and submit the request</div>
+    </div>
+    <div class="unlock-step">
+      <div class="unlock-step-num">3</div>
+      <div>Wait for Spotify's email — delivery typically takes a few days up to 30 days</div>
+    </div>
+    <div class="unlock-step">
+      <div class="unlock-step-num">4</div>
+      <div>Copy all <strong>Streaming_History_Audio_*.json</strong> files from the zip into your history folder and reload this page</div>
+    </div>
+  </div>
+  <div class="unlock-note">data/history/{{.Username}}/Streaming_History_Audio_*.json</div>
+</div>
+
+{{if and $sp $sp.Recent}}
+<details class="profile-section" open>
+  <summary class="section-title">Recently Played</summary>
+  <div class="track-list">
+    {{range $sp.Recent}}
+    <a class="track-row" href="{{.SpotifyURL}}" target="_blank" rel="noopener">
+      {{if .ImageURL}}
+      <img class="track-img" src="{{.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+      {{else}}
+      <div class="track-img track-img-placeholder">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="track-info">
+        <div class="track-title">{{.Title}}</div>
+        <div class="track-artist">{{.Artist}}</div>
+      </div>
+      <div class="track-stats">
+        <div class="track-stat-primary track-time" data-ts="{{.PlayedAt.Unix}}"></div>
+      </div>
+    </a>
+    {{end}}
+  </div>
+</details>
+{{end}}
 {{end}}
 
 <!-- ── Sound DNA ── -->
@@ -399,8 +458,8 @@
 </details>
 {{end}}
 
-<!-- ── Recently Played (Spotify API) ── -->
-{{if and $sp $sp.Recent}}
+<!-- ── Recently Played (Spotify API) — only shown when history is present ── -->
+{{if and $h.TotalMsPlayed (and $sp $sp.Recent)}}
 <details class="profile-section" open>
   <summary class="section-title">Recently Played</summary>
   <div class="track-list">
@@ -523,7 +582,7 @@
         hue:   baseHue + (i * 35 % 100) - 50,
         speed: 0.10 + Math.random() * 0.28 * energy,
         phase: Math.random() * Math.PI * 2,
-        alpha: 0.10 + Math.random() * 0.16,
+        alpha: 0.20 + Math.random() * 0.28,
         layer: i % 3,
       });
     }
@@ -563,10 +622,10 @@
 
     // Layer 1 — rich diagonal gradient base
     const bg = ctx.createLinearGradient(0, 0, W * 0.6, H);
-    bg.addColorStop(0,    `hsl(${hue},     ${sat}%,     7%)`);
-    bg.addColorStop(0.35, `hsl(${hue+25},  ${sat-8}%,   5%)`);
-    bg.addColorStop(0.65, `hsl(${hue-18},  ${sat+12}%,  9%)`);
-    bg.addColorStop(1,    `hsl(${hue+45},  ${sat-5}%,   6%)`);
+    bg.addColorStop(0,    `hsl(${hue},     ${sat}%,     12%)`);
+    bg.addColorStop(0.35, `hsl(${hue+25},  ${sat-8}%,    8%)`);
+    bg.addColorStop(0.65, `hsl(${hue-18},  ${sat+12}%,  15%)`);
+    bg.addColorStop(1,    `hsl(${hue+45},  ${sat-5}%,   10%)`);
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 

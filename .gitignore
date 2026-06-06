@@ -16,3 +16,5 @@ data/history/**/*.json
 
 /learning/*
 data/cache/*
+
+data/history/*/*.json

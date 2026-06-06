@@ -92,6 +92,8 @@ def build_taste_profile(spotify_client) -> dict:
         "features_computed": len(features),
         "built_at": datetime.now(timezone.utc).isoformat(),
     }
+    if not features:
+        result["note"] = "Audio features unavailable (Spotify has deprecated this endpoint)"
 
     _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
     _CACHE_PATH.write_text(json.dumps(result, indent=2), encoding="utf-8")

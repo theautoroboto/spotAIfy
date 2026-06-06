@@ -3,6 +3,7 @@ package spotify
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -110,8 +111,11 @@ func spotifyGet(token, path string, out any) error {
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized {
+	if resp.StatusCode == http.StatusUnauthorized {
 		return fmt.Errorf("scope_missing:%d", resp.StatusCode)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		return fmt.Errorf("spotify %s: HTTP 403", path)
 	}
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("spotify %s: HTTP %d", path, resp.StatusCode)
@@ -334,8 +338,10 @@ func FetchAudioFeaturesSummary(token string, trackIDs []string) *AudioFeaturesSu
 			AudioFeatures []spAudioFeature `json:"audio_features"`
 		}
 		if err := spotifyGet(token, "/audio-features?ids="+strings.Join(batch, ","), &resp); err != nil {
+			log.Printf("FetchAudioFeaturesSummary: batch %d failed: %v", i, err)
 			continue
 		}
+		log.Printf("FetchAudioFeaturesSummary: batch %d got %d features", i, len(resp.AudioFeatures))
 		all = append(all, resp.AudioFeatures...)
 	}
 

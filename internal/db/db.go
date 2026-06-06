@@ -39,7 +39,27 @@ func Init(path string) error {
 	if err != nil {
 		return err
 	}
-	_, err = DB.Exec(`CREATE INDEX IF NOT EXISTS runs_user_ts ON runs (username, ts DESC)`)
+	if _, err = DB.Exec(`CREATE INDEX IF NOT EXISTS runs_user_ts ON runs (username, ts DESC)`); err != nil {
+		return err
+	}
+	_, err = DB.Exec(`CREATE TABLE IF NOT EXISTS personas (
+		username TEXT PRIMARY KEY,
+		data     TEXT NOT NULL
+	)`)
+	return err
+}
+
+func GetPersonaJSON(username string) (string, error) {
+	var data string
+	err := DB.QueryRow(`SELECT data FROM personas WHERE username = ?`, username).Scan(&data)
+	return data, err
+}
+
+func SavePersonaJSON(username, data string) error {
+	_, err := DB.Exec(`
+		INSERT INTO personas (username, data) VALUES (?, ?)
+		ON CONFLICT(username) DO UPDATE SET data = excluded.data`,
+		username, data)
 	return err
 }
 

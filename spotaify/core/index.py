@@ -4,7 +4,7 @@ from spotaify.clients.spotify_client import SpotifyClient
 from spotaify.core.history_importer import parse_history_files, compute_play_stats
 from spotaify.core.embeddings import compute_audio_embedding, compute_text_embedding
 from spotaify.core.fiftyone_store import get_or_create_dataset, upsert_track
-from spotaify.config import HISTORY_DIR
+from spotaify.config import history_dir_for
 
 
 def enrich_and_upsert(dataset, tracks: list[dict], client: SpotifyClient,
@@ -58,6 +58,7 @@ def main():
     parser.add_argument("--playlists", action="store_true", help="Index all user playlists")
     parser.add_argument("--recent", action="store_true", help="Index recently played (last 50)")
     parser.add_argument("--history", action="store_true", help="Import Spotify data export from history/")
+    parser.add_argument("--username", default="", help="User subdirectory inside HISTORY_DIR (required when history is per-user)")
     parser.add_argument("--resume", action="store_true", help="Skip tracks already in dataset")
     args = parser.parse_args()
 
@@ -65,8 +66,9 @@ def main():
     history_stats: dict = {}
 
     if args.history:
-        print("Parsing listening history export...")
-        history_stats = parse_history_files(HISTORY_DIR)
+        hist_dir = history_dir_for(args.username)
+        print(f"Parsing listening history export from {hist_dir}...")
+        history_stats = parse_history_files(hist_dir)
         print(f"  Found {len(history_stats)} unique tracks in history")
 
     needs_user_auth = args.liked or args.playlists or args.recent

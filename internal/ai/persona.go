@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
+
+var trailingComma = regexp.MustCompile(`,\s*([}\]])`)
 
 type PersonaInput struct {
 	Energy            float64
@@ -85,6 +88,8 @@ func GeneratePersona(inp PersonaInput) (*Persona, error) {
 			text = text[i : j+1]
 		}
 	}
+	// Strip trailing commas — Claude Haiku sometimes emits JS-style JSON
+	text = trailingComma.ReplaceAllString(text, "$1")
 
 	var p Persona
 	if err := json.Unmarshal([]byte(text), &p); err != nil {
@@ -100,6 +105,21 @@ func buildPrompt(inp PersonaInput) string {
 		genres = "varied"
 	}
 
+	audioSection := ""
+	if inp.VibeLabel != "" {
+		audioSection = fmt.Sprintf(`
+AUDIO FINGERPRINT:
+- Energy %d%% | Danceability %d%% | Positivity (valence) %d%%
+- Acousticness %d%% | Instrumental %d%% | Liveness %d%%
+- Avg tempo: %.0f BPM
+- Vibe archetype: %s — %s
+`,
+			int(inp.Energy*100), int(inp.Danceability*100), int(inp.Valence*100),
+			int(inp.Acousticness*100), int(inp.Instrumentalness*100), int(inp.Liveness*100),
+			inp.Tempo, inp.VibeLabel, inp.VibeDesc,
+		)
+	}
+
 	return fmt.Sprintf(`You are a music psychologist and cultural analyst. Analyze this listener's data and generate a persona.
 
 LISTENING DATA:
@@ -107,13 +127,7 @@ LISTENING DATA:
 - Library: %d unique artists, %d unique tracks
 - Peak listening: around %s
 - Skip rate: %.0f%% | Song completion rate: %.0f%%
-
-AUDIO FINGERPRINT:
-- Energy %d%% | Danceability %d%% | Positivity (valence) %d%%
-- Acousticness %d%% | Instrumental %d%% | Liveness %d%%
-- Avg tempo: %.0f BPM
-- Vibe archetype: %s — %s
-
+%s
 TOP ARTISTS: %s
 TOP GENRES: %s
 
@@ -128,10 +142,7 @@ Return ONLY a JSON object, no markdown fences, no explanation:
 		inp.UniqueArtists, inp.UniqueTracks,
 		hourLabel(inp.PeakHour),
 		inp.AvgSkipRate*100, inp.AvgCompletionRate*100,
-		int(inp.Energy*100), int(inp.Danceability*100), int(inp.Valence*100),
-		int(inp.Acousticness*100), int(inp.Instrumentalness*100), int(inp.Liveness*100),
-		inp.Tempo,
-		inp.VibeLabel, inp.VibeDesc,
+		audioSection,
 		artists, genres,
 	)
 }

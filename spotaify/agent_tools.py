@@ -96,6 +96,20 @@ TOOLS = [
      "description": "Return the user's audio fingerprint (mean energy, valence, tempo, etc.) and era distribution. Useful for calibrating Sonic searches.",
      "input_schema": {"type": "object", "properties": {
          "rebuild": {"type": "boolean", "default": False}}}},
+    {"name": "get_setlist_tracks",
+     "description": "Fetch an artist's most-played live songs from setlist.fm, ranked by frequency across recent setlists, and resolve them to Spotify tracks.",
+     "input_schema": {"type": "object", "properties": {
+         "artist_name": {"type": "string"},
+         "setlist_pages": {"type": "integer", "default": 3, "maximum": 5}},
+         "required": ["artist_name"]}},
+    {"name": "get_history_top_artists",
+     "description": "Return the user's top N most-played artists from their listening history export.",
+     "input_schema": {"type": "object", "properties": {
+         "n": {"type": "integer", "default": 10, "maximum": 20}}}},
+    {"name": "get_spotify_recommendations",
+     "description": "Get Spotify's recommendations seeded from the user's top history tracks. Returns fresh discovery candidates the user likely hasn't heard.",
+     "input_schema": {"type": "object", "properties": {
+         "limit": {"type": "integer", "default": 50, "maximum": 100}}}},
     {"name": "create_spotify_playlist",
      "description": "Save the final playlist to the user's Spotify account. Always call this as the last step.",
      "input_schema": {"type": "object", "properties": {
@@ -113,7 +127,7 @@ _CACHED_TOOLS = {"fetch_genius_info", "fetch_whosampled", "deep_dive_track",
 
 _SLIM_KEEP = {"track_id", "title", "artist", "artist_id", "popularity",
               "is_new_discovery", "connection_artist", "dna_path", "dna_link_type",
-              "genius_about", "genius_url"}
+              "genius_about", "genius_url", "appearances"}
 
 
 def _slim(tracks: list[dict]) -> list[dict]:
@@ -131,7 +145,7 @@ def execute_tool(name: str, inputs: dict) -> dict:
     try:
         result = _execute_tool_inner(name, inputs)
     except Exception as e:
-        raise RuntimeError(f"[{name}] {e}") from e
+        return {"error": f"[{name}] {e}"}
 
     if name in _CACHED_TOOLS and "error" not in result:
         _TOOL_CACHE[(name, tuple(sorted(inputs.items())))] = result
@@ -235,6 +249,42 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
         metadata = _get_spotify_client().get_tracks_metadata(track_ids[:limit])
         tracks = [metadata[tid] for tid in track_ids[:limit] if tid in metadata]
         return {"tracks": _slim(tracks), "count": len(tracks), "total_found": len(track_ids)}
+
+    if name == "get_setlist_tracks":
+        from spotaify.clients.setlistfm_client import search_artist as sl_search, get_setlist_songs
+        artist = sl_search(inputs["artist_name"])
+        if not artist:
+            return {"error": f"Artist not found on setlist.fm", "tracks": []}
+        songs = get_setlist_songs(artist["mbid"], pages=inputs.get("setlist_pages", 3))
+        if not songs:
+            return {"error": "No setlist data found", "tracks": []}
+        client = _get_spotify_client()
+        tracks, seen = [], set()
+        for song in songs[:40]:
+            key = song["title"].lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            results = client.search_catalog(f"{song['title']} {song['artist']}", limit=1)
+            if results:
+                results[0]["appearances"] = song["appearances"]
+                tracks.append(results[0])
+        enrich_candidates(tracks)
+        return {"tracks": _slim(tracks), "count": len(tracks)}
+
+    if name == "get_history_top_artists":
+        from spotaify.core.history_profile import get_top_artists
+        artists = get_top_artists(inputs.get("n", 10))
+        return {"artists": artists, "count": len(artists)}
+
+    if name == "get_spotify_recommendations":
+        from spotaify.core.history_profile import get_top_track_ids
+        top_ids = get_top_track_ids(5)
+        if not top_ids:
+            return {"error": "No listening history found for seeding recommendations", "tracks": []}
+        tracks = _get_spotify_client().get_recommendations(top_ids, limit=inputs.get("limit", 50))
+        enrich_candidates(tracks)
+        return {"tracks": _slim(tracks), "count": len(tracks)}
 
     if name == "get_taste_profile":
         if not inputs.get("rebuild", False):

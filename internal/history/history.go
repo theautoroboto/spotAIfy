@@ -95,6 +95,8 @@ type Stats struct {
 	TotalMsPlayed     int64
 	UniqueTrackCount  int
 	UniqueArtistCount int
+	SkipPct           int // 0–100, percentage of plays that were skipped
+	CompletionPct     int // 0–100, percentage of plays that reached trackdone
 	EarliestPlay      time.Time
 	LatestPlay        time.Time
 	TopTracks         []*TrackStats  // sorted by MsPlayedTotal desc, capped at 50
@@ -221,10 +223,19 @@ func Load(dir string) (*Stats, error) {
 		}
 	}
 
-	// Total ms played
+	// Total ms played + overall skip rate (across all tracks before capping)
 	var totalMs int64
+	var totalPlays, totalSkips, totalCompletions int
 	for _, tk := range trackMap {
 		totalMs += tk.MsPlayedTotal
+		totalPlays += tk.PlayCount
+		totalSkips += tk.SkipCount
+		totalCompletions += tk.CompletionCount
+	}
+	skipPct, completionPct := 0, 0
+	if totalPlays > 0 {
+		skipPct = int(float64(totalSkips) / float64(totalPlays) * 100)
+		completionPct = int(float64(totalCompletions) / float64(totalPlays) * 100)
 	}
 
 	// Sort and cap top tracks (50)
@@ -324,6 +335,8 @@ func Load(dir string) (*Stats, error) {
 		TotalMsPlayed:     totalMs,
 		UniqueTrackCount:  len(trackMap),
 		UniqueArtistCount: len(artistMap),
+		SkipPct:           skipPct,
+		CompletionPct:     completionPct,
 		EarliestPlay:      earliest,
 		LatestPlay:        latest,
 		TopTracks:         allTracks,

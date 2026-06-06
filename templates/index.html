@@ -23,20 +23,46 @@
       <fieldset class="mode-tabs">
         <legend class="sr-only">Mode</legend>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="sonic" checked onchange="switchMode(this.value)"> Sonic
-          <span class="info-icon" data-tip="Describe a mood, vibe, or style and let the AI find matching tracks by audio similarity." tabindex="0" aria-label="More info">?</span>
+          <input type="radio" name="mode" value="sonic" checked onchange="switchMode(this.value)">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Sonic</span>
+            <span class="mode-tab-desc">Describe a mood or vibe</span>
+          </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="connection" onchange="switchMode(this.value)"> Connection
-          <span class="info-icon" data-tip="Explore an artist's network — fans, collaborators, and influences — and build a playlist from their constellation." tabindex="0" aria-label="More info">?</span>
+          <input type="radio" name="mode" value="connection" onchange="switchMode(this.value)">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Connection</span>
+            <span class="mode-tab-desc">Explore an artist's network</span>
+          </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="dna" onchange="switchMode(this.value)"> DNA
-          <span class="info-icon" data-tip="Map a track's sample DNA — every track it sampled, every track that sampled it, and any melodic interpolations." tabindex="0" aria-label="More info">?</span>
+          <input type="radio" name="mode" value="dna" onchange="switchMode(this.value)">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">DNA</span>
+            <span class="mode-tab-desc">Map a track's sample lineage</span>
+          </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="rediscovery" onchange="switchMode(this.value)"> Rediscovery
-          <span class="info-icon" data-tip="Build a playlist from tracks you used to love but haven't played recently." tabindex="0" aria-label="More info">?</span>
+          <input type="radio" name="mode" value="rediscovery" onchange="switchMode(this.value)">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Rediscovery</span>
+            <span class="mode-tab-desc">Revisit tracks you used to love</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="expand" onchange="switchMode(this.value)">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Expand</span>
+            <span class="mode-tab-desc">Discover music beyond your history</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="setlist" onchange="switchMode(this.value)">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Setlist</span>
+            <span class="mode-tab-desc">Build from an artist's live shows</span>
+          </span>
         </label>
       </fieldset>
 
@@ -71,6 +97,20 @@
         <label for="dna_artist">Artist <span class="muted">(optional)</span> <span class="info-icon" data-tip="Disambiguates tracks with common names — e.g. 'Hurt' exists by Nine Inch Nails and Johnny Cash. Leave blank if the track name is unique." tabindex="0" aria-label="More info">?</span></label>
         <input id="dna_artist" name="dna_artist" type="text"
                placeholder="Nine Inch Nails" autocomplete="off">
+      </div>
+
+      <!-- Setlist fields -->
+      <div id="fields-setlist" class="mode-fields hidden">
+        <label for="setlist_artist">Artist</label>
+        <input id="setlist_artist" name="setlist_artist" type="text"
+               placeholder="Radiohead" autocomplete="off">
+        <label for="setlist_pages">Setlists to scan <span class="muted">(1–5, more = broader)</span></label>
+        <input id="setlist_pages" name="setlist_pages" type="number" value="3" min="1" max="5">
+      </div>
+
+      <!-- Expand fields -->
+      <div id="fields-expand" class="mode-fields hidden">
+        <p class="muted" style="font-size:0.875rem;margin:0.25rem 0 0">Seeds automatically from your top-played artists. No configuration needed.</p>
       </div>
 
       <!-- Rediscovery fields -->
@@ -160,9 +200,9 @@ function switchMode(mode) {
   const next = document.getElementById('fields-' + mode);
   next.classList.remove('hidden');
   next.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
-  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna');
+  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna' || mode === 'setlist');
   document.querySelectorAll('.audio-filter').forEach(el =>
-    el.classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery'));
+    el.classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery' || mode === 'expand' || mode === 'setlist'));
 }
 
 function clearOutput() {
@@ -211,6 +251,7 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
   if (mode === 'sonic' && !document.getElementById('prompt').value.trim()) { _shakeField('prompt'); return; }
   if (mode === 'connection' && !document.getElementById('artist').value.trim()) { _shakeField('artist'); return; }
   if (mode === 'dna' && !document.getElementById('dna_track').value.trim()) { _shakeField('dna_track'); return; }
+  if (mode === 'setlist' && !document.getElementById('setlist_artist').value.trim()) { _shakeField('setlist_artist'); return; }
   if (activeSource) { activeSource.close(); activeSource = null; }
 
   const btn = document.getElementById('run-btn');
@@ -293,10 +334,16 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
     document.querySelector('.output-panel').classList.remove('running');
     document.getElementById('run-dot').classList.add('hidden');
     document.getElementById('clear-btn').style.display = '';
-    _saveHistory(runLabel, runLines);
+    if (runLines.length > 0) _saveHistory(runLabel, runLines);
   };
   es.addEventListener('done', onDone);
-  es.onerror = onDone;
+  es.onerror = () => {
+    if (runLines.length === 0) {
+      appendLine(out, '[error] Lost connection to the run — the server may have restarted. Try again.', 'err');
+      document.getElementById('clear-btn').style.display = '';
+    }
+    onDone();
+  };
 });
 
 async function cancelRun() {
@@ -313,6 +360,8 @@ function _histLabel(data) {
   if (mode === 'dna') return `DNA: "${data.get('dna_track') || ''}"`;
   if (mode === 'connection') return `Connection: "${data.get('artist') || ''}"`;
   if (mode === 'rediscovery') return 'Rediscovery';
+  if (mode === 'expand') return 'Expand: horizon discovery';
+  if (mode === 'setlist') return `Setlist: "${data.get('setlist_artist') || ''}"`;
   const p = (data.get('prompt') || '').trim();
   return p ? `Sonic: "${p}"` : 'Sonic run';
 }

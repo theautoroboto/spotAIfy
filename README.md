@@ -2,7 +2,7 @@
 
 A local AI agent that generates Spotify playlists using Claude Sonnet. Runs as a web app (Go + Python) or as a CLI tool.
 
-Four playlist modes:
+Six playlist modes:
 
 | Mode | How it works |
 |------|-------------|
@@ -10,6 +10,8 @@ Four playlist modes:
 | **Connection** | Explore an artist's network (band members, side projects, collabs) via MusicBrainz |
 | **DNA** | Map a track's creative lineage — what it samples, what samples it, any melody interpolations |
 | **Rediscovery** | Build a playlist from tracks you used to love but haven't played in a while |
+| **Expand** | Discover new music by traversing your top artists' connection graphs and Spotify's recommendation engine |
+| **Setlist** | Build a playlist from an artist's actual live repertoire, ranked by how often they play each song |
 
 ---
 
@@ -75,6 +77,8 @@ The Go server handles auth, session management, and SSE streaming of agent outpu
 
 - **WhoSampled** (optional, DNA mode): A free account improves sample data quality for the DNA mode scraper.
 
+- **setlist.fm** (optional, Setlist mode): Free API key at [api.setlist.fm](https://api.setlist.fm/docs/1.0/index.html). Register an account and request an API key — approval is usually instant.
+
 ### 2. Configure environment
 
 ```bash
@@ -99,6 +103,7 @@ This prompts for each secret and stores them encrypted — nothing written to di
 SPOTIFY_CLIENT_SECRET=...
 ANTHROPIC_API_KEY=...
 GENIUS_ACCESS_TOKEN=...
+SETLISTFM_API_KEY=...        # optional, required for Setlist mode
 ```
 Both approaches work; the app checks the keychain first and falls back to `.env`.
 
@@ -117,13 +122,15 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### 4. Spotify Data Export (optional, for personalized ranking)
 
-Enables completion rate, skip rate, and new-discovery signals.
+Enables completion rate, skip rate, and new-discovery signals. Supports per-user history when running the web app with multiple accounts.
 
 1. Go to Spotify → Account → Privacy Settings → Download your data
 2. Request **Extended streaming history** (takes a few days to prepare)
-3. When ready, copy all `Streaming_History_Audio_*.json` files into `data/history/`
+3. When ready, copy all `Streaming_History_Audio_*.json` files into `data/history/<username>/`
+   - Example for user `brian`: `data/history/brian/Streaming_History_Audio_2024.json`
+   - For CLI use, files can also go directly in `data/history/` (flat layout)
 
-The history is loaded once per session on first use. No extra configuration required — the agent picks it up automatically.
+The history is loaded once per session on first use. The web app injects the logged-in username automatically so each user's history is isolated.
 
 ---
 
@@ -158,6 +165,12 @@ run.bat --dna "Straight Outta Compton" --dna-artist "N.W.A"
 
 # Rediscovery — forgotten favorites
 run.bat --rediscovery --stale-days 120 --min-plays 5 --count 20
+
+# Expand — discover new music from your history
+run.bat --expand --count 20
+
+# Setlist — live repertoire for an artist
+run.bat --setlist --setlist-artist "Radiohead" --setlist-pages 3
 ```
 
 Direct invocation with uv:
@@ -218,12 +231,13 @@ spotAIfy/
 ├── cmd/web/main.go            # Go web server — auth, SSE streaming, Spotify OAuth
 ├── spotaify/
 │   ├── agent.py               # Claude agent loop and CLI entrypoint
-│   ├── agent_tools.py         # All 14 tools available to the agent
+│   ├── agent_tools.py         # All 16 tools available to the agent
 │   ├── config.py              # Credentials from .env / OS keychain
 │   ├── clients/
-│   │   ├── spotify_client.py  # Spotify API — search, audio features, playlists
+│   │   ├── spotify_client.py  # Spotify API — search, recommendations, playlists
 │   │   ├── genius_client.py   # Genius — track descriptions and credits (disk-cached)
-│   │   └── whosampled_client.py # WhoSampled scraper — sample relationships
+│   │   ├── whosampled_client.py # WhoSampled scraper — sample relationships
+│   │   └── setlistfm_client.py  # setlist.fm — live setlist data ranked by frequency
 │   └── core/
 │       ├── artist_graph.py    # MusicBrainz artist connection graph (BFS, disk-cached)
 │       ├── history_profile.py # Parses Spotify history export → per-track listening signals
@@ -233,7 +247,8 @@ spotAIfy/
 ├── static/style.css           # UI styles — dark/light theme, dual-range sliders
 ├── templates/
 │   ├── base.html              # Layout shell
-│   ├── index.html             # Main playlist builder (four modes)
+│   ├── index.html             # Main playlist builder (six modes, vertical tab nav)
+│   ├── profile.html           # Per-user listening stats, persona, recommendations
 │   └── login.html             # Login page
 ├── tests/                     # Pytest suite
 ├── data/
@@ -261,12 +276,20 @@ spotAIfy/
 | MusicBrainz graphs | Per-artist JSON files | `data/graph/` |
 | Genius track info | Per-track JSON (MD5-keyed) | `data/cache/genius/` |
 | Taste profile | Audio fingerprint + era distribution | `data/cache/taste_profile.json` |
-| History profile | In-memory, loaded once per session | `data/history/Streaming_History_Audio_*.json` |
+| History profile | In-memory, loaded once per session | `data/history/<username>/Streaming_History_Audio_*.json` |
 | Agent tool results | In-memory per session | `_TOOL_CACHE` in `agent_tools.py` |
 
 ### Agent turn budget
 
 The agent has a 12-turn limit (`_MAX_TURNS` in `agent.py`). At turn 9 a wrap-up nudge is injected to ensure `rank_and_select` and `create_spotify_playlist` are called before the budget runs out. Connection mode is the most expensive — keep `--depth` at 1 or 2.
+
+### Spotify audio features deprecation
+
+Spotify deprecated the `/v1/audio-features` endpoint for non-partner apps (returns 403). The app handles this gracefully: `fetch_audio_features` returns `{}` on 403, taste profile computation skips the fingerprint section but still computes era distribution, and any tool error returns `{"error": "..."}` to the agent rather than crashing the run.
+
+### setlist.fm rate limits
+
+setlist.fm does not publish rate limits. The client sleeps 0.5 s between requests. Scanning 5 pages hits the API 6–7 times (artist lookup + pages). Stay at 3–5 pages to avoid throttling.
 
 ### Running tests
 
