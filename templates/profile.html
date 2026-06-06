@@ -399,20 +399,23 @@
 
 <!-- ── Scripts ── -->
 <script>
-// ── Musical Aura canvas (Round 1) ──────────────────────────────────────────────
+// ── Musical Aura canvas (Round 2: connections + depth + beat pulse) ────────────
 (function() {
   const canvas = document.getElementById('music-aura');
   if (!canvas) return;
-  const d      = canvas.dataset;
-  const hue    = parseInt(d.hue)   || 200;
-  const sat    = parseInt(d.sat)   || 60;
-  const energy = parseFloat(d.energy)   || 0.5;
-  const valence= parseFloat(d.valence)  || 0.5;
-  const dance  = parseFloat(d.dance)    || 0.5;
-  const acoustic = parseFloat(d.acoustic) || 0.5;
-  const tempo  = parseFloat(d.tempo)    || 120;
-  const ctx    = canvas.getContext('2d');
+  const d        = canvas.dataset;
+  const hue      = parseInt(d.hue)            || 200;
+  const sat      = parseInt(d.sat)            || 60;
+  const energy   = parseFloat(d.energy)       || 0.5;
+  const dance    = parseFloat(d.dance)        || 0.5;
+  const acoustic = parseFloat(d.acoustic)     || 0.5;
+  const tempo    = parseFloat(d.tempo)        || 120;
+  const ctx      = canvas.getContext('2d');
   let W, H, blobs, particles;
+
+  // Beat pulse — syncs visual rhythm to tempo
+  const beatMs  = 60000 / tempo;
+  let   lastBeat = 0, pulseAmt = 0;
 
   function resize() {
     W = canvas.width  = canvas.offsetWidth;
@@ -421,123 +424,178 @@
   }
 
   function init() {
-    // Atmospheric blobs
     blobs = [];
-    const bc = 4 + Math.round(energy * 3);
+    const bc = 5 + Math.round(energy * 4);
     for (let i = 0; i < bc; i++) {
       blobs.push({
         x: Math.random() * W, y: Math.random() * H,
-        r: 100 + Math.random() * 220,
-        hue: hue + (i * 30 % 80) - 40,
-        speed: 0.15 + Math.random() * 0.35 * energy,
+        baseR: 80 + Math.random() * 200,
+        hue: hue + (i * 35 % 100) - 50,
+        speed: 0.12 + Math.random() * 0.3 * energy,
         phase: Math.random() * Math.PI * 2,
-        alpha: 0.12 + Math.random() * 0.18,
+        alpha: 0.10 + Math.random() * 0.16,
+        layer: i % 3,  // 0=back, 1=mid, 2=front
       });
     }
-    // Flow particles
     particles = [];
-    const pc = Math.round(50 + energy * 130);
+    const pc = Math.round(60 + energy * 120);
     for (let i = 0; i < pc; i++) {
       particles.push({
         x: Math.random() * W, y: Math.random() * H,
-        r: 0.8 + Math.random() * (1.2 + energy * 2),
-        hue: hue + (Math.random() - 0.5) * 50,
-        spd: 0.4 + Math.random() * energy * 1.8,
+        r: 0.8 + Math.random() * (1.4 + energy * 1.8),
+        hue: hue + (Math.random() - 0.5) * 60,
+        spd: 0.35 + Math.random() * energy * 1.6,
         phase: Math.random() * Math.PI * 2,
-        alpha: 0.35 + Math.random() * 0.5,
+        alpha: 0.3 + Math.random() * 0.5,
+        trail: [],  // last 4 positions for motion trail
       });
     }
   }
 
   function flowAngle(x, y, t) {
-    return Math.sin(x * 0.004 + t * 0.5) * Math.PI
-         + Math.cos(y * 0.005 - t * 0.37) * Math.PI * 0.7
-         + Math.sin((x + y) * 0.003 + t * 0.28) * Math.PI * 0.3;
+    // Two-octave sine field gives richer, less uniform flow
+    return Math.sin(x * 0.004 + t * 0.52)  * Math.PI
+         + Math.cos(y * 0.005 - t * 0.38)  * Math.PI * 0.65
+         + Math.sin((x - y) * 0.003 + t * 0.25) * Math.PI * 0.28
+         + Math.cos((x + y) * 0.0018 - t * 0.19) * Math.PI * 0.18;
   }
 
   let t = 0;
-  function draw() {
+  function draw(now) {
+    // Beat pulse decay
+    if (now - lastBeat >= beatMs) { lastBeat = now; pulseAmt = 1; }
+    pulseAmt *= 0.88;
+
     ctx.clearRect(0, 0, W, H);
 
-    // Layer 1 — rich base gradient
-    const bg = ctx.createLinearGradient(0, 0, W, H);
-    bg.addColorStop(0,   `hsl(${hue},     ${sat}%,     8%)`);
-    bg.addColorStop(0.4, `hsl(${hue+20},  ${sat-10}%,  6%)`);
-    bg.addColorStop(0.7, `hsl(${hue-15},  ${sat+10}%,  10%)`);
-    bg.addColorStop(1,   `hsl(${hue+40},  ${sat}%,     7%)`);
+    // Layer 1 — rich diagonal gradient base
+    const bg = ctx.createLinearGradient(0, 0, W * 0.6, H);
+    bg.addColorStop(0,   `hsl(${hue},     ${sat}%,     7%)`);
+    bg.addColorStop(0.35,`hsl(${hue+25},  ${sat-8}%,   5%)`);
+    bg.addColorStop(0.65,`hsl(${hue-18},  ${sat+12}%,  9%)`);
+    bg.addColorStop(1,   `hsl(${hue+45},  ${sat-5}%,   6%)`);
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Layer 2 — atmospheric blobs
-    blobs.forEach((b, i) => {
-      b.x += Math.sin(t * b.speed + b.phase) * 0.55;
-      b.y += Math.cos(t * b.speed * 0.72 + b.phase) * 0.42;
-      if (b.x < -b.r) b.x = W + b.r;
-      if (b.x > W+b.r) b.x = -b.r;
-      if (b.y < -b.r) b.y = H + b.r;
-      if (b.y > H+b.r) b.y = -b.r;
-      const rg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-      rg.addColorStop(0, `hsla(${b.hue}, ${sat+20}%, 55%, ${b.alpha})`);
-      rg.addColorStop(1, `hsla(${b.hue}, ${sat}%,   30%, 0)`);
+    // Layer 2 — back blobs (large, slow)
+    blobs.filter(b => b.layer === 0).forEach(b => {
+      b.x += Math.sin(t * b.speed + b.phase) * 0.5;
+      b.y += Math.cos(t * b.speed * 0.7 + b.phase) * 0.38;
+      const r = b.baseR * (1 + pulseAmt * 0.08 * energy);
+      const rg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+      rg.addColorStop(0, `hsla(${b.hue}, ${sat+15}%, 45%, ${b.alpha * 1.2})`);
+      rg.addColorStop(0.5,`hsla(${b.hue}, ${sat}%,   35%, ${b.alpha * 0.5})`);
+      rg.addColorStop(1, `hsla(${b.hue}, ${sat}%,   25%, 0)`);
       ctx.fillStyle = rg;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, Math.PI * 2); ctx.fill();
+      // Keep blobs on canvas
+      b.x = ((b.x % (W + b.baseR)) + W + b.baseR) % (W + b.baseR) - b.baseR / 2;
+      b.y = ((b.y % (H + b.baseR)) + H + b.baseR) % (H + b.baseR) - b.baseR / 2;
     });
 
-    // Layer 3 — sine wave interference
-    const wc = Math.round(3 + energy * 4);
+    // Layer 3 — sine wave interference (acoustic-driven softness)
+    const wc = Math.round(3 + energy * 3);
     for (let w = 0; w < wc; w++) {
       ctx.beginPath();
-      const wAlpha = (0.035 + acoustic * 0.05) * (1 - w * 0.12);
-      ctx.strokeStyle = `hsla(${hue + w * 22}, ${sat+10}%, 72%, ${wAlpha})`;
-      ctx.lineWidth = 1.2 + acoustic;
-      const freq = (tempo / 120) * (0.007 + w * 0.003);
-      const amp  = H * 0.13 * (0.5 + energy * 0.5);
-      const yBase = H * (0.18 + w * 0.14);
-      for (let x = 0; x <= W; x += 2) {
+      const wAlpha = (0.03 + acoustic * 0.045) * (1 - w * 0.18);
+      ctx.strokeStyle = `hsla(${hue + w * 25}, ${sat+5}%, 70%, ${wAlpha})`;
+      ctx.lineWidth = 1 + acoustic * 0.8;
+      const freq = (tempo / 120) * (0.006 + w * 0.0028);
+      const amp  = H * 0.11 * (0.55 + energy * 0.45);
+      const yBase = H * (0.22 + w * 0.16);
+      for (let x = 0; x <= W; x += 3) {
         const y = yBase
-          + Math.sin(x * freq + t * (0.8 + dance * 0.6) + w) * amp
-          + Math.sin(x * freq * 1.7 - t * 0.5 + w * 1.5) * amp * 0.35;
+          + Math.sin(x * freq + t * (0.75 + dance * 0.55) + w * 1.1) * amp
+          + Math.sin(x * freq * 1.8 - t * 0.48 + w * 1.6) * amp * 0.3
+          + Math.sin(x * freq * 0.5 + t * 0.22) * amp * pulseAmt * 0.4 * energy;
         x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
       }
       ctx.stroke();
     }
 
-    // Layer 4 — flow field particles
+    // Layer 4 — flow particles with trails + connections
     ctx.save();
+    // First pass: draw trails
     particles.forEach(p => {
       const angle = flowAngle(p.x, p.y, t);
-      p.x += Math.cos(angle) * p.spd;
-      p.y += Math.sin(angle) * p.spd;
+      p.trail.push({ x: p.x, y: p.y });
+      if (p.trail.length > 5) p.trail.shift();
+      p.x += Math.cos(angle) * p.spd * (1 + pulseAmt * energy * 0.3);
+      p.y += Math.sin(angle) * p.spd * (1 + pulseAmt * energy * 0.3);
       if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
       if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
-      ctx.shadowBlur = acoustic > 0.5 ? 5 : 2;
-      ctx.shadowColor = `hsla(${p.hue}, ${sat}%, 70%, 0.4)`;
+      // Motion trail
+      if (p.trail.length > 1 && energy > 0.4) {
+        ctx.beginPath();
+        ctx.moveTo(p.trail[0].x, p.trail[0].y);
+        p.trail.forEach(tp => ctx.lineTo(tp.x, tp.y));
+        ctx.strokeStyle = `hsla(${p.hue}, ${sat+10}%, 70%, ${p.alpha * 0.25})`;
+        ctx.lineWidth = p.r * 0.7;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+    });
+    // Second pass: connections between nearby particles
+    const connDist = 60 + dance * 50;
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < connDist) {
+          const alpha = (1 - dist / connDist) * 0.12 * dance;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `hsla(${hue + 20}, ${sat}%, 65%, ${alpha})`;
+          ctx.lineWidth = 0.7;
+          ctx.stroke();
+        }
+      }
+    }
+    // Third pass: particle dots
+    particles.forEach(p => {
+      const glowR = p.r * (1 + pulseAmt * energy * 0.5);
+      ctx.shadowBlur = 4 + acoustic * 6;
+      ctx.shadowColor = `hsla(${p.hue}, ${sat+10}%, 75%, 0.5)`;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${p.hue}, ${sat+20}%, 75%, ${p.alpha})`;
+      ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${p.hue}, ${sat+20}%, 78%, ${p.alpha})`;
       ctx.fill();
     });
     ctx.restore();
 
-    // Layer 5 — readability vignette
+    // Layer 5 — mid blobs (smaller, faster)
+    blobs.filter(b => b.layer === 1).forEach(b => {
+      b.x += Math.sin(t * b.speed * 1.4 + b.phase) * 0.7;
+      b.y += Math.cos(t * b.speed * 1.1 + b.phase) * 0.55;
+      const r = b.baseR * 0.55 * (1 + pulseAmt * 0.12 * energy);
+      const rg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+      rg.addColorStop(0, `hsla(${b.hue+30}, ${sat+25}%, 65%, ${b.alpha * 0.9})`);
+      rg.addColorStop(1, `hsla(${b.hue+30}, ${sat}%,   35%, 0)`);
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // Layer 6 — readability gradient (bottom-heavy)
     const vg = ctx.createLinearGradient(0, 0, 0, H);
-    vg.addColorStop(0,   'rgba(0,0,0,0.0)');
-    vg.addColorStop(0.45,'rgba(0,0,0,0.1)');
-    vg.addColorStop(1,   'rgba(0,0,0,0.7)');
+    vg.addColorStop(0,    'rgba(0,0,0,0.0)');
+    vg.addColorStop(0.35, 'rgba(0,0,0,0.05)');
+    vg.addColorStop(0.7,  'rgba(0,0,0,0.35)');
+    vg.addColorStop(1,    'rgba(0,0,0,0.72)');
     ctx.fillStyle = vg;
     ctx.fillRect(0, 0, W, H);
 
-    t += 0.008 + energy * 0.011;
+    t += 0.007 + energy * 0.010;
     requestAnimationFrame(draw);
   }
 
   resize();
   window.addEventListener('resize', resize);
+  requestAnimationFrame(draw);
 })();
 
-// ── Radar chart ───────────────────────────────────────────────────────────────
+// ── Radar chart (Round 2: glow + idle pulse + value labels) ──────────────────
 (function() {
   const canvas = document.getElementById('radar-chart');
   if (!canvas) return;
@@ -556,7 +614,7 @@
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   const cx = W / 2, cy = H / 2;
-  const R  = Math.min(W, H) / 2 - 36;
+  const R  = Math.min(W, H) / 2 - 38;
   const N  = 6;
 
   function pt(axis, val) {
@@ -564,11 +622,21 @@
     return { x: cx + Math.cos(a) * R * val, y: cy + Math.sin(a) * R * val };
   }
 
-  let prog = 0;
+  // Ease-out-back for the entry sweep
+  function easeOutBack(x) {
+    const c1 = 1.70158, c3 = c1 + 1;
+    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+  }
+
+  let prog = 0, idleT = 0, animating = true;
+
   function draw() {
     ctx.clearRect(0, 0, W, H);
 
-    // Grid rings
+    const eased = animating ? Math.min(1, easeOutBack(Math.min(prog, 0.999))) : 1;
+    const pulse = animating ? 0 : Math.sin(idleT * 1.8) * 0.018 + 1; // subtle idle breathe
+
+    // Grid rings with fade-in
     for (let ring = 1; ring <= 4; ring++) {
       ctx.beginPath();
       for (let i = 0; i < N; i++) {
@@ -576,9 +644,17 @@
         i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
       }
       ctx.closePath();
-      ctx.strokeStyle = `hsla(${hue}, 30%, 60%, ${ring === 4 ? 0.25 : 0.12})`;
+      ctx.strokeStyle = `hsla(${hue}, 30%, 60%, ${ring === 4 ? 0.28 : 0.11})`;
       ctx.lineWidth = ring === 4 ? 1.5 : 1;
       ctx.stroke();
+      // Ring value label on outermost
+      if (ring === 4) {
+        ctx.font = '7px system-ui';
+        ctx.fillStyle = `hsla(${hue}, 15%, 55%, 0.6)`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('100%', cx + 4, cy - R - 2);
+      }
     }
 
     // Axis spokes
@@ -587,54 +663,74 @@
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.lineTo(p.x, p.y);
-      ctx.strokeStyle = `hsla(${hue}, 25%, 55%, 0.2)`;
+      ctx.strokeStyle = `hsla(${hue}, 20%, 50%, 0.18)`;
       ctx.lineWidth = 1;
       ctx.stroke();
     }
 
-    // Animated data polygon
-    const av = vals.map(v => v * prog);
+    // Data polygon — glow fill + stroke
+    const av = vals.map(v => v * eased * pulse);
+    ctx.save();
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = `hsla(${hue}, ${sat}%, 65%, 0.45)`;
     ctx.beginPath();
     for (let i = 0; i < N; i++) {
       const p = pt(i, av[i]);
       i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
     }
     ctx.closePath();
-    ctx.fillStyle = `hsla(${hue}, ${sat}%, 60%, 0.22)`;
+    // Radial fill: bright at centre, desaturating outward
+    const fillGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+    fillGrad.addColorStop(0,   `hsla(${hue}, ${sat+15}%, 70%, 0.35)`);
+    fillGrad.addColorStop(0.6, `hsla(${hue}, ${sat}%,   55%, 0.20)`);
+    fillGrad.addColorStop(1,   `hsla(${hue}, ${sat-10}%,45%, 0.08)`);
+    ctx.fillStyle = fillGrad;
     ctx.fill();
-    ctx.strokeStyle = `hsla(${hue}, ${sat+10}%, 72%, 0.9)`;
+    ctx.strokeStyle = `hsla(${hue}, ${sat+15}%, 75%, 0.95)`;
     ctx.lineWidth = 2;
     ctx.stroke();
+    ctx.restore();
 
-    // Vertex dots
+    // Vertex dots with glow
     for (let i = 0; i < N; i++) {
       const p = pt(i, av[i]);
+      ctx.save();
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = `hsl(${hue}, ${sat}%, 75%)`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = `hsl(${hue}, ${sat+10}%, 78%)`;
+      ctx.fillStyle = `hsl(${hue+10}, ${sat+15}%, 85%)`;
       ctx.fill();
+      ctx.restore();
     }
 
-    // Labels
+    // Axis labels + value badges
     ctx.font = 'bold 9.5px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (let i = 0; i < N; i++) {
-      const p = pt(i, 1.28);
-      ctx.fillStyle = `hsla(${hue}, 20%, 72%, 0.9)`;
-      ctx.fillText(labels[i], p.x, p.y);
-      // Show percentage near vertex
-      const pv = pt(i, av[i]);
-      if (prog > 0.95) {
-        ctx.font = '8px system-ui';
-        ctx.fillStyle = `hsla(${hue}, ${sat}%, 82%, 0.8)`;
-        ctx.fillText(Math.round(vals[i] * 100) + '%', pv.x, pv.y - 8);
+      const lp = pt(i, 1.3);
+      ctx.fillStyle = `hsla(${hue}, 18%, 72%, 0.88)`;
+      ctx.fillText(labels[i], lp.x, lp.y);
+      // Value badge near vertex (only once animation is done)
+      if (prog > 0.92) {
+        const vp  = pt(i, av[i]);
+        const pct = Math.round(vals[i] * 100);
+        const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
+        const ox = Math.cos(angle) * 13, oy = Math.sin(angle) * 13;
+        ctx.font = '7.5px system-ui';
+        ctx.fillStyle = `hsla(${hue}, ${sat}%, 85%, 0.8)`;
+        ctx.fillText(pct + '%', vp.x + ox, vp.y + oy);
         ctx.font = 'bold 9.5px system-ui, sans-serif';
       }
     }
 
-    if (prog < 1) {
-      prog = Math.min(1, prog + 0.025);
+    if (animating) {
+      prog = Math.min(1, prog + 0.022);
+      if (prog >= 1) animating = false;
+      requestAnimationFrame(draw);
+    } else {
+      idleT += 0.016;
       requestAnimationFrame(draw);
     }
   }
