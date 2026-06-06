@@ -61,6 +61,20 @@ class SpotifyClient:
                     features[f["id"]] = {k: f[k] for k in AUDIO_FEATURE_KEYS if k in f}
         return features
 
+    def get_tracks_metadata(self, track_ids: list[str]) -> dict[str, dict]:
+        """Fetch track metadata for up to 500 IDs. Returns dict keyed by track_id."""
+        result = {}
+        for i in range(0, len(track_ids), 50):
+            batch = track_ids[i : i + 50]
+            try:
+                resp = self._sp.tracks(batch)
+                for t in (resp.get("tracks") or []):
+                    if t:
+                        result[t["id"]] = self._parse_track(t)
+            except Exception:
+                pass
+        return result
+
     def get_artist_info(self, artist_id: str) -> dict:
         a = self._sp.artist(artist_id)
         return {

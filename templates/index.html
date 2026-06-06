@@ -19,49 +19,61 @@
         <legend class="sr-only">Mode</legend>
         <label class="mode-tab">
           <input type="radio" name="mode" value="sonic" checked onchange="switchMode(this.value)"> Sonic
-          <span class="info-icon" data-tip="Describe a mood, vibe, or style and let the AI find matching tracks by audio similarity.">?</span>
+          <span class="info-icon" data-tip="Describe a mood, vibe, or style and let the AI find matching tracks by audio similarity." tabindex="0" aria-label="More info">?</span>
         </label>
         <label class="mode-tab">
           <input type="radio" name="mode" value="connection" onchange="switchMode(this.value)"> Connection
-          <span class="info-icon" data-tip="Explore an artist's network — fans, collaborators, and influences — and build a playlist from their constellation.">?</span>
+          <span class="info-icon" data-tip="Explore an artist's network — fans, collaborators, and influences — and build a playlist from their constellation." tabindex="0" aria-label="More info">?</span>
         </label>
         <label class="mode-tab">
           <input type="radio" name="mode" value="dna" onchange="switchMode(this.value)"> DNA
-          <span class="info-icon" data-tip="Map a track's sample DNA — every track it sampled, every track that sampled it, and any melodic interpolations.">?</span>
+          <span class="info-icon" data-tip="Map a track's sample DNA — every track it sampled, every track that sampled it, and any melodic interpolations." tabindex="0" aria-label="More info">?</span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="rediscovery" onchange="switchMode(this.value)"> Rediscovery
+          <span class="info-icon" data-tip="Build a playlist from tracks you used to love but haven't played recently." tabindex="0" aria-label="More info">?</span>
         </label>
       </fieldset>
 
       <!-- Sonic fields -->
       <div id="fields-sonic" class="mode-fields">
-        <label for="prompt">Describe the playlist <span class="info-icon" data-tip="Natural language description of the sound you want — mood, genre, activity, or vibe.">?</span></label>
+        <label for="prompt">Describe the playlist <span class="info-icon" data-tip="Natural language description of the sound you want — mood, genre, activity, or vibe." tabindex="0" aria-label="More info">?</span></label>
         <input id="prompt" name="prompt" type="text"
                placeholder="dark ambient for late-night coding" autocomplete="off">
       </div>
 
       <!-- Connection fields -->
       <div id="fields-connection" class="mode-fields hidden">
-        <label for="artist">Seed artist <span class="info-icon" data-tip="The artist to start from. The agent will explore their collaborators, influences, and fans to build a constellation playlist.">?</span></label>
+        <label for="artist">Seed artist <span class="info-icon" data-tip="The artist to start from. The agent will explore their collaborators, influences, and fans to build a constellation playlist." tabindex="0" aria-label="More info">?</span></label>
         <input id="artist" name="artist" type="text" placeholder="Nine Inch Nails" autocomplete="off">
         <div class="row">
           <label class="checkbox-label">
-            <input type="checkbox" name="new_only"> Discoveries only <span class="info-icon" data-tip="Prefer artists not already in your Spotify listening history — great for finding new music.">?</span>
+            <input type="checkbox" name="new_only"> Discoveries only <span class="info-icon" data-tip="Prefer artists not already in your Spotify listening history — great for finding new music." tabindex="0" aria-label="More info">?</span>
           </label>
           <label class="checkbox-label">
-            <input type="checkbox" name="match_sound"> Match sound <span class="info-icon" data-tip="Also filter results by audio similarity to the seed artist's sound, not just graph connections.">?</span>
+            <input type="checkbox" name="match_sound"> Match sound <span class="info-icon" data-tip="Also filter results by audio similarity to the seed artist's sound, not just graph connections." tabindex="0" aria-label="More info">?</span>
           </label>
         </div>
-        <label for="depth">Graph depth <span class="info-icon" data-tip="How many hops away from the seed artist to explore. 2 = friends of friends. Higher values find more obscure connections but take longer.">?</span></label>
+        <label for="depth">Graph depth <span class="info-icon" data-tip="How many hops away from the seed artist to explore. 2 = friends of friends. Higher values find more obscure connections but take longer." tabindex="0" aria-label="More info">?</span></label>
         <input id="depth" name="depth" type="number" value="2" min="1" max="4">
       </div>
 
       <!-- DNA fields -->
       <div id="fields-dna" class="mode-fields hidden">
-        <label for="dna_track">Track <span class="info-icon" data-tip="The track to deep-dive. The agent will find every sample it contains, every track that sampled it, and any melodic interpolations.">?</span></label>
+        <label for="dna_track">Track <span class="info-icon" data-tip="The track to deep-dive. The agent will find every sample it contains, every track that sampled it, and any melodic interpolations." tabindex="0" aria-label="More info">?</span></label>
         <input id="dna_track" name="dna_track" type="text"
                placeholder="Hurt" autocomplete="off">
-        <label for="dna_artist">Artist <span class="muted">(optional)</span> <span class="info-icon" data-tip="Disambiguates tracks with common names — e.g. 'Hurt' exists by Nine Inch Nails and Johnny Cash. Leave blank if the track name is unique.">?</span></label>
+        <label for="dna_artist">Artist <span class="muted">(optional)</span> <span class="info-icon" data-tip="Disambiguates tracks with common names — e.g. 'Hurt' exists by Nine Inch Nails and Johnny Cash. Leave blank if the track name is unique." tabindex="0" aria-label="More info">?</span></label>
         <input id="dna_artist" name="dna_artist" type="text"
                placeholder="Nine Inch Nails" autocomplete="off">
+      </div>
+
+      <!-- Rediscovery fields -->
+      <div id="fields-rediscovery" class="mode-fields hidden">
+        <label for="stale_days">Unplayed for at least (days) <span class="info-icon" data-tip="Tracks not played for this many days are considered forgotten." tabindex="0" aria-label="More info">?</span></label>
+        <input id="stale_days" name="stale_days" type="number" value="90" min="30" max="730">
+        <label for="min_plays">Minimum past plays <span class="info-icon" data-tip="Only include tracks you played at least this many times — ensures you actually liked them." tabindex="0" aria-label="More info">?</span></label>
+        <input id="min_plays" name="min_plays" type="number" value="3" min="1" max="20">
       </div>
 
       <!-- Shared filters -->
@@ -69,11 +81,11 @@
         <summary>Filters <span class="muted">(optional)</span></summary>
         <div class="filter-grid">
           <div>
-            <label for="count">Tracks <span class="info-icon" data-tip="Number of tracks to include in the final playlist (5–50).">?</span></label>
+            <label for="count">Tracks <span class="info-icon" data-tip="Number of tracks to include in the final playlist (5–50)." tabindex="0" aria-label="More info">?</span></label>
             <input id="count" name="count" type="number" value="20" min="5" max="50">
           </div>
           <div>
-            <label>Energy <span class="info-icon" data-tip="Audio energy from 0.0 (calm/quiet) to 1.0 (intense/loud).">?</span></label>
+            <label>Energy <span class="info-icon" data-tip="Audio energy from 0.0 (calm/quiet) to 1.0 (intense/loud)." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-energy-fill"></div></div>
               <input type="range" class="dr-thumb" id="energy_min" name="energy_min" min="0" max="100" value="0" step="5" oninput="syncDR('energy',0,100,100)">
@@ -82,7 +94,7 @@
             </div>
           </div>
           <div>
-            <label>Valence <span class="info-icon" data-tip="Emotional positivity from 0.0 (dark/sad) to 1.0 (bright/happy).">?</span></label>
+            <label>Valence <span class="info-icon" data-tip="Emotional positivity from 0.0 (dark/sad) to 1.0 (bright/happy)." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-valence-fill"></div></div>
               <input type="range" class="dr-thumb" id="valence_min" name="valence_min" min="0" max="100" value="0" step="5" oninput="syncDR('valence',0,100,100)">
@@ -91,7 +103,7 @@
             </div>
           </div>
           <div>
-            <label>Tempo BPM <span class="info-icon" data-tip="Beats per minute. E.g. 120–140 for dance, 60–80 for ballads.">?</span></label>
+            <label>Tempo BPM <span class="info-icon" data-tip="Beats per minute. E.g. 120–140 for dance, 60–80 for ballads." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-tempo-fill"></div></div>
               <input type="range" class="dr-thumb" id="tempo_min" name="tempo_min" min="40" max="300" value="40" step="1" oninput="syncDR('tempo',40,300,0)">
@@ -135,7 +147,7 @@
 function switchMode(mode) {
   document.querySelectorAll('.mode-fields').forEach(el => el.classList.add('hidden'));
   document.getElementById('fields-' + mode).classList.remove('hidden');
-  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna');
+  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery');
 }
 
 function clearOutput() {

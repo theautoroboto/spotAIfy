@@ -323,6 +323,14 @@ func buildArgs(r *http.Request) []string {
 		if r.FormValue("match_sound") == "on" {
 			args = append(args, "--match-sound")
 		}
+	case "rediscovery":
+		args = append(args, "--rediscovery")
+		if v := r.FormValue("stale_days"); v != "" {
+			args = append(args, "--stale-days", v)
+		}
+		if v := r.FormValue("min_plays"); v != "" {
+			args = append(args, "--min-plays", v)
+		}
 	default: // sonic
 		if prompt := strings.TrimSpace(r.FormValue("prompt")); prompt != "" {
 			args = append(args, prompt)

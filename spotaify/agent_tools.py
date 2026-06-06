@@ -2,6 +2,8 @@
 from spotaify.clients.spotify_client import SpotifyClient
 from spotaify.core.artist_graph import traverse_graph, get_all_artist_names
 from spotaify.core.track_dna import expand_track_dna
+from spotaify.core.history_profile import enrich_candidates, get_forgotten_favorites
+from spotaify.core.taste_profile import build_taste_profile, load_cached as _load_taste_profile
 from spotaify.clients.whosampled_client import fetch_samples as whosampled_fetch
 from spotaify.clients.genius_client import fetch_song_info as genius_fetch
 
@@ -83,6 +85,17 @@ TOOLS = [
          "artist": {"type": "string"},
          "track_id": {"type": "string", "description": "Spotify track ID (optional)"}},
          "required": ["title", "artist"]}},
+    {"name": "forgotten_favorites",
+     "description": "Return tracks the user historically played often but hasn't heard recently — the pool for a rediscovery playlist.",
+     "input_schema": {"type": "object", "properties": {
+         "min_plays":      {"type": "integer", "default": 3},
+         "min_completion": {"type": "number",  "default": 0.4},
+         "stale_days":     {"type": "integer", "default": 90},
+         "limit":          {"type": "integer", "default": 50}}}},
+    {"name": "get_taste_profile",
+     "description": "Return the user's audio fingerprint (mean energy, valence, tempo, etc.) and era distribution. Useful for calibrating Sonic searches.",
+     "input_schema": {"type": "object", "properties": {
+         "rebuild": {"type": "boolean", "default": False}}}},
     {"name": "create_spotify_playlist",
      "description": "Save the final playlist to the user's Spotify account. Always call this as the last step.",
      "input_schema": {"type": "object", "properties": {
@@ -133,6 +146,7 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
     if name == "rank_and_select":
         candidates = inputs["candidates"]
         boost = inputs.get("boost_discovery", False)
+        enrich_candidates(candidates)
         for c in candidates:
             score = c.get("audio_sim", 0.5)
             score += c.get("completion_rate", 0.0) * 0.3
@@ -210,5 +224,23 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
 
     if name == "fetch_genius_info":
         return genius_fetch(inputs["title"], inputs["artist"])
+
+    if name == "forgotten_favorites":
+        track_ids = get_forgotten_favorites(
+            min_plays=inputs.get("min_plays", 3),
+            min_completion=inputs.get("min_completion", 0.4),
+            stale_days=inputs.get("stale_days", 90),
+        )
+        limit = min(inputs.get("limit", 50), 100)
+        metadata = _get_spotify_client().get_tracks_metadata(track_ids[:limit])
+        tracks = [metadata[tid] for tid in track_ids[:limit] if tid in metadata]
+        return {"tracks": _slim(tracks), "count": len(tracks), "total_found": len(track_ids)}
+
+    if name == "get_taste_profile":
+        if not inputs.get("rebuild", False):
+            cached = _load_taste_profile()
+            if cached:
+                return cached
+        return build_taste_profile(_get_spotify_client())
 
     return {"error": f"Unknown tool: {name}"}
