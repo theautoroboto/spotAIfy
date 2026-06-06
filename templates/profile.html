@@ -1,0 +1,946 @@
+{{template "base" .}}
+
+{{define "content"}}
+{{$h := .History}}
+{{$sp := .Spotify}}
+{{$af := .Audio}}
+{{$p := .Persona}}
+{{$recs := .Recommendations}}
+
+<!-- ── Hero with canvas aura ── -->
+<div class="aura-wrap has-aura">
+  <canvas id="music-aura" aria-hidden="true"
+    data-hue="{{.Aura.Hue}}"
+    data-sat="{{.Aura.Sat}}"
+    data-energy="{{printf "%.3f" .Aura.Energy}}"
+    data-valence="{{printf "%.3f" .Aura.Valence}}"
+    data-dance="{{printf "%.3f" .Aura.Dance}}"
+    data-acoustic="{{printf "%.3f" .Aura.Acoustic}}"
+    data-tempo="{{printf "%.1f" .Aura.Tempo}}"
+  ></canvas>
+  <div class="aura-inner">
+    <div class="profile-hero">
+      {{if and $sp $sp.User.ImageURL}}
+      <img class="profile-avatar" src="{{$sp.User.ImageURL}}" alt="" width="80" height="80">
+      {{else}}
+      <div class="profile-avatar profile-avatar-placeholder">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="profile-hero-info">
+        <h1 class="profile-name">
+          {{if and $sp $sp.User.DisplayName}}{{$sp.User.DisplayName}}{{else}}{{.Username}}{{end}}
+        </h1>
+        <div class="profile-meta">
+          {{if and $sp $sp.User.Followers}}<span>{{$sp.User.Followers}} followers</span>{{end}}
+          {{if and $sp $sp.User.SpotifyURL}}
+            <a href="{{$sp.User.SpotifyURL}}" target="_blank" rel="noopener" class="playlist-link">Open in Spotify</a>
+          {{end}}
+          {{if and $sp $sp.MissingScopes}}
+            <a href="/spotify/connect" class="btn btn-sm btn-spotify" style="margin-left:0.5rem">Reconnect for full stats</a>
+          {{end}}
+        </div>
+      </div>
+    </div>
+
+    {{if $af}}
+    <!-- Vibe badge overlaid on aura -->
+    <div class="vibe-strip">
+      <div class="vibe-badge">
+        <span class="vibe-emoji" aria-hidden="true">{{$af.VibeEmoji}}</span>
+        <div class="vibe-text">
+          <div class="vibe-label">{{$af.VibeLabel}}</div>
+          <div class="vibe-desc">{{$af.VibeDesc}}</div>
+        </div>
+      </div>
+      <div class="vibe-tempo">
+        <span class="vibe-tempo-val">{{printf "%.0f" $af.Tempo}}</span>
+        <span class="vibe-tempo-unit">avg BPM</span>
+      </div>
+    </div>
+    {{end}}
+  </div>
+</div>
+
+<!-- ── Psychological Persona ── -->
+{{if $p}}
+<details class="persona-card" open>
+  <summary class="persona-summary">
+    <div class="persona-header">
+      <div class="persona-archetype">{{$p.Archetype}}</div>
+      {{if $p.Traits}}
+      <div class="persona-traits">
+        {{range $i, $t := $p.Traits}}
+        <span class="persona-trait ptrait-{{add $i 1}}">{{$t}}</span>
+        {{end}}
+      </div>
+      {{end}}
+    </div>
+  </summary>
+  {{if $p.Headline}}
+  <div class="persona-headline">{{$p.Headline}}</div>
+  {{end}}
+  {{if $p.Narrative}}
+  <div class="persona-narrative">
+    {{range paragraphs $p.Narrative}}
+    <p class="persona-para">{{.}}</p>
+    {{end}}
+  </div>
+  {{end}}
+</details>
+{{end}}
+
+<!-- ── All-time stat pills ── -->
+{{if $h.TotalMsPlayed}}
+<div class="stat-row">
+  <div class="stat-pill">
+    <div class="stat-pill-value">{{printf "%.0f" $h.TotalHours}}</div>
+    <div class="stat-pill-label">hours listened</div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-value">{{$h.UniqueTrackCount}}</div>
+    <div class="stat-pill-label">unique tracks</div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-value">{{$h.UniqueArtistCount}}</div>
+    <div class="stat-pill-label">unique artists</div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-value">{{$h.SkipPct}}%</div>
+    <div class="stat-pill-label">skip rate</div>
+  </div>
+  {{if not $h.EarliestPlay.IsZero}}
+  <div class="stat-pill stat-pill-accent">
+    <div class="stat-pill-value">{{$h.EarliestPlay.Year}}</div>
+    <div class="stat-pill-label">listening since</div>
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+<!-- ── Unlock full stats card (no export yet) ── -->
+{{if eq $h.TotalMsPlayed 0}}
+<div class="unlock-card">
+  <div class="unlock-title">Unlock your full listening history</div>
+  <div class="unlock-desc">Your profile is showing live Spotify data only. To unlock years of listening stats, all-time top tracks and artists, yearly trends, and your musical persona, request your Extended Streaming History export from Spotify.</div>
+  <div class="unlock-steps">
+    <div class="unlock-step">
+      <div class="unlock-step-num">1</div>
+      <div>Open Spotify → <strong>Settings → Security and privacy → Account privacy</strong> and scroll to <strong>Download your data</strong></div>
+    </div>
+    <div class="unlock-step">
+      <div class="unlock-step-num">2</div>
+      <div>Choose <strong>Extended streaming history</strong> (not just "Account data") and submit the request</div>
+    </div>
+    <div class="unlock-step">
+      <div class="unlock-step-num">3</div>
+      <div>Wait for Spotify's email — delivery typically takes a few days up to 30 days</div>
+    </div>
+    <div class="unlock-step">
+      <div class="unlock-step-num">4</div>
+      <div>Copy all <strong>Streaming_History_Audio_*.json</strong> files from the zip into your history folder and reload this page</div>
+    </div>
+  </div>
+  <div class="unlock-note">data/history/{{.Username}}/Streaming_History_Audio_*.json</div>
+</div>
+
+{{if and $sp $sp.Recent}}
+<details class="profile-section" open>
+  <summary class="section-title">Recently Played</summary>
+  <div class="track-list">
+    {{range $sp.Recent}}
+    <a class="track-row" href="{{.SpotifyURL}}" target="_blank" rel="noopener">
+      {{if .ImageURL}}
+      <img class="track-img" src="{{.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+      {{else}}
+      <div class="track-img track-img-placeholder">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="track-info">
+        <div class="track-title">{{.Title}}</div>
+        <div class="track-artist">{{.Artist}}</div>
+      </div>
+      <div class="track-stats">
+        <div class="track-stat-primary track-time" data-ts="{{.PlayedAt.Unix}}"></div>
+      </div>
+    </a>
+    {{end}}
+  </div>
+</details>
+{{end}}
+{{end}}
+
+<!-- ── Sound DNA ── -->
+{{if $af}}
+<details class="profile-section" open>
+  <summary class="section-title">Sound DNA <span class="section-sub">from {{$af.TrackCount}} tracks</span></summary>
+  <div class="dna-layout">
+
+    <!-- Radar chart -->
+    <div class="radar-wrap">
+      <canvas id="radar-chart" width="220" height="220"
+        data-hue="{{$af.PrimaryHue}}"
+        data-sat="{{$af.Saturation}}"
+        data-dance="{{printf "%.3f" $af.Danceability}}"
+        data-energy="{{printf "%.3f" $af.Energy}}"
+        data-valence="{{printf "%.3f" $af.Valence}}"
+        data-acoustic="{{printf "%.3f" $af.Acousticness}}"
+        data-instrumental="{{printf "%.3f" $af.Instrumentalness}}"
+        data-liveness="{{printf "%.3f" $af.Liveness}}"
+      ></canvas>
+    </div>
+
+    <!-- Attribute bars -->
+    <div class="attr-list">
+      <div class="attr-row">
+        <span class="attr-name">Energy</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-energy" style="width:{{pct $af.Energy}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Energy}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Danceability</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-dance" style="width:{{pct $af.Danceability}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Danceability}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Positivity</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-valence" style="width:{{pct $af.Valence}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Valence}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Acousticness</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-acoustic" style="width:{{pct $af.Acousticness}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Acousticness}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Instrumental</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-instrumental" style="width:{{pct $af.Instrumentalness}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Instrumentalness}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Liveness</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-live" style="width:{{pct $af.Liveness}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Liveness}}%</span>
+      </div>
+    </div>
+
+  </div>
+</details>
+{{end}}
+
+<!-- ── Year-by-year timeline ── -->
+{{if $h.YearlyTrend}}
+<details class="profile-section" open>
+  <summary class="section-title">Year by Year <span class="section-sub">listening history</span></summary>
+  <div class="year-timeline">
+    {{range $h.YearlyTrend}}
+    <div class="year-card">
+      <div class="year-header">
+        <span class="year-number">{{.Year}}</span>
+        <div class="year-bar-wrap">
+          <div class="year-bar-fill" style="width:{{.BarPct}}%"></div>
+        </div>
+        <span class="year-hours">{{printf "%.0f" .HoursPlayed}}h</span>
+        <span class="year-plays">{{.PlayCount}} plays</span>
+      </div>
+      {{if or .TopArtists .TopTracks}}
+      <div class="year-details">
+        {{if .TopArtists}}
+        <div class="year-row">
+          <span class="year-row-label">Artists</span>
+          <div class="year-tags">
+            {{range $i, $a := .TopArtists}}
+            <span class="ytag ytag-{{add $i 1}}" title="{{printf "%.0f" $a.HoursPlayed}}h · {{$a.PlayCount}} plays">{{$a.Name}}</span>
+            {{end}}
+          </div>
+        </div>
+        {{end}}
+        {{if .TopTracks}}
+        <div class="year-row">
+          <span class="year-row-label">Tracks</span>
+          <div class="year-tags">
+            {{range $i, $t := .TopTracks}}
+            <span class="ytag ytag-t{{add $i 1}}" title="{{$t.ArtistName}} · {{$t.PlayCount}} plays">{{$t.TrackName}}</span>
+            {{end}}
+          </div>
+        </div>
+        {{end}}
+      </div>
+      {{end}}
+    </div>
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Hall of Fame ── -->
+{{if or $h.TopArtists $h.TopTracks}}
+<div class="hof-grid">
+
+  {{if $h.TopArtists}}
+  <details class="profile-section" open>
+    <summary class="section-title">Top Artists <span class="section-sub">all time</span></summary>
+    <div class="hof-list">
+      {{range $i, $a := $h.TopArtists}}
+      {{if lt $i 5}}
+      <a class="hof-row{{if $a.SpotifyURL}}{{else}} hof-row-nolink{{end}}"
+         {{if $a.SpotifyURL}}href="{{$a.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+        <span class="hof-rank hof-rank-{{add $i 1}}">{{add $i 1}}</span>
+        {{if $a.ImageURL}}
+        <img class="hof-img" src="{{$a.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+        {{else}}
+        <div class="hof-img hof-img-placeholder">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        {{end}}
+        <div class="hof-info">
+          <div class="hof-name">{{$a.ArtistName}}</div>
+          <div class="hof-sub">{{printf "%.1f" $a.HoursPlayed}}h · {{$a.PlayCount}} plays</div>
+        </div>
+        {{if $a.Genres}}<span class="hof-genre">{{index $a.Genres 0}}</span>{{end}}
+      </a>
+      {{end}}
+      {{end}}
+    </div>
+  </details>
+  {{end}}
+
+  {{if $h.TopTracks}}
+  <details class="profile-section" open>
+    <summary class="section-title">Top Tracks <span class="section-sub">all time</span></summary>
+    <div class="hof-list">
+      {{range $i, $t := $h.TopTracks}}
+      {{if lt $i 5}}
+      <a class="hof-row{{if $t.SpotifyURL}}{{else}} hof-row-nolink{{end}}"
+         {{if $t.SpotifyURL}}href="{{$t.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+        <span class="hof-rank hof-rank-{{add $i 1}}">{{add $i 1}}</span>
+        {{if $t.ImageURL}}
+        <img class="hof-img" src="{{$t.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+        {{else}}
+        <div class="hof-img hof-img-placeholder">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+        </div>
+        {{end}}
+        <div class="hof-info">
+          <div class="hof-name">{{$t.TrackName}}</div>
+          <div class="hof-sub">{{$t.ArtistName}} · {{printf "%.1f" $t.HoursPlayed}}h</div>
+        </div>
+        <span class="hof-pct">{{pct $t.CompletionRate}}%</span>
+      </a>
+      {{end}}
+      {{end}}
+    </div>
+  </details>
+  {{end}}
+
+</div>
+{{end}}
+
+<!-- ── Full top artists grid ── -->
+{{if $h.TopArtists}}
+<details class="profile-section" open>
+  <summary class="section-title">All Artists <span class="section-sub">by listening time</span></summary>
+  <div class="top-grid">
+    {{range $i, $a := $h.TopArtists}}
+    {{if lt $i 10}}
+    <a class="top-card{{if $a.SpotifyURL}}{{else}} top-card-nolink{{end}}"
+       {{if $a.SpotifyURL}}href="{{$a.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+      <div class="top-card-rank">{{add $i 1}}</div>
+      {{if $a.ImageURL}}
+      <img class="top-card-img" src="{{$a.ImageURL}}" alt="" width="56" height="56" loading="lazy">
+      {{else}}
+      <div class="top-card-img top-card-img-placeholder">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="top-card-info">
+        <div class="top-card-name">{{$a.ArtistName}}</div>
+        <div class="top-card-sub">{{printf "%.1f" $a.HoursPlayed}}h · {{$a.PlayCount}} plays</div>
+        {{if $a.Genres}}<div class="top-card-genre">{{index $a.Genres 0}}</div>{{end}}
+      </div>
+    </a>
+    {{end}}
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Full top tracks list ── -->
+{{if $h.TopTracks}}
+<details class="profile-section" open>
+  <summary class="section-title">All Tracks <span class="section-sub">by listening time</span></summary>
+  <div class="track-list">
+    {{range $i, $t := $h.TopTracks}}
+    {{if lt $i 20}}
+    <a class="track-row{{if not $t.SpotifyURL}} track-row-nolink{{end}}"
+       {{if $t.SpotifyURL}}href="{{$t.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+      <span class="track-rank">{{add $i 1}}</span>
+      {{if $t.ImageURL}}
+      <img class="track-img" src="{{$t.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+      {{else}}
+      <div class="track-img track-img-placeholder">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="track-info">
+        <div class="track-title">{{$t.TrackName}}</div>
+        <div class="track-artist">{{$t.ArtistName}}</div>
+      </div>
+      <div class="track-stats">
+        <div class="track-stat-primary">{{printf "%.1f" $t.HoursPlayed}}h</div>
+        <div class="track-stat-secondary">{{$t.PlayCount}} plays · {{pct $t.CompletionRate}}% done</div>
+      </div>
+    </a>
+    {{end}}
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Taste DNA + Listening patterns ── -->
+{{if or (and $sp $sp.Insights.TopGenres) $h.HourlyPattern}}
+<details class="profile-section" open>
+  <summary class="section-title">Listening Patterns</summary>
+  <div class="insights-grid">
+
+    {{if and $sp $sp.Insights.TopGenres}}
+    <div class="stat-card">
+      <div class="stat-card-label">Taste Profile</div>
+      <div class="stat-card-value">{{$sp.Insights.ObscurityLabel}}</div>
+      <div class="mainstream-bar-wrap" title="Mainstream score: {{$sp.Insights.MainstreamScore}}/100">
+        <div class="mainstream-bar" style="width:{{$sp.Insights.MainstreamScore}}%"></div>
+      </div>
+      <div class="mainstream-labels"><span>Underground</span><span>Mainstream</span></div>
+      <div class="genre-list" style="margin-top:1rem">
+        {{range $i, $g := $sp.Insights.TopGenres}}
+        <span class="genre-tag gtag-{{add $i 1}}">{{$g.Genre}}</span>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+
+    {{if $h.HourlyPattern}}
+    <div class="stat-card">
+      <div class="stat-card-label">When You Listen</div>
+      <div class="hourly-chart" id="hourly-chart" data-vals="{{range $h.HourlyPattern}}{{.}} {{end}}"></div>
+      <div class="hourly-labels">
+        <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+      </div>
+    </div>
+    {{end}}
+
+  </div>
+</details>
+{{end}}
+
+<!-- ── Recently Played (Spotify API) — only shown when history is present ── -->
+{{if and $h.TotalMsPlayed (and $sp $sp.Recent)}}
+<details class="profile-section" open>
+  <summary class="section-title">Recently Played</summary>
+  <div class="track-list">
+    {{range $sp.Recent}}
+    <a class="track-row" href="{{.SpotifyURL}}" target="_blank" rel="noopener">
+      {{if .ImageURL}}
+      <img class="track-img" src="{{.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+      {{else}}
+      <div class="track-img track-img-placeholder">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="track-info">
+        <div class="track-title">{{.Title}}</div>
+        <div class="track-artist">{{.Artist}}</div>
+      </div>
+      <div class="track-stats">
+        <div class="track-stat-primary track-time" data-ts="{{.PlayedAt.Unix}}"></div>
+      </div>
+    </a>
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Artist Recommendations ── -->
+{{if $recs}}
+<details class="profile-section" open>
+  <summary class="section-title">Discover <span class="section-sub">artists you'd love but haven't heard</span></summary>
+  <div class="rec-grid">
+    {{range $recs}}
+    <a class="rec-card" href="{{if .SpotifyURL}}{{.SpotifyURL}}{{else}}{{.TrackURL}}{{end}}" target="_blank" rel="noopener">
+      {{if .ImageURL}}
+      <img class="rec-img" src="{{.ImageURL}}" alt="" width="80" height="80" loading="lazy">
+      {{else}}
+      <div class="rec-img rec-img-placeholder">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="rec-info">
+        <div class="rec-name">{{.ArtistName}}</div>
+        {{if .Genres}}<div class="rec-genre">{{index .Genres 0}}</div>{{end}}
+        {{if .SampleTrack}}
+        <a class="rec-track" href="{{.TrackURL}}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+          ♪ {{.SampleTrack}}
+        </a>
+        {{end}}
+      </div>
+    </a>
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Scripts ── -->
+<script>
+// ── Musical Aura canvas (Round 3: breathing hue, particle lifecycle, sparkles + ripples) ──
+(function() {
+  const canvas = document.getElementById('music-aura');
+  if (!canvas) return;
+  const d        = canvas.dataset;
+  const baseHue  = parseInt(d.hue)         || 200;
+  const sat      = parseInt(d.sat)         || 60;
+  const energy   = parseFloat(d.energy)   || 0.5;
+  const dance    = parseFloat(d.dance)    || 0.5;
+  const acoustic = parseFloat(d.acoustic) || 0.5;
+  const tempo    = parseFloat(d.tempo)    || 120;
+  const ctx      = canvas.getContext('2d');
+  let W, H, blobs, particles, sparkles, ripples;
+
+  const beatMs = 60000 / tempo;
+  let lastBeat = 0, pulseAmt = 0;
+
+  function newParticle(life0) {
+    const maxLife = 180 + Math.random() * 240;
+    return {
+      x:       Math.random() * W,
+      y:       Math.random() * H,
+      r:       0.7 + Math.random() * (1.2 + energy * 2.0),
+      hue:     baseHue + (Math.random() - 0.5) * 70,
+      spd:     0.3 + Math.random() * energy * 1.8,
+      phase:   Math.random() * Math.PI * 2,
+      alpha:   0.25 + Math.random() * 0.55,
+      trail:   [],
+      life:    Math.round((life0 === undefined ? Math.random() : life0) * maxLife),
+      maxLife: maxLife,
+    };
+  }
+
+  function newSparkle() {
+    return {
+      x:       Math.random() * W,
+      y:       Math.random() * H,
+      r:       0.5 + Math.random() * 1.8,
+      hue:     baseHue + (Math.random() - 0.5) * 80,
+      life:    0,
+      maxLife: 30 + Math.random() * 40,
+      alpha:   0.6 + Math.random() * 0.4,
+    };
+  }
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight || 280;
+    init();
+  }
+
+  function init() {
+    blobs = [];
+    const bc = 5 + Math.round(energy * 4);
+    for (let i = 0; i < bc; i++) {
+      blobs.push({
+        x:     Math.random() * W,
+        y:     Math.random() * H,
+        baseR: 80 + Math.random() * 200,
+        hue:   baseHue + (i * 35 % 100) - 50,
+        speed: 0.10 + Math.random() * 0.28 * energy,
+        phase: Math.random() * Math.PI * 2,
+        alpha: 0.20 + Math.random() * 0.28,
+        layer: i % 3,
+      });
+    }
+    const pc = Math.round(60 + energy * 120);
+    particles = Array.from({ length: pc }, () => newParticle(Math.random()));
+    const sc = Math.round(10 + dance * 20);
+    sparkles = Array.from({ length: sc }, newSparkle);
+    ripples = [];
+  }
+
+  // 3-octave sine flow field
+  function flowAngle(x, y, t) {
+    return Math.sin(x * 0.004  + t * 0.52)  * Math.PI
+         + Math.cos(y * 0.005  - t * 0.38)  * Math.PI * 0.65
+         + Math.sin((x - y) * 0.003 + t * 0.25) * Math.PI * 0.28
+         + Math.cos((x + y) * 0.0018 - t * 0.19) * Math.PI * 0.18
+         + Math.sin(x * 0.0009 + y * 0.0012 + t * 0.11) * Math.PI * 0.09;
+  }
+
+  let t = 0;
+  function draw(now) {
+    if (now - lastBeat >= beatMs) {
+      lastBeat = now;
+      pulseAmt = 1;
+      ripples.push({
+        x: W * (0.2 + Math.random() * 0.6),
+        y: H * (0.2 + Math.random() * 0.6),
+        r: 0, maxR: 80 + energy * 60, life: 0, maxLife: 50,
+      });
+    }
+    pulseAmt *= 0.88;
+
+    // Breathing hue — slow sinusoidal drift across ±18°
+    const hue = baseHue + Math.sin(t * 0.038) * 18;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Layer 1 — rich diagonal gradient base
+    const bg = ctx.createLinearGradient(0, 0, W * 0.6, H);
+    bg.addColorStop(0,    `hsl(${hue},     ${sat}%,     12%)`);
+    bg.addColorStop(0.35, `hsl(${hue+25},  ${sat-8}%,    8%)`);
+    bg.addColorStop(0.65, `hsl(${hue-18},  ${sat+12}%,  15%)`);
+    bg.addColorStop(1,    `hsl(${hue+45},  ${sat-5}%,   10%)`);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Layer 2 — back blobs (large, slow)
+    blobs.filter(b => b.layer === 0).forEach(b => {
+      b.x += Math.sin(t * b.speed + b.phase) * 0.5;
+      b.y += Math.cos(t * b.speed * 0.7 + b.phase) * 0.38;
+      const r = b.baseR * (1 + pulseAmt * 0.08 * energy);
+      const rg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+      rg.addColorStop(0,   `hsla(${b.hue}, ${sat+15}%, 45%, ${b.alpha * 1.2})`);
+      rg.addColorStop(0.5, `hsla(${b.hue}, ${sat}%,   35%, ${b.alpha * 0.5})`);
+      rg.addColorStop(1,   `hsla(${b.hue}, ${sat}%,   25%, 0)`);
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, Math.PI * 2); ctx.fill();
+      b.x = ((b.x % (W + b.baseR)) + W + b.baseR) % (W + b.baseR) - b.baseR / 2;
+      b.y = ((b.y % (H + b.baseR)) + H + b.baseR) % (H + b.baseR) - b.baseR / 2;
+    });
+
+    // Layer 3 — sine wave interference (acoustic-driven softness)
+    const wc = Math.round(3 + energy * 3);
+    for (let w = 0; w < wc; w++) {
+      ctx.beginPath();
+      const wAlpha = (0.03 + acoustic * 0.045) * (1 - w * 0.18);
+      ctx.strokeStyle = `hsla(${hue + w * 25}, ${sat+5}%, 70%, ${wAlpha})`;
+      ctx.lineWidth = 1 + acoustic * 0.8;
+      const freq  = (tempo / 120) * (0.006 + w * 0.0028);
+      const amp   = H * 0.11 * (0.55 + energy * 0.45);
+      const yBase = H * (0.22 + w * 0.16);
+      for (let x = 0; x <= W; x += 3) {
+        const y = yBase
+          + Math.sin(x * freq + t * (0.75 + dance * 0.55) + w * 1.1) * amp
+          + Math.sin(x * freq * 1.8 - t * 0.48 + w * 1.6) * amp * 0.3
+          + Math.sin(x * freq * 0.5 + t * 0.22) * amp * pulseAmt * 0.4 * energy;
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    // Layer 4 — particles with lifecycle, trails, connections
+    ctx.save();
+    // Advance lifecycle, replace dead particles
+    particles = particles.map(p => { p.life++; return p.life >= p.maxLife ? newParticle(0) : p; });
+    const fade = p => Math.sin((p.life / p.maxLife) * Math.PI);
+    // Trails + movement
+    particles.forEach(p => {
+      const angle = flowAngle(p.x, p.y, t);
+      p.trail.push({ x: p.x, y: p.y });
+      if (p.trail.length > 5) p.trail.shift();
+      p.x += Math.cos(angle) * p.spd * (1 + pulseAmt * energy * 0.3);
+      p.y += Math.sin(angle) * p.spd * (1 + pulseAmt * energy * 0.3);
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      if (p.trail.length > 1 && energy > 0.4) {
+        ctx.beginPath();
+        ctx.moveTo(p.trail[0].x, p.trail[0].y);
+        p.trail.forEach(tp => ctx.lineTo(tp.x, tp.y));
+        ctx.strokeStyle = `hsla(${p.hue}, ${sat+10}%, 70%, ${p.alpha * fade(p) * 0.28})`;
+        ctx.lineWidth = p.r * 0.7;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+    });
+    // Connections (squared distance avoids sqrt in inner loop)
+    const cd2 = (55 + dance * 55) * (55 + dance * 55);
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < cd2) {
+          const alpha = (1 - Math.sqrt(d2) / Math.sqrt(cd2)) * 0.10 * dance * fade(particles[i]) * fade(particles[j]);
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `hsla(${hue + 20}, ${sat}%, 65%, ${alpha})`;
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
+      }
+    }
+    // Particle dots with lifecycle fade
+    particles.forEach(p => {
+      const f = fade(p);
+      const glowR = p.r * (1 + pulseAmt * energy * 0.5);
+      ctx.shadowBlur = 4 + acoustic * 6;
+      ctx.shadowColor = `hsla(${p.hue}, ${sat+10}%, 75%, ${0.5 * f})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${p.hue}, ${sat+20}%, 78%, ${p.alpha * f})`;
+      ctx.fill();
+    });
+    ctx.restore();
+
+    // Layer 5 — mid blobs (smaller, faster)
+    blobs.filter(b => b.layer === 1).forEach(b => {
+      b.x += Math.sin(t * b.speed * 1.4 + b.phase) * 0.7;
+      b.y += Math.cos(t * b.speed * 1.1 + b.phase) * 0.55;
+      const r = b.baseR * 0.55 * (1 + pulseAmt * 0.12 * energy);
+      const rg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+      rg.addColorStop(0, `hsla(${b.hue+30}, ${sat+25}%, 65%, ${b.alpha * 0.9})`);
+      rg.addColorStop(1, `hsla(${b.hue+30}, ${sat}%,   35%, 0)`);
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // Layer 6 — sparkles (short-lived bright point flashes, dance-driven density)
+    ctx.save();
+    sparkles = sparkles.map(s => {
+      s.life++;
+      if (s.life >= s.maxLife) return newSparkle();
+      const sf = Math.sin((s.life / s.maxLife) * Math.PI);
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = `hsl(${s.hue}, ${sat+20}%, 95%)`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r * sf, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${s.hue}, ${sat+10}%, 94%, ${s.alpha * sf})`;
+      ctx.fill();
+      return s;
+    });
+    ctx.restore();
+
+    // Layer 7 — beat ripples (expanding rings on each beat pulse)
+    ctx.save();
+    ripples = ripples.filter(rp => rp.life < rp.maxLife);
+    ripples.forEach(rp => {
+      rp.life++;
+      rp.r = rp.maxR * (rp.life / rp.maxLife);
+      const rf = 1 - rp.life / rp.maxLife;
+      ctx.beginPath();
+      ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+      ctx.strokeStyle = `hsla(${hue + 20}, ${sat}%, 75%, ${rf * 0.35 * energy})`;
+      ctx.lineWidth = 2 * rf;
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    // Layer 8 — vignette gradient for text readability
+    const vg = ctx.createLinearGradient(0, 0, 0, H);
+    vg.addColorStop(0,    'rgba(0,0,0,0.00)');
+    vg.addColorStop(0.35, 'rgba(0,0,0,0.05)');
+    vg.addColorStop(0.70, 'rgba(0,0,0,0.35)');
+    vg.addColorStop(1,    'rgba(0,0,0,0.72)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, W, H);
+
+    t += 0.007 + energy * 0.010;
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  requestAnimationFrame(draw);
+})();
+
+// ── Radar chart (Round 2: glow + idle pulse + value labels) ──────────────────
+(function() {
+  const canvas = document.getElementById('radar-chart');
+  if (!canvas) return;
+  const d   = canvas.dataset;
+  const hue = parseInt(d.hue || 200);
+  const sat = parseInt(d.sat || 60);
+  const vals   = [
+    parseFloat(d.dance        || 0),
+    parseFloat(d.energy       || 0),
+    parseFloat(d.valence      || 0),
+    parseFloat(d.acoustic     || 0),
+    parseFloat(d.instrumental || 0),
+    parseFloat(d.liveness     || 0),
+  ];
+  const labels = ['Dance','Energy','Mood','Acoustic','Instru.','Live'];
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R  = Math.min(W, H) / 2 - 38;
+  const N  = 6;
+
+  function pt(axis, val) {
+    const a = (axis / N) * Math.PI * 2 - Math.PI / 2;
+    return { x: cx + Math.cos(a) * R * val, y: cy + Math.sin(a) * R * val };
+  }
+
+  function easeOutBack(x) {
+    const c1 = 1.70158, c3 = c1 + 1;
+    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+  }
+
+  let prog = 0, idleT = 0, animating = true;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    const eased = animating ? Math.min(1, easeOutBack(Math.min(prog, 0.999))) : 1;
+    const pulse = animating ? 0 : Math.sin(idleT * 1.8) * 0.018 + 1;
+
+    // Grid rings with fade-in
+    for (let ring = 1; ring <= 4; ring++) {
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) {
+        const p = pt(i, ring / 4);
+        i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `hsla(${hue}, 30%, 60%, ${ring === 4 ? 0.28 : 0.11})`;
+      ctx.lineWidth = ring === 4 ? 1.5 : 1;
+      ctx.stroke();
+      if (ring === 4) {
+        ctx.font = '7px system-ui';
+        ctx.fillStyle = `hsla(${hue}, 15%, 55%, 0.6)`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('100%', cx + 4, cy - R - 2);
+      }
+    }
+
+    // Axis spokes
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, 1);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(p.x, p.y);
+      ctx.strokeStyle = `hsla(${hue}, 20%, 50%, 0.18)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Data polygon — glow fill + stroke
+    const av = vals.map(v => v * eased * pulse);
+    ctx.save();
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = `hsla(${hue}, ${sat}%, 65%, 0.45)`;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, av[i]);
+      i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+    }
+    ctx.closePath();
+    const fillGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+    fillGrad.addColorStop(0,   `hsla(${hue}, ${sat+15}%, 70%, 0.35)`);
+    fillGrad.addColorStop(0.6, `hsla(${hue}, ${sat}%,   55%, 0.20)`);
+    fillGrad.addColorStop(1,   `hsla(${hue}, ${sat-10}%,45%, 0.08)`);
+    ctx.fillStyle = fillGrad;
+    ctx.fill();
+    ctx.strokeStyle = `hsla(${hue}, ${sat+15}%, 75%, 0.95)`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+
+    // Vertex dots with glow
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, av[i]);
+      ctx.save();
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = `hsl(${hue}, ${sat}%, 75%)`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${hue+10}, ${sat+15}%, 85%)`;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Axis labels + value badges
+    ctx.font = 'bold 9.5px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < N; i++) {
+      const lp = pt(i, 1.3);
+      ctx.fillStyle = `hsla(${hue}, 18%, 72%, 0.88)`;
+      ctx.fillText(labels[i], lp.x, lp.y);
+      if (prog > 0.92) {
+        const vp  = pt(i, av[i]);
+        const pct = Math.round(vals[i] * 100);
+        const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
+        const ox = Math.cos(angle) * 13, oy = Math.sin(angle) * 13;
+        ctx.font = '7.5px system-ui';
+        ctx.fillStyle = `hsla(${hue}, ${sat}%, 85%, 0.8)`;
+        ctx.fillText(pct + '%', vp.x + ox, vp.y + oy);
+        ctx.font = 'bold 9.5px system-ui, sans-serif';
+      }
+    }
+
+    if (animating) {
+      prog = Math.min(1, prog + 0.022);
+      if (prog >= 1) animating = false;
+      requestAnimationFrame(draw);
+    } else {
+      idleT += 0.016;
+      requestAnimationFrame(draw);
+    }
+  }
+  draw();
+})();
+
+// ── Hourly chart ───────────────────────────────────────────────────────────────
+(function() {
+  const wrap = document.getElementById('hourly-chart');
+  if (!wrap) return;
+  const vals = wrap.dataset.vals.trim().split(/\s+/).map(Number);
+  const max  = Math.max(...vals, 1);
+  vals.forEach((v, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'hourly-bar';
+    bar.style.height = Math.round((v / max) * 100) + '%';
+    bar.title = `${i}:00 — ${v} plays`;
+    if (i >= 8 && i <= 22) bar.classList.add('hourly-bar-active');
+    wrap.appendChild(bar);
+  });
+})();
+
+// ── Relative timestamps ────────────────────────────────────────────────────────
+document.querySelectorAll('.track-time[data-ts]').forEach(el => {
+  const diff = Math.floor((Date.now() - parseInt(el.dataset.ts, 10) * 1000) / 1000);
+  if (diff < 60)         el.textContent = 'just now';
+  else if (diff < 3600)  el.textContent = Math.floor(diff / 60) + 'm ago';
+  else if (diff < 86400) el.textContent = Math.floor(diff / 3600) + 'h ago';
+  else                   el.textContent = Math.floor(diff / 86400) + 'd ago';
+});
+</script>
+{{end}}

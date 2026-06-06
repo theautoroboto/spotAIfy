@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -17,8 +18,10 @@ import (
 	"sync"
 	"time"
 
+	"spotaify-web/internal/ai"
 	"spotaify-web/internal/auth"
 	"spotaify-web/internal/db"
+	"spotaify-web/internal/history"
 	"spotaify-web/internal/spotify"
 )
 
@@ -61,11 +64,17 @@ func deleteRun(id string) {
 
 var tmpls map[string]*template.Template
 
+var tmplFuncs = template.FuncMap{
+	"add":        func(a, b int) int { return a + b },
+	"pct":        func(f float64) int { return int(f * 100) },
+	"paragraphs": func(s string) []string { return strings.Split(strings.TrimSpace(s), "\n\n") },
+}
+
 func loadTemplates() {
 	tmpls = make(map[string]*template.Template)
-	for _, name := range []string{"index.html", "login.html"} {
+	for _, name := range []string{"index.html", "login.html", "profile.html"} {
 		tmpls[name] = template.Must(
-			template.ParseFiles("templates/base.html", "templates/"+name),
+			template.New("").Funcs(tmplFuncs).ParseFiles("templates/base.html", "templates/"+name),
 		)
 	}
 }
@@ -97,6 +106,73 @@ func envOr(key, fallback string) string {
 	return fallback
 }
 
+// realIP returns the client IP, preferring X-Forwarded-For set by Caddy.
+func realIP(r *http.Request) string {
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		if ip := strings.TrimSpace(strings.SplitN(xff, ",", 2)[0]); ip != "" {
+			return ip
+		}
+	}
+	host, _, _ := net.SplitHostPort(r.RemoteAddr)
+	if host != "" {
+		return host
+	}
+	return r.RemoteAddr
+}
+
+// safeNext validates the redirect target to prevent open-redirect attacks.
+func safeNext(next string) string {
+	if next == "" || !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") {
+		return "/"
+	}
+	return next
+}
+
+// requestLogger logs method, path, and response status for every request.
+func requestLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rw := &statusWriter{ResponseWriter: w, status: 200}
+		next.ServeHTTP(rw, r)
+		log.Printf("%s %s %d [%s]", r.Method, r.URL.RequestURI(), rw.status, realIP(r))
+	})
+}
+
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (sw *statusWriter) WriteHeader(code int) {
+	sw.status = code
+	sw.ResponseWriter.WriteHeader(code)
+}
+
+func (sw *statusWriter) Flush() {
+	if f, ok := sw.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+// securityHeaders adds defensive HTTP headers to every response.
+func securityHeaders(next http.Handler) http.Handler {
+	const csp = "default-src 'self'; " +
+		"script-src 'self' 'unsafe-inline' https://unpkg.com; " +
+		"style-src 'self' 'unsafe-inline'; " +
+		"img-src 'self' data: https://*.scdn.co https://*.spotifycdn.com; " +
+		"connect-src 'self'; " +
+		"frame-ancestors 'none'"
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("X-Frame-Options", "DENY")
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		h.Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+		h.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		h.Set("Content-Security-Policy", csp)
+		next.ServeHTTP(w, r)
+	})
+}
+
 // ── Handlers ─────────────────────────────────────────────────────────────────
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -116,12 +192,18 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		render(w, "login.html", map[string]any{"Next": r.URL.Query().Get("next")})
 		return
 	}
+	next := safeNext(r.FormValue("next"))
+
+	if !auth.LoginAllowed(realIP(r)) {
+		render(w, "login.html", map[string]any{
+			"Error": "Too many login attempts. Please try again later.",
+			"Next":  next,
+		})
+		return
+	}
+
 	username := strings.TrimSpace(r.FormValue("username"))
 	password := r.FormValue("password")
-	next := r.FormValue("next")
-	if next == "" {
-		next = "/"
-	}
 	if !auth.CheckPassword(username, password) {
 		render(w, "login.html", map[string]any{"Error": "Invalid username or password.", "Next": next})
 		return
@@ -165,15 +247,18 @@ func handleSpotifyCallback(w http.ResponseWriter, r *http.Request) {
 	// Verify the session belongs to the same user (prevents CSRF).
 	sessionUser, ok := auth.GetSession(r)
 	if !ok || sessionUser != username {
-		http.Error(w, "Session mismatch", http.StatusForbidden)
+		log.Printf("spotify callback: session mismatch — session=%q state_user=%q ok=%v", sessionUser, username, ok)
+		http.Error(w, "Session mismatch — please log in and try connecting again.", http.StatusForbidden)
 		return
 	}
 
 	if err := spotify.ExchangeAndStore(username, code); err != nil {
+		log.Printf("spotify callback: exchange failed for %q: %v", username, err)
 		http.Error(w, "Token exchange failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/?connected=1", http.StatusFound)
+	log.Printf("spotify callback: connected %q successfully", username)
+	http.Redirect(w, r, "/profile", http.StatusFound)
 }
 
 // handleRun accepts the playlist form, spawns the Python agent subprocess, and
@@ -215,6 +300,7 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 		cmd.Env = append(os.Environ(),
 			"SPOTIFY_CACHE_PATH="+cachePath,
 			"PYTHONUNBUFFERED=1",
+			"SPOTAIFY_USERNAME="+username,
 		)
 		cmd.Stderr = os.Stderr // surface Python errors in server logs
 
@@ -269,14 +355,14 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 				flusher.Flush()
 				return
 			}
-			fmt.Fprintf(w, "data: %s\n\n", template.HTMLEscapeString(line))
+			fmt.Fprintf(w, "data: %s\n\n", line)
 			flusher.Flush()
 		case <-run.done:
 			// Drain remaining lines.
 			for {
 				select {
 				case line := <-run.lines:
-					fmt.Fprintf(w, "data: %s\n\n", template.HTMLEscapeString(line))
+					fmt.Fprintf(w, "data: %s\n\n", line)
 					flusher.Flush()
 				default:
 					fmt.Fprintf(w, "event: done\ndata: \n\n")
@@ -288,6 +374,230 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+// ── Profile handler ───────────────────────────────────────────────────────────
+
+func handleProfile(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+
+	// Load local streaming history (primary data source). A missing directory
+	// is not an error — the profile renders with whatever data is available.
+	histDir := envOr("HISTORY_DIR", "data/history")
+	hist, err := history.Load(filepath.Join(histDir, username))
+	if err != nil {
+		log.Printf("profile[%s]: history load error (continuing): %v", username, err)
+		hist = &history.Stats{}
+	}
+
+	// Fetch Spotify API data for user info + metadata enrichment.
+	accessToken, spotifyErr := spotify.FreshToken(username)
+	var pd *spotify.ProfileData
+	if spotifyErr == nil {
+		pd, _ = spotify.FetchProfileData(accessToken)
+	}
+
+	// Enrich top tracks with album art + Spotify URLs + audio features.
+	var audioFeatures *spotify.AudioFeaturesSummary
+	var recommendations []spotify.Recommendation
+	var persona *ai.Persona
+	if spotifyErr != nil {
+		log.Printf("profile[%s]: spotify token error: %v", username, spotifyErr)
+	} else if len(hist.TopTracks) == 0 {
+		log.Printf("profile[%s]: no top tracks in history, skipping enrichment", username)
+	}
+	if spotifyErr == nil && len(hist.TopTracks) > 0 {
+		ids := make([]string, 0, len(hist.TopTracks))
+		for _, t := range hist.TopTracks {
+			ids = append(ids, t.TrackID)
+		}
+		trackMeta := spotify.FetchTracksMeta(accessToken, ids)
+		audioFeatures = spotify.FetchAudioFeaturesSummary(accessToken, ids)
+
+		// Collect unique artist IDs so we can fetch artist images in one batch.
+		artistIDByTrackID := map[string]string{}
+		uniqueArtistIDs := map[string]struct{}{}
+		for _, t := range hist.TopTracks {
+			if m, ok := trackMeta[t.TrackID]; ok {
+				t.ImageURL = m.ImageURL
+				t.SpotifyURL = m.SpotifyURL
+				if m.ArtistID != "" {
+					artistIDByTrackID[t.TrackID] = m.ArtistID
+					uniqueArtistIDs[m.ArtistID] = struct{}{}
+				}
+			}
+		}
+
+		// Build artist name → artist ID map for enriching top artists.
+		artistIDByName := map[string]string{}
+		for _, t := range hist.TopTracks {
+			if aid, ok := artistIDByTrackID[t.TrackID]; ok && t.ArtistName != "" {
+				artistIDByName[t.ArtistName] = aid
+			}
+		}
+
+		// Batch-fetch artist metadata.
+		ids2 := make([]string, 0, len(uniqueArtistIDs))
+		for id := range uniqueArtistIDs {
+			ids2 = append(ids2, id)
+		}
+		artistMeta := spotify.FetchArtistsMeta(accessToken, ids2)
+
+		// Enrich top artists.
+		for _, a := range hist.TopArtists {
+			if aid, ok := artistIDByName[a.ArtistName]; ok {
+				if m, ok := artistMeta[aid]; ok {
+					a.ImageURL = m.ImageURL
+					a.SpotifyURL = m.SpotifyURL
+					a.Genres = m.Genres
+				}
+			}
+		}
+
+		// ── Recommendations + Persona (parallel) ─────────────────────────────
+
+		// Seed artist IDs: top 5 from listening history.
+		var seedArtistIDs []string
+		for _, a := range hist.TopArtists {
+			if len(seedArtistIDs) >= 5 {
+				break
+			}
+			if aid, ok := artistIDByName[a.ArtistName]; ok {
+				seedArtistIDs = append(seedArtistIDs, aid)
+			}
+		}
+
+		// Known artists set for filtering recommendations.
+		knownArtists := make(map[string]struct{}, len(hist.TopArtists))
+		for _, a := range hist.TopArtists {
+			knownArtists[a.ArtistName] = struct{}{}
+		}
+
+		// Persona input: aggregate stats.
+		var totalPlays, totalSkip, totalCompl int
+		for _, t := range hist.TopTracks {
+			totalPlays += t.PlayCount
+			totalSkip += t.SkipCount
+			totalCompl += t.CompletionCount
+		}
+		avgSkip, avgCompl := 0.0, 0.0
+		if totalPlays > 0 {
+			avgSkip = float64(totalSkip) / float64(totalPlays)
+			avgCompl = float64(totalCompl) / float64(totalPlays)
+		}
+		peak := 0
+		for h, v := range hist.HourlyPattern {
+			if v > hist.HourlyPattern[peak] {
+				peak = h
+			}
+		}
+		var topArtistNames []string
+		for _, a := range hist.TopArtists {
+			topArtistNames = append(topArtistNames, a.ArtistName)
+			if len(topArtistNames) >= 5 {
+				break
+			}
+		}
+		var topGenres []string
+		if pd != nil {
+			for _, g := range pd.Insights.TopGenres {
+				topGenres = append(topGenres, g.Genre)
+				if len(topGenres) >= 5 {
+					break
+				}
+			}
+		}
+		if len(topGenres) == 0 {
+			seen := map[string]bool{}
+			for _, a := range hist.TopArtists {
+				for _, g := range a.Genres {
+					if !seen[g] {
+						topGenres = append(topGenres, g)
+						seen[g] = true
+					}
+					if len(topGenres) >= 5 {
+						break
+					}
+				}
+				if len(topGenres) >= 5 {
+					break
+				}
+			}
+		}
+
+		var wg2 sync.WaitGroup
+		wg2.Add(2)
+		go func() {
+			defer wg2.Done()
+			recommendations = spotify.FetchRecommendations(accessToken, seedArtistIDs, audioFeatures, knownArtists)
+		}()
+		go func() {
+			defer wg2.Done()
+			// Use cached persona if available.
+			if cached, err := db.GetPersonaJSON(username); err == nil {
+				var p ai.Persona
+				if json.Unmarshal([]byte(cached), &p) == nil {
+					persona = &p
+					return
+				}
+			}
+			earliestYear := 0
+			if !hist.EarliestPlay.IsZero() {
+				earliestYear = hist.EarliestPlay.Year()
+			}
+			inp := ai.PersonaInput{
+				TotalHours:        hist.TotalHours(),
+				EarliestYear:      earliestYear,
+				YearsActive:       len(hist.YearlyTrend),
+				UniqueArtists:     hist.UniqueArtistCount,
+				UniqueTracks:      hist.UniqueTrackCount,
+				TopArtistNames:    topArtistNames,
+				TopGenres:         topGenres,
+				PeakHour:          peak,
+				AvgSkipRate:       avgSkip,
+				AvgCompletionRate: avgCompl,
+			}
+			if audioFeatures != nil {
+				inp.Energy = audioFeatures.Energy
+				inp.Danceability = audioFeatures.Danceability
+				inp.Valence = audioFeatures.Valence
+				inp.Acousticness = audioFeatures.Acousticness
+				inp.Instrumentalness = audioFeatures.Instrumentalness
+				inp.Liveness = audioFeatures.Liveness
+				inp.Tempo = audioFeatures.Tempo
+				inp.VibeLabel = audioFeatures.VibeLabel
+				inp.VibeDesc = audioFeatures.VibeDesc
+			}
+			var perr error
+			persona, perr = ai.GeneratePersona(inp)
+			if perr != nil {
+				log.Printf("persona: generation failed: %v", perr)
+			} else if persona == nil {
+				log.Printf("persona: API key missing or returned nil")
+			} else {
+				log.Printf("persona: generated archetype=%q", persona.Archetype)
+				if b, err := json.Marshal(persona); err == nil {
+					db.SavePersonaJSON(username, string(b))
+				}
+			}
+		}()
+		wg2.Wait()
+	}
+
+	// Derive per-user aura parameters from listening history when audio features unavailable.
+	aura := computeAura(hist, audioFeatures, username)
+
+	render(w, "profile.html", map[string]any{
+		"Title":           "Profile",
+		"Username":        username,
+		"SpotifyLinked":   db.HasToken(username),
+		"History":         hist,
+		"Spotify":         pd,
+		"Audio":           audioFeatures,
+		"Aura":            aura,
+		"Recommendations": recommendations,
+		"Persona":         persona,
+	})
 }
 
 // ── History handlers ──────────────────────────────────────────────────────────
@@ -367,6 +677,16 @@ func buildArgs(r *http.Request) []string {
 		if r.FormValue("match_sound") == "on" {
 			args = append(args, "--match-sound")
 		}
+	case "setlist":
+		args = append(args, "--setlist")
+		if a := r.FormValue("setlist_artist"); a != "" {
+			args = append(args, "--setlist-artist", a)
+		}
+		if v := r.FormValue("setlist_pages"); v != "" {
+			args = append(args, "--setlist-pages", v)
+		}
+	case "expand":
+		args = append(args, "--expand")
 	case "rediscovery":
 		args = append(args, "--rediscovery")
 		if v := r.FormValue("stale_days"); v != "" {
@@ -394,6 +714,98 @@ func buildArgs(r *http.Request) []string {
 		args = append(args, "--tempo", v)
 	}
 	return args
+}
+
+// ── Aura ─────────────────────────────────────────────────────────────────────
+
+type auraParams struct {
+	Hue      int
+	Sat      int
+	Energy   float64
+	Valence  float64
+	Dance    float64
+	Acoustic float64
+	Tempo    float64
+}
+
+// computeAura derives canvas background parameters from listening history,
+// falling back to Spotify audio features when available. The username is used
+// to seed a unique palette for users with no local export data.
+func computeAura(hist *history.Stats, af *spotify.AudioFeaturesSummary, username string) auraParams {
+	if af != nil {
+		return auraParams{
+			Hue:      af.PrimaryHue,
+			Sat:      af.Saturation,
+			Energy:   af.Energy,
+			Valence:  af.Valence,
+			Dance:    af.Danceability,
+			Acoustic: af.Acousticness,
+			Tempo:    af.Tempo,
+		}
+	}
+	if hist.TotalMsPlayed == 0 {
+		// No export data — derive a stable, unique palette from the username so
+		// every user looks distinct rather than getting the same hardcoded defaults.
+		return usernameAura(username)
+	}
+	a := auraParams{}
+	// Peak listening hour → hue (night=250, morning=35, afternoon=130, evening=210)
+	peak := 0
+	for h := range hist.HourlyPattern {
+		if hist.HourlyPattern[h] > hist.HourlyPattern[peak] {
+			peak = h
+		}
+	}
+	a.Hue = (260 - peak*8 + 360) % 360
+	// Skip rate → energy (frequent skipper = restless/high-energy listener)
+	a.Energy = clamp01(float64(hist.SkipPct)/100.0*1.4 + 0.15)
+	// Completion rate → valence (finishers tend toward positive, upbeat music)
+	a.Valence = clamp01(float64(hist.CompletionPct)/100.0*1.2 + 0.1)
+	// Library breadth → saturation (wider taste = more vivid palette)
+	diversity := clamp01(float64(hist.UniqueArtistCount) / 400.0)
+	a.Sat = 35 + int(diversity*45)
+	// Danceability proxy: high completion + midday peak = more rhythmic
+	a.Dance = clamp01((a.Valence + (1 - float64(peak)/24)) / 2)
+	// Acousticness: patient listeners (low skip) lean acoustic
+	a.Acoustic = clamp01(1.0 - a.Energy*0.8)
+	// Tempo: peak hour maps to BPM range (late night=slow, daytime=fast)
+	a.Tempo = 70 + float64(peak)/24*80
+	return a
+}
+
+// usernameAura produces a deterministic, visually varied aura seeded by username.
+// Ranges are intentionally wide so different usernames produce clearly distinct looks.
+func usernameAura(username string) auraParams {
+	// FNV-1a — well-distributed; use different bit windows for independent axes.
+	const offset, prime = uint32(2166136261), uint32(16777619)
+	h := offset
+	for _, c := range username {
+		h ^= uint32(c)
+		h *= prime
+	}
+	hue := int(h % 360)                          // 0–359°, full spectrum
+	energy := 0.10 + float64((h>>8)%100)/111.0   // 0.10–1.00
+	valence := 0.30 + float64((h>>16)%100)/143.0 // 0.30–1.00
+	sat := 62 + int((h>>24)%28)                  // 62–89 — vivid throughout
+	return auraParams{
+		Hue:      hue,
+		Sat:      sat,
+		Energy:   energy,
+		Valence:  valence,
+		Dance:    (valence + energy) / 2,
+		Acoustic: clamp01(1.0 - energy*0.8),
+		Tempo:    80 + float64((h>>4)%100), // 80–180 BPM
+	}
+}
+
+func clamp01(v float64) float64 {
+	if v < 0 {
+		return 0
+	}
+	if v > 1 {
+		return 1
+	}
+	return v
 }
 
 // writeTokenCache writes a spotipy-compatible JSON token cache and returns the path.
@@ -472,6 +884,7 @@ func main() {
 	protected.HandleFunc("POST /run", handleRun)
 	protected.HandleFunc("GET /stream/{id}", handleStream)
 	protected.HandleFunc("DELETE /run/{id}", handleCancel)
+	protected.HandleFunc("GET /profile", handleProfile)
 	protected.HandleFunc("GET /history", handleHistoryGet)
 	protected.HandleFunc("POST /history", handleHistorySave)
 	protected.HandleFunc("DELETE /history", handleHistoryClear)
@@ -480,7 +893,7 @@ func main() {
 
 	port := envOr("PORT", "8000")
 	log.Printf("spotAIfy web — listening on :%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, requestLogger(securityHeaders(mux))); err != nil {
 		log.Fatal(err)
 	}
 }

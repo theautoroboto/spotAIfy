@@ -21,7 +21,8 @@ var Config struct {
 
 func init() {
 	Config.Scopes = "user-library-read playlist-read-private user-read-recently-played " +
-		"playlist-modify-private playlist-modify-public"
+		"playlist-modify-private playlist-modify-public " +
+		"user-top-read user-read-private"
 }
 
 // AuthURL returns the Spotify authorization URL for the given state token.

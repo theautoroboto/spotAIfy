@@ -25,6 +25,8 @@
         <a href="/spotify/connect" class="btn btn-sm btn-spotify">Connect Spotify</a>
       {{else}}
         <span class="badge-spotify">Spotify ✓</span>
+        <a href="/" class="nav-link">Home</a>
+        <a href="/profile" class="nav-link">Profile</a>
       {{end}}
       <form method="POST" action="/logout" style="display:inline">
         <button type="submit" class="btn btn-sm btn-ghost">Log out</button>

@@ -22,9 +22,16 @@ SPOTIFY_CLIENT_SECRET = _get_secret("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_REDIRECT_URI  = os.getenv("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:9090")
 ANTHROPIC_API_KEY     = _get_secret("ANTHROPIC_API_KEY")
 GENIUS_ACCESS_TOKEN   = _get_secret("GENIUS_ACCESS_TOKEN")
+SETLISTFM_API_KEY     = _get_secret("SETLISTFM_API_KEY")
 WHOSAMPLED_USERNAME   = os.getenv("WHOSAMPLED_USERNAME", "")
 WHOSAMPLED_PASSWORD   = _get_secret("WHOSAMPLED_PASSWORD")
 HISTORY_DIR           = os.getenv("HISTORY_DIR", "data/history")
+
+
+def history_dir_for(username: str) -> str:
+    """Return the per-user history subdirectory path."""
+    import os.path
+    return os.path.join(HISTORY_DIR, username) if username else HISTORY_DIR
 GRAPH_DIR             = os.getenv("GRAPH_DIR", "data/graph")
 MUSICBRAINZ_CONTACT   = os.getenv("MUSICBRAINZ_CONTACT", "")
 

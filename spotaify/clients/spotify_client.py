@@ -55,11 +55,29 @@ class SpotifyClient:
         features = {}
         for i in range(0, len(track_ids), 100):
             batch = track_ids[i : i + 100]
-            results = self._sp.audio_features(batch) or []
+            try:
+                results = self._sp.audio_features(batch) or []
+            except SpotifyException as e:
+                if e.http_status == 403:
+                    break  # endpoint deprecated for non-partner apps
+                raise
             for f in results:
                 if f:
                     features[f["id"]] = {k: f[k] for k in AUDIO_FEATURE_KEYS if k in f}
         return features
+
+    def get_recommendations(self, seed_track_ids: list[str], limit: int = 50) -> list[dict]:
+        """Get Spotify recommendations seeded by up to 5 track IDs."""
+        seeds = seed_track_ids[:5]
+        if not seeds:
+            return []
+        try:
+            results = self._sp.recommendations(seed_tracks=seeds, limit=min(limit, 100))
+            return [self._parse_track(t) for t in (results or {}).get("tracks", [])]
+        except SpotifyException as e:
+            if e.http_status in (403, 404):
+                return []
+            raise
 
     def get_tracks_metadata(self, track_ids: list[str]) -> dict[str, dict]:
         """Fetch track metadata for up to 500 IDs. Returns dict keyed by track_id."""
