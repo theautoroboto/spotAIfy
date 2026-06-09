@@ -991,40 +991,96 @@ input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
 .track-time   { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 /* ── Aura hero wrap ──────────────────────────────────────────────────────────── */
-.aura-wrap { position: relative; }
-.has-aura  {
+.aura-wrap {
+  position: relative;
+  z-index: 0;
   border-radius: 16px;
   overflow: hidden;
-  margin-bottom: 1.25rem;
-  min-height: 200px;
+  height: 280px;
+  margin-bottom: 0;
   background: var(--surface);
 }
-#music-aura {
+.aura-bg-img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  display: block;
+  object-fit: cover;
+  object-position: center top;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  z-index: 1;
+}
+.aura-bg-img.aura-bg-loaded { opacity: 1; }
+.aura-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  animation: aura-pulse 3s ease-in-out infinite alternate;
+}
+@keyframes aura-pulse {
+  from { opacity: 1; }
+  to   { opacity: 0.7; }
+}
+.aura-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.55) 100%);
   pointer-events: none;
 }
-.aura-inner { position: relative; z-index: 1; padding: 1.75rem 1.5rem 0.5rem; }
-.has-aura .profile-hero { margin-bottom: 0.5rem; }
-.has-aura .profile-name { text-shadow: 0 1px 8px rgba(0,0,0,0.6); }
-.has-aura .profile-avatar {
-  border-color: rgba(255,255,255,0.25);
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.3);
+
+/* Profile identity row — sits below the banner, avatar overlaps upward */
+.profile-identity {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.25rem;
+  padding: 0 1.5rem;
+  margin-top: -44px;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 10;
+}
+.profile-identity .profile-avatar,
+.profile-identity .profile-avatar-placeholder {
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 3px solid var(--bg);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+.profile-identity .profile-hero-info {
+  padding-bottom: 0.25rem;
+}
+.profile-identity .profile-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 0.25rem;
 }
 
 /* ── Vibe strip ───────────────────────────────────────────────────────────────── */
 .vibe-strip {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.875rem 1.5rem 1.125rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 100%);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
 .vibe-badge {
   display: flex;

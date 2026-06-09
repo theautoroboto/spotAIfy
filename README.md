@@ -79,6 +79,8 @@ The Go server handles auth, session management, and SSE streaming of agent outpu
 
 - **setlist.fm** (optional, Setlist mode): Free API key at [api.setlist.fm](https://api.setlist.fm/docs/1.0/index.html). Register an account and request an API key — approval is usually instant.
 
+- **Hugging Face** (optional, AI profile backgrounds): Free token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) (read-only scope is enough). Powers the FLUX.1-schnell image generation on the profile page. Without it the profile hero falls back to a CSS gradient.
+
 ### 2. Configure environment
 
 ```bash
@@ -104,6 +106,7 @@ SPOTIFY_CLIENT_SECRET=...
 ANTHROPIC_API_KEY=...
 GENIUS_ACCESS_TOKEN=...
 SETLISTFM_API_KEY=...        # optional, required for Setlist mode
+HF_TOKEN=...                 # optional, required for AI profile backgrounds
 ```
 Both approaches work; the app checks the keychain first and falls back to `.env`.
 
@@ -146,7 +149,7 @@ run.bat web
 ./run.sh web
 ```
 
-Open http://localhost:8000. Create an account (credentials set via the `USERS` env var), connect your Spotify, and generate playlists from the browser. All four modes are available from the UI.
+Open http://localhost:8000. Create an account (credentials set via the `USERS` env var), connect your Spotify, and generate playlists from the browser. All six modes are available from the UI.
 
 ### CLI
 
@@ -228,7 +231,15 @@ If the seed artist in Connection mode cannot be found on MusicBrainz, the agent 
 
 ```
 spotAIfy/
-├── cmd/web/main.go            # Go web server — auth, SSE streaming, Spotify OAuth
+├── cmd/web/main.go            # Go web server — auth, SSE streaming, Spotify OAuth, profile backgrounds
+├── internal/
+│   ├── ai/
+│   │   ├── persona.go         # Claude-powered listening persona generation
+│   │   └── background.go      # HF FLUX.1-schnell profile background generation
+│   ├── auth/auth.go           # Session auth + bcrypt user store
+│   ├── db/db.go               # SQLite — run history, tokens, persona cache
+│   ├── history/history.go     # Parses Spotify Extended Streaming History export
+│   └── spotify/               # Spotify API — profile, recommendations, audio features
 ├── spotaify/
 │   ├── agent.py               # Claude agent loop and CLI entrypoint
 │   ├── agent_tools.py         # All 16 tools available to the agent
@@ -248,7 +259,7 @@ spotAIfy/
 ├── templates/
 │   ├── base.html              # Layout shell
 │   ├── index.html             # Main playlist builder (six modes, vertical tab nav)
-│   ├── profile.html           # Per-user listening stats, persona, recommendations
+│   ├── profile.html           # Per-user listening stats, persona, AI-generated background
 │   └── login.html             # Login page
 ├── tests/                     # Pytest suite
 ├── data/
@@ -278,6 +289,8 @@ spotAIfy/
 | Taste profile | Audio fingerprint + era distribution | `data/cache/taste_profile.json` |
 | History profile | In-memory, loaded once per session | `data/history/<username>/Streaming_History_Audio_*.json` |
 | Agent tool results | In-memory per session | `_TOOL_CACHE` in `agent_tools.py` |
+| Profile background | AI-generated JPEG, one per user | `/data/backgrounds/<username>.jpg` (Docker volume) |
+| Persona | AI-generated JSON | SQLite `personas` table |
 
 ### Agent turn budget
 
@@ -290,6 +303,29 @@ Spotify deprecated the `/v1/audio-features` endpoint for non-partner apps (retur
 ### setlist.fm rate limits
 
 setlist.fm does not publish rate limits. The client sleeps 0.5 s between requests. Scanning 5 pages hits the API 6–7 times (artist lookup + pages). Stay at 3–5 pages to avoid throttling.
+
+### AI profile background
+
+The profile hero banner is a unique AI-generated image for each user, produced by `internal/ai/background.go` via the HF Inference API (model: `black-forest-labs/FLUX.1-schnell`).
+
+The prompt is built from the user's persona archetype, top genres, and audio fingerprint (energy, valence, acousticness) and always targets a **dark, moody, album-art aesthetic**. The image is cached to `/data/backgrounds/<username>.jpg` in the Docker volume after the first generation — subsequent profile loads serve it instantly.
+
+**To regenerate a background** (e.g. after significant history changes):
+```bash
+docker exec spotaify-web-1 rm /data/backgrounds/<username>.jpg
+```
+Reload the profile page to trigger a new generation.
+
+**Fallback:** if `HF_TOKEN` is missing or the API returns an error, the `<img>` element is hidden and the profile hero shows a pulsing CSS gradient placeholder instead.
+
+**Persona cache invalidation:** the persona (archetype, traits, narrative) is cached separately in SQLite. To force a regeneration after major history changes:
+```bash
+docker exec spotaify-web-1 python3 -c "
+import sqlite3; conn = sqlite3.connect('/data/spotaify.db')
+conn.execute(\"DELETE FROM personas WHERE username = '<username>'\")
+conn.commit()
+"
+```
 
 ### Running tests
 

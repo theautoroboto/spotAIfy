@@ -7,62 +7,54 @@
 {{$p := .Persona}}
 {{$recs := .Recommendations}}
 
-<!-- ── Hero with canvas aura ── -->
-<div class="aura-wrap has-aura">
-  <canvas id="music-aura" aria-hidden="true"
-    data-hue="{{.Aura.Hue}}"
-    data-sat="{{.Aura.Sat}}"
-    data-energy="{{printf "%.3f" .Aura.Energy}}"
-    data-valence="{{printf "%.3f" .Aura.Valence}}"
-    data-dance="{{printf "%.3f" .Aura.Dance}}"
-    data-acoustic="{{printf "%.3f" .Aura.Acoustic}}"
-    data-tempo="{{printf "%.1f" .Aura.Tempo}}"
-  ></canvas>
-  <div class="aura-inner">
-    <div class="profile-hero">
-      {{if and $sp $sp.User.ImageURL}}
-      <img class="profile-avatar" src="{{$sp.User.ImageURL}}" alt="" width="80" height="80">
-      {{else}}
-      <div class="profile-avatar profile-avatar-placeholder">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-      </div>
-      {{end}}
-      <div class="profile-hero-info">
-        <h1 class="profile-name">
-          {{if and $sp $sp.User.DisplayName}}{{$sp.User.DisplayName}}{{else}}{{.Username}}{{end}}
-        </h1>
-        <div class="profile-meta">
-          {{if and $sp $sp.User.Followers}}<span>{{$sp.User.Followers}} followers</span>{{end}}
-          {{if and $sp $sp.User.SpotifyURL}}
-            <a href="{{$sp.User.SpotifyURL}}" target="_blank" rel="noopener" class="playlist-link">Open in Spotify</a>
-          {{end}}
-          {{if and $sp $sp.MissingScopes}}
-            <a href="/spotify/connect" class="btn btn-sm btn-spotify" style="margin-left:0.5rem">Reconnect for full stats</a>
-          {{end}}
-        </div>
-      </div>
-    </div>
+<!-- ── Hero banner — AI generated image ── -->
+<div class="aura-wrap">
+  <img id="aura-bg" class="aura-bg-img" src="/profile/bg?t={{.BGTimestamp}}" alt="" aria-hidden="true">
+</div>
 
-    {{if $af}}
-    <!-- Vibe badge overlaid on aura -->
-    <div class="vibe-strip">
-      <div class="vibe-badge">
-        <span class="vibe-emoji" aria-hidden="true">{{$af.VibeEmoji}}</span>
-        <div class="vibe-text">
-          <div class="vibe-label">{{$af.VibeLabel}}</div>
-          <div class="vibe-desc">{{$af.VibeDesc}}</div>
-        </div>
-      </div>
-      <div class="vibe-tempo">
-        <span class="vibe-tempo-val">{{printf "%.0f" $af.Tempo}}</span>
-        <span class="vibe-tempo-unit">avg BPM</span>
-      </div>
+<!-- ── Profile identity — avatar overlaps banner bottom edge ── -->
+<div class="profile-identity">
+  {{if and $sp $sp.User.ImageURL}}
+  <img class="profile-avatar" src="{{$sp.User.ImageURL}}" alt="" width="88" height="88">
+  {{else}}
+  <div class="profile-avatar-placeholder">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    </svg>
+  </div>
+  {{end}}
+  <div class="profile-hero-info">
+    <h1 class="profile-name">
+      {{if and $sp $sp.User.DisplayName}}{{$sp.User.DisplayName}}{{else}}{{.Username}}{{end}}
+    </h1>
+    <div class="profile-meta">
+      {{if and $sp $sp.User.Followers}}<span>{{$sp.User.Followers}} followers</span>{{end}}
+      {{if and $sp $sp.User.SpotifyURL}}
+        <a href="{{$sp.User.SpotifyURL}}" target="_blank" rel="noopener" class="playlist-link">Open in Spotify</a>
+      {{end}}
+      {{if and $sp $sp.MissingScopes}}
+        <a href="/spotify/connect" class="btn btn-sm btn-spotify" style="margin-left:0.5rem">Reconnect for full stats</a>
+      {{end}}
     </div>
-    {{end}}
   </div>
 </div>
+
+{{if $af}}
+<!-- ── Vibe strip ── -->
+<div class="vibe-strip">
+  <div class="vibe-badge">
+    <span class="vibe-emoji" aria-hidden="true">{{$af.VibeEmoji}}</span>
+    <div class="vibe-text">
+      <div class="vibe-label">{{$af.VibeLabel}}</div>
+      <div class="vibe-desc">{{$af.VibeDesc}}</div>
+    </div>
+  </div>
+  <div class="vibe-tempo">
+    <span class="vibe-tempo-val">{{printf "%.0f" $af.Tempo}}</span>
+    <span class="vibe-tempo-unit">avg BPM</span>
+  </div>
+</div>
+{{end}}
 
 <!-- ── Psychological Persona ── -->
 {{if $p}}
@@ -520,265 +512,17 @@
 
 <!-- ── Scripts ── -->
 <script>
-// ── Musical Aura canvas (Round 3: breathing hue, particle lifecycle, sparkles + ripples) ──
+// ── AI background fade-in ────────────────────────────────────────────────────
 (function() {
-  const canvas = document.getElementById('music-aura');
-  if (!canvas) return;
-  const d        = canvas.dataset;
-  const baseHue  = parseInt(d.hue)         || 200;
-  const sat      = parseInt(d.sat)         || 60;
-  const energy   = parseFloat(d.energy)   || 0.5;
-  const dance    = parseFloat(d.dance)    || 0.5;
-  const acoustic = parseFloat(d.acoustic) || 0.5;
-  const tempo    = parseFloat(d.tempo)    || 120;
-  const ctx      = canvas.getContext('2d');
-  let W, H, blobs, particles, sparkles, ripples;
-
-  const beatMs = 60000 / tempo;
-  let lastBeat = 0, pulseAmt = 0;
-
-  function newParticle(life0) {
-    const maxLife = 180 + Math.random() * 240;
-    return {
-      x:       Math.random() * W,
-      y:       Math.random() * H,
-      r:       0.7 + Math.random() * (1.2 + energy * 2.0),
-      hue:     baseHue + (Math.random() - 0.5) * 70,
-      spd:     0.3 + Math.random() * energy * 1.8,
-      phase:   Math.random() * Math.PI * 2,
-      alpha:   0.25 + Math.random() * 0.55,
-      trail:   [],
-      life:    Math.round((life0 === undefined ? Math.random() : life0) * maxLife),
-      maxLife: maxLife,
-    };
-  }
-
-  function newSparkle() {
-    return {
-      x:       Math.random() * W,
-      y:       Math.random() * H,
-      r:       0.5 + Math.random() * 1.8,
-      hue:     baseHue + (Math.random() - 0.5) * 80,
-      life:    0,
-      maxLife: 30 + Math.random() * 40,
-      alpha:   0.6 + Math.random() * 0.4,
-    };
-  }
-
-  function resize() {
-    W = canvas.width  = canvas.offsetWidth;
-    H = canvas.height = canvas.offsetHeight || 280;
-    init();
-  }
-
-  function init() {
-    blobs = [];
-    const bc = 5 + Math.round(energy * 4);
-    for (let i = 0; i < bc; i++) {
-      blobs.push({
-        x:     Math.random() * W,
-        y:     Math.random() * H,
-        baseR: 80 + Math.random() * 200,
-        hue:   baseHue + (i * 35 % 100) - 50,
-        speed: 0.10 + Math.random() * 0.28 * energy,
-        phase: Math.random() * Math.PI * 2,
-        alpha: 0.20 + Math.random() * 0.28,
-        layer: i % 3,
-      });
-    }
-    const pc = Math.round(60 + energy * 120);
-    particles = Array.from({ length: pc }, () => newParticle(Math.random()));
-    const sc = Math.round(10 + dance * 20);
-    sparkles = Array.from({ length: sc }, newSparkle);
-    ripples = [];
-  }
-
-  // 3-octave sine flow field
-  function flowAngle(x, y, t) {
-    return Math.sin(x * 0.004  + t * 0.52)  * Math.PI
-         + Math.cos(y * 0.005  - t * 0.38)  * Math.PI * 0.65
-         + Math.sin((x - y) * 0.003 + t * 0.25) * Math.PI * 0.28
-         + Math.cos((x + y) * 0.0018 - t * 0.19) * Math.PI * 0.18
-         + Math.sin(x * 0.0009 + y * 0.0012 + t * 0.11) * Math.PI * 0.09;
-  }
-
-  let t = 0;
-  function draw(now) {
-    if (now - lastBeat >= beatMs) {
-      lastBeat = now;
-      pulseAmt = 1;
-      ripples.push({
-        x: W * (0.2 + Math.random() * 0.6),
-        y: H * (0.2 + Math.random() * 0.6),
-        r: 0, maxR: 80 + energy * 60, life: 0, maxLife: 50,
-      });
-    }
-    pulseAmt *= 0.88;
-
-    // Breathing hue — slow sinusoidal drift across ±18°
-    const hue = baseHue + Math.sin(t * 0.038) * 18;
-
-    ctx.clearRect(0, 0, W, H);
-
-    // Layer 1 — rich diagonal gradient base
-    const bg = ctx.createLinearGradient(0, 0, W * 0.6, H);
-    bg.addColorStop(0,    `hsl(${hue},     ${sat}%,     12%)`);
-    bg.addColorStop(0.35, `hsl(${hue+25},  ${sat-8}%,    8%)`);
-    bg.addColorStop(0.65, `hsl(${hue-18},  ${sat+12}%,  15%)`);
-    bg.addColorStop(1,    `hsl(${hue+45},  ${sat-5}%,   10%)`);
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
-
-    // Layer 2 — back blobs (large, slow)
-    blobs.filter(b => b.layer === 0).forEach(b => {
-      b.x += Math.sin(t * b.speed + b.phase) * 0.5;
-      b.y += Math.cos(t * b.speed * 0.7 + b.phase) * 0.38;
-      const r = b.baseR * (1 + pulseAmt * 0.08 * energy);
-      const rg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
-      rg.addColorStop(0,   `hsla(${b.hue}, ${sat+15}%, 45%, ${b.alpha * 1.2})`);
-      rg.addColorStop(0.5, `hsla(${b.hue}, ${sat}%,   35%, ${b.alpha * 0.5})`);
-      rg.addColorStop(1,   `hsla(${b.hue}, ${sat}%,   25%, 0)`);
-      ctx.fillStyle = rg;
-      ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, Math.PI * 2); ctx.fill();
-      b.x = ((b.x % (W + b.baseR)) + W + b.baseR) % (W + b.baseR) - b.baseR / 2;
-      b.y = ((b.y % (H + b.baseR)) + H + b.baseR) % (H + b.baseR) - b.baseR / 2;
-    });
-
-    // Layer 3 — sine wave interference (acoustic-driven softness)
-    const wc = Math.round(3 + energy * 3);
-    for (let w = 0; w < wc; w++) {
-      ctx.beginPath();
-      const wAlpha = (0.03 + acoustic * 0.045) * (1 - w * 0.18);
-      ctx.strokeStyle = `hsla(${hue + w * 25}, ${sat+5}%, 70%, ${wAlpha})`;
-      ctx.lineWidth = 1 + acoustic * 0.8;
-      const freq  = (tempo / 120) * (0.006 + w * 0.0028);
-      const amp   = H * 0.11 * (0.55 + energy * 0.45);
-      const yBase = H * (0.22 + w * 0.16);
-      for (let x = 0; x <= W; x += 3) {
-        const y = yBase
-          + Math.sin(x * freq + t * (0.75 + dance * 0.55) + w * 1.1) * amp
-          + Math.sin(x * freq * 1.8 - t * 0.48 + w * 1.6) * amp * 0.3
-          + Math.sin(x * freq * 0.5 + t * 0.22) * amp * pulseAmt * 0.4 * energy;
-        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    }
-
-    // Layer 4 — particles with lifecycle, trails, connections
-    ctx.save();
-    // Advance lifecycle, replace dead particles
-    particles = particles.map(p => { p.life++; return p.life >= p.maxLife ? newParticle(0) : p; });
-    const fade = p => Math.sin((p.life / p.maxLife) * Math.PI);
-    // Trails + movement
-    particles.forEach(p => {
-      const angle = flowAngle(p.x, p.y, t);
-      p.trail.push({ x: p.x, y: p.y });
-      if (p.trail.length > 5) p.trail.shift();
-      p.x += Math.cos(angle) * p.spd * (1 + pulseAmt * energy * 0.3);
-      p.y += Math.sin(angle) * p.spd * (1 + pulseAmt * energy * 0.3);
-      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
-      if (p.trail.length > 1 && energy > 0.4) {
-        ctx.beginPath();
-        ctx.moveTo(p.trail[0].x, p.trail[0].y);
-        p.trail.forEach(tp => ctx.lineTo(tp.x, tp.y));
-        ctx.strokeStyle = `hsla(${p.hue}, ${sat+10}%, 70%, ${p.alpha * fade(p) * 0.28})`;
-        ctx.lineWidth = p.r * 0.7;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-      }
-    });
-    // Connections (squared distance avoids sqrt in inner loop)
-    const cd2 = (55 + dance * 55) * (55 + dance * 55);
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < cd2) {
-          const alpha = (1 - Math.sqrt(d2) / Math.sqrt(cd2)) * 0.10 * dance * fade(particles[i]) * fade(particles[j]);
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = `hsla(${hue + 20}, ${sat}%, 65%, ${alpha})`;
-          ctx.lineWidth = 0.6;
-          ctx.stroke();
-        }
-      }
-    }
-    // Particle dots with lifecycle fade
-    particles.forEach(p => {
-      const f = fade(p);
-      const glowR = p.r * (1 + pulseAmt * energy * 0.5);
-      ctx.shadowBlur = 4 + acoustic * 6;
-      ctx.shadowColor = `hsla(${p.hue}, ${sat+10}%, 75%, ${0.5 * f})`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${p.hue}, ${sat+20}%, 78%, ${p.alpha * f})`;
-      ctx.fill();
-    });
-    ctx.restore();
-
-    // Layer 5 — mid blobs (smaller, faster)
-    blobs.filter(b => b.layer === 1).forEach(b => {
-      b.x += Math.sin(t * b.speed * 1.4 + b.phase) * 0.7;
-      b.y += Math.cos(t * b.speed * 1.1 + b.phase) * 0.55;
-      const r = b.baseR * 0.55 * (1 + pulseAmt * 0.12 * energy);
-      const rg = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
-      rg.addColorStop(0, `hsla(${b.hue+30}, ${sat+25}%, 65%, ${b.alpha * 0.9})`);
-      rg.addColorStop(1, `hsla(${b.hue+30}, ${sat}%,   35%, 0)`);
-      ctx.fillStyle = rg;
-      ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, Math.PI * 2); ctx.fill();
-    });
-
-    // Layer 6 — sparkles (short-lived bright point flashes, dance-driven density)
-    ctx.save();
-    sparkles = sparkles.map(s => {
-      s.life++;
-      if (s.life >= s.maxLife) return newSparkle();
-      const sf = Math.sin((s.life / s.maxLife) * Math.PI);
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = `hsl(${s.hue}, ${sat+20}%, 95%)`;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r * sf, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${s.hue}, ${sat+10}%, 94%, ${s.alpha * sf})`;
-      ctx.fill();
-      return s;
-    });
-    ctx.restore();
-
-    // Layer 7 — beat ripples (expanding rings on each beat pulse)
-    ctx.save();
-    ripples = ripples.filter(rp => rp.life < rp.maxLife);
-    ripples.forEach(rp => {
-      rp.life++;
-      rp.r = rp.maxR * (rp.life / rp.maxLife);
-      const rf = 1 - rp.life / rp.maxLife;
-      ctx.beginPath();
-      ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
-      ctx.strokeStyle = `hsla(${hue + 20}, ${sat}%, 75%, ${rf * 0.35 * energy})`;
-      ctx.lineWidth = 2 * rf;
-      ctx.stroke();
-    });
-    ctx.restore();
-
-    // Layer 8 — vignette gradient for text readability
-    const vg = ctx.createLinearGradient(0, 0, 0, H);
-    vg.addColorStop(0,    'rgba(0,0,0,0.00)');
-    vg.addColorStop(0.35, 'rgba(0,0,0,0.05)');
-    vg.addColorStop(0.70, 'rgba(0,0,0,0.35)');
-    vg.addColorStop(1,    'rgba(0,0,0,0.72)');
-    ctx.fillStyle = vg;
-    ctx.fillRect(0, 0, W, H);
-
-    t += 0.007 + energy * 0.010;
-    requestAnimationFrame(draw);
-  }
-
-  resize();
-  window.addEventListener('resize', resize);
-  requestAnimationFrame(draw);
+  const img = document.getElementById('aura-bg');
+  if (!img) return;
+  function show() { img.classList.add('aura-bg-loaded'); }
+  // img may already be complete (browser cache hit before this script ran)
+  if (img.complete && img.naturalWidth > 0) { show(); }
+  else { img.addEventListener('load', show); }
+  img.addEventListener('error', () => { img.style.display = 'none'; });
 })();
+
 
 // ── Radar chart (Round 2: glow + idle pulse + value labels) ──────────────────
 (function() {

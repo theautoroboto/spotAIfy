@@ -110,7 +110,12 @@
 
       <!-- Expand fields -->
       <div id="fields-expand" class="mode-fields hidden">
-        <p class="muted" style="font-size:0.875rem;margin:0.25rem 0 0">Seeds automatically from your top-played artists. No configuration needed.</p>
+        <label for="expand_year">Seed year</label>
+        <select id="expand_year" name="expand_year">
+          <option value="all">All time</option>
+          {{range .ExpandYears}}<option value="{{.}}">{{.}}</option>{{end}}
+        </select>
+        <p class="muted" style="font-size:0.8rem;margin:0.35rem 0 0">Discover new music seeded from your top artists of that year.</p>
       </div>
 
       <!-- Rediscovery fields -->
@@ -126,8 +131,8 @@
         <summary>Filters <span class="muted">(optional)</span></summary>
         <div class="filter-grid">
           <div>
-            <label for="count">Tracks <span class="info-icon" data-tip="Number of tracks to include in the final playlist (5–50)." tabindex="0" aria-label="More info">?</span></label>
-            <input id="count" name="count" type="number" value="20" min="5" max="50">
+            <label for="count">Tracks <span class="info-icon" data-tip="Number of tracks to include in the final playlist (5–200)." tabindex="0" aria-label="More info">?</span></label>
+            <input id="count" name="count" type="number" value="20" min="5" max="200">
           </div>
           <div class="audio-filter">
             <label>Energy <span class="info-icon" data-tip="Audio energy from 0.0 (calm/quiet) to 1.0 (intense/loud)." tabindex="0" aria-label="More info">?</span></label>

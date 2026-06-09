@@ -1,5 +1,6 @@
 # spotify_client.py
 import os
+import sys
 import spotipy
 from spotipy.exceptions import SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
@@ -33,13 +34,18 @@ SPOTIFY_SCOPES = (
 class SpotifyClient:
     def __init__(self, user_auth: bool = False):
         if user_auth:
-            self._sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-                client_id=SPOTIFY_CLIENT_ID,
-                client_secret=SPOTIFY_CLIENT_SECRET,
-                redirect_uri=SPOTIFY_REDIRECT_URI,
-                scope=SPOTIFY_SCOPES,
-                cache_path=os.getenv("SPOTIFY_CACHE_PATH", ".spotify_token_cache"),
-            ))
+            direct_token = os.getenv("SPOTIFY_ACCESS_TOKEN")
+            print(f"[SpotifyClient] user_auth=True token={'SET len='+str(len(direct_token)) if direct_token else 'NOT SET'}", file=sys.stderr, flush=True)
+            if direct_token:
+                self._sp = spotipy.Spotify(auth=direct_token)
+            else:
+                self._sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+                    client_id=SPOTIFY_CLIENT_ID,
+                    client_secret=SPOTIFY_CLIENT_SECRET,
+                    redirect_uri=SPOTIFY_REDIRECT_URI,
+                    scope=SPOTIFY_SCOPES,
+                    cache_path=os.getenv("SPOTIFY_CACHE_PATH", ".spotify_token_cache"),
+                ))
         else:
             self._sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
                 client_id=SPOTIFY_CLIENT_ID,
@@ -89,8 +95,8 @@ class SpotifyClient:
                 for t in (resp.get("tracks") or []):
                     if t:
                         result[t["id"]] = self._parse_track(t)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[get_tracks_metadata] batch {i}: {type(e).__name__}: {str(e)[:300]}", file=sys.stderr, flush=True)
         return result
 
     def get_artist_info(self, artist_id: str) -> dict:
