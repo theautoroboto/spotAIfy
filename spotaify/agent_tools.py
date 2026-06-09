@@ -2,7 +2,7 @@
 from spotaify.clients.spotify_client import SpotifyClient
 from spotaify.core.artist_graph import traverse_graph, get_all_artist_names
 from spotaify.core.track_dna import expand_track_dna
-from spotaify.core.history_profile import enrich_candidates, get_forgotten_favorites
+from spotaify.core.history_profile import enrich_candidates, get_forgotten_favorites, get_forgotten_favorites_with_meta
 from spotaify.core.taste_profile import build_taste_profile, load_cached as _load_taste_profile
 from spotaify.clients.whosampled_client import fetch_samples as whosampled_fetch
 from spotaify.clients.genius_client import fetch_song_info as genius_fetch
@@ -103,9 +103,10 @@ TOOLS = [
          "setlist_pages": {"type": "integer", "default": 3, "maximum": 5}},
          "required": ["artist_name"]}},
     {"name": "get_history_top_artists",
-     "description": "Return the user's top N most-played artists from their listening history export.",
+     "description": "Return the user's top N most-played artists from their listening history export. Pass 'year' to scope to a specific calendar year.",
      "input_schema": {"type": "object", "properties": {
-         "n": {"type": "integer", "default": 10, "maximum": 20}}}},
+         "n":    {"type": "integer", "default": 10, "maximum": 20},
+         "year": {"type": "integer", "description": "Calendar year to scope (e.g. 2019). Omit for all-time."}}}},
     {"name": "get_spotify_recommendations",
      "description": "Get Spotify's recommendations seeded from the user's top history tracks. Returns fresh discovery candidates the user likely hasn't heard.",
      "input_schema": {"type": "object", "properties": {
@@ -135,6 +136,9 @@ def _slim(tracks: list[dict]) -> list[dict]:
     return [{k: v for k, v in t.items() if k in _SLIM_KEEP} for t in tracks]
 
 
+_TRACE_TOOLS = {"forgotten_favorites", "rank_and_select", "create_spotify_playlist", "get_spotify_recommendations"}
+
+
 def execute_tool(name: str, inputs: dict) -> dict:
     if name in _CACHED_TOOLS:
         cache_key = (name, tuple(sorted(inputs.items())))
@@ -142,10 +146,21 @@ def execute_tool(name: str, inputs: dict) -> dict:
             print(f"  [cache hit]", flush=True)
             return _TOOL_CACHE[cache_key]
 
+    if name in _TRACE_TOOLS:
+        import sys
+        print(f"[tool:{name}] called", file=sys.stderr, flush=True)
+
     try:
         result = _execute_tool_inner(name, inputs)
     except Exception as e:
+        import sys
+        print(f"[tool:{name}] EXCEPTION: {e}", file=sys.stderr, flush=True)
         return {"error": f"[{name}] {e}"}
+
+    if name in _TRACE_TOOLS:
+        import sys
+        summary = f"count={result.get('count')} status={result.get('status')} error={result.get('error')} url={result.get('url')}"
+        print(f"[tool:{name}] result: {summary}", file=sys.stderr, flush=True)
 
     if name in _CACHED_TOOLS and "error" not in result:
         _TOOL_CACHE[(name, tuple(sorted(inputs.items())))] = result
@@ -240,15 +255,16 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
         return genius_fetch(inputs["title"], inputs["artist"])
 
     if name == "forgotten_favorites":
-        track_ids = get_forgotten_favorites(
+        # Use locally stored title/artist from history export — avoids the Spotify /tracks API
+        # which returns 403 for non-Extended-Quota-Mode apps since Spotify's Nov 2024 changes.
+        candidates = get_forgotten_favorites_with_meta(
             min_plays=inputs.get("min_plays", 3),
             min_completion=inputs.get("min_completion", 0.4),
             stale_days=inputs.get("stale_days", 90),
         )
         limit = min(inputs.get("limit", 50), 100)
-        metadata = _get_spotify_client().get_tracks_metadata(track_ids[:limit])
-        tracks = [metadata[tid] for tid in track_ids[:limit] if tid in metadata]
-        return {"tracks": _slim(tracks), "count": len(tracks), "total_found": len(track_ids)}
+        tracks = candidates[:limit]
+        return {"tracks": tracks, "count": len(tracks), "total_found": len(candidates)}
 
     if name == "get_setlist_tracks":
         from spotaify.clients.setlistfm_client import search_artist as sl_search, get_setlist_songs
@@ -273,8 +289,12 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
         return {"tracks": _slim(tracks), "count": len(tracks)}
 
     if name == "get_history_top_artists":
-        from spotaify.core.history_profile import get_top_artists
-        artists = get_top_artists(inputs.get("n", 10))
+        from spotaify.core.history_profile import get_top_artists, get_top_artists_by_year
+        year = inputs.get("year")
+        if year:
+            artists = get_top_artists_by_year(int(year), inputs.get("n", 10))
+        else:
+            artists = get_top_artists(inputs.get("n", 10))
         return {"artists": artists, "count": len(artists)}
 
     if name == "get_spotify_recommendations":
@@ -282,7 +302,7 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
         top_ids = get_top_track_ids(5)
         if not top_ids:
             return {"error": "No listening history found for seeding recommendations", "tracks": []}
-        tracks = _get_spotify_client().get_recommendations(top_ids, limit=inputs.get("limit", 50))
+        tracks = _user_client().get_recommendations(top_ids, limit=inputs.get("limit", 50))
         enrich_candidates(tracks)
         return {"tracks": _slim(tracks), "count": len(tracks)}
 
@@ -291,6 +311,12 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
             cached = _load_taste_profile()
             if cached:
                 return cached
-        return build_taste_profile(_get_spotify_client())
+        # Skip Spotify calls — audio-features and /tracks are both restricted for this app.
+        # Return a minimal result so the agent can proceed without wasting API budget.
+        return {
+            "fingerprint": {},
+            "era_distribution": {},
+            "note": "Audio feature endpoints are restricted for this app. Proceeding without taste profile data.",
+        }
 
     return {"error": f"Unknown tool: {name}"}

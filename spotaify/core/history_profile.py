@@ -26,13 +26,15 @@ _GLOB = "Streaming_History_Audio_*.json"
 _profile: dict[str, dict] | None = None   # track_id → stats
 _known_artists: set[str] | None = None
 _artist_ms: dict[str, int] | None = None  # artist_name → total ms played
+_artist_ms_by_year: dict[int, dict[str, int]] | None = None  # year → artist → ms
 
 
 def _load() -> None:
-    global _profile, _known_artists, _artist_ms
+    global _profile, _known_artists, _artist_ms, _artist_ms_by_year
     track_stats: dict[str, dict] = {}
     artists: set[str] = set()
     artist_ms: dict[str, int] = {}
+    artist_ms_by_year: dict[int, dict[str, int]] = {}
 
     for path in sorted(_HISTORY_DIR.glob(_GLOB)):
         try:
@@ -49,11 +51,18 @@ def _load() -> None:
             artist = (r.get("master_metadata_album_artist_name") or "").strip()
             if artist:
                 artists.add(artist.lower())
-                artist_ms[artist] = artist_ms.get(artist, 0) + (r.get("ms_played") or 0)
+                ms = r.get("ms_played") or 0
+                artist_ms[artist] = artist_ms.get(artist, 0) + ms
+                year = int((r.get("ts") or "0000")[:4])
+                if year > 2000:
+                    bucket = artist_ms_by_year.setdefault(year, {})
+                    bucket[artist] = bucket.get(artist, 0) + ms
 
+            title = (r.get("master_metadata_track_name") or "").strip()
             stats = track_stats.setdefault(track_id, {
                 "play_count": 0, "completion_count": 0, "skip_count": 0,
                 "ms_played_total": 0, "last_played_ts": "",
+                "title": title, "artist": artist,
             })
             stats["play_count"] += 1
             stats["ms_played_total"] += r.get("ms_played") or 0
@@ -74,6 +83,7 @@ def _load() -> None:
     _profile = track_stats
     _known_artists = artists
     _artist_ms = artist_ms
+    _artist_ms_by_year = artist_ms_by_year
 
 
 def _get_profile() -> tuple[dict[str, dict], set[str]]:
@@ -83,11 +93,20 @@ def _get_profile() -> tuple[dict[str, dict], set[str]]:
 
 
 def get_top_artists(n: int = 10) -> list[str]:
-    """Return top-N artist names by total ms played."""
+    """Return top-N artist names by total ms played (all time)."""
     _get_profile()
     if not _artist_ms:
         return []
     return [name for name, _ in sorted(_artist_ms.items(), key=lambda kv: -kv[1])[:n]]
+
+
+def get_top_artists_by_year(year: int, n: int = 10) -> list[str]:
+    """Return top-N artist names by ms played within a specific calendar year."""
+    _get_profile()
+    bucket = (_artist_ms_by_year or {}).get(year, {})
+    if not bucket:
+        return []
+    return [name for name, _ in sorted(bucket.items(), key=lambda kv: -kv[1])[:n]]
 
 
 def get_top_track_ids(n: int = 100) -> list[str]:
@@ -95,6 +114,38 @@ def get_top_track_ids(n: int = 100) -> list[str]:
     profile, _ = _get_profile()
     ranked = sorted(profile.items(), key=lambda kv: -kv[1]["ms_played_total"])
     return [tid for tid, _ in ranked[:n]]
+
+
+def get_forgotten_favorites_with_meta(
+    min_plays: int = 3,
+    min_completion: float = 0.4,
+    stale_days: int = 90,
+) -> list[dict]:
+    """Like get_forgotten_favorites but returns dicts with title/artist from history."""
+    profile, _ = _get_profile()
+    cutoff_ts = (
+        datetime.now(timezone.utc) - timedelta(days=stale_days)
+    ).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    candidates = [
+        (tid, stats)
+        for tid, stats in profile.items()
+        if (stats["play_count"] >= min_plays
+            and stats["completion_rate"] >= min_completion
+            and stats.get("last_played_ts", "") < cutoff_ts)
+    ]
+    candidates.sort(key=lambda kv: -kv[1]["ms_played_total"])
+    return [
+        {
+            "track_id": tid,
+            "title": stats.get("title", ""),
+            "artist": stats.get("artist", ""),
+            "play_count": stats["play_count"],
+            "completion_rate": round(stats["completion_rate"], 2),
+            "skip_rate": round(stats["skip_rate"], 2),
+        }
+        for tid, stats in candidates
+    ]
 
 
 def get_forgotten_favorites(

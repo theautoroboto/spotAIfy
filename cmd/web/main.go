@@ -2,12 +2,14 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -181,9 +183,20 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	username, _ := auth.GetSession(r)
+
+	// Load years from listening history for the Expand year dropdown.
+	var expandYears []int
+	histBase := envOr("HISTORY_DIR", "data/history")
+	if hist, err := history.Load(filepath.Join(histBase, username)); err == nil {
+		for _, y := range hist.YearlyTrend {
+			expandYears = append(expandYears, y.Year)
+		}
+	}
+
 	render(w, "index.html", map[string]any{
-		"Username":       username,
-		"SpotifyLinked":  db.HasToken(username),
+		"Username":      username,
+		"SpotifyLinked": db.HasToken(username),
+		"ExpandYears":   expandYears,
 	})
 }
 
@@ -299,6 +312,7 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 		cmd := exec.CommandContext(ctx, "python", append([]string{"-u", "-m", "spotaify.agent"}, args...)...)
 		cmd.Env = append(os.Environ(),
 			"SPOTIFY_CACHE_PATH="+cachePath,
+			"SPOTIFY_ACCESS_TOKEN="+accessToken,
 			"PYTHONUNBUFFERED=1",
 			"SPOTAIFY_USERNAME="+username,
 		)
@@ -587,6 +601,14 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 	// Derive per-user aura parameters from listening history when audio features unavailable.
 	aura := computeAura(hist, audioFeatures, username)
 
+	// Cache-busting timestamp for the background image URL. Using the file's
+	// mod-time ensures the browser fetches a fresh image whenever the file changes.
+	bgDir := envOr("BG_CACHE_DIR", "/data/backgrounds")
+	var bgTimestamp int64
+	if info, err := os.Stat(filepath.Join(bgDir, username+".jpg")); err == nil {
+		bgTimestamp = info.ModTime().Unix()
+	}
+
 	render(w, "profile.html", map[string]any{
 		"Title":           "Profile",
 		"Username":        username,
@@ -597,7 +619,95 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		"Aura":            aura,
 		"Recommendations": recommendations,
 		"Persona":         persona,
+		"BGTimestamp":     bgTimestamp,
 	})
+}
+
+// ── Profile background ────────────────────────────────────────────────────────
+
+// handleProfileBg serves the AI-generated album-art background for the logged-in
+// user. On the first request it calls the HF Inference API (may take ~20 s), caches
+// the result to /data/backgrounds/{username}.jpg, and then serves it. All subsequent
+// requests are served instantly from the cache.
+func handleProfileBg(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+
+	bgDir := envOr("BG_CACHE_DIR", "/data/backgrounds")
+	if err := os.MkdirAll(bgDir, 0o755); err != nil {
+		http.Error(w, "cache dir error", http.StatusInternalServerError)
+		return
+	}
+	cachePath := filepath.Join(bgDir, username+".jpg")
+
+	// Serve cached image if present.
+	if img, err := os.ReadFile(cachePath); err == nil {
+		w.Header().Set("Content-Type", "image/jpeg")
+		w.Header().Set("Cache-Control", "max-age=3600")
+		_, _ = w.Write(img)
+		return
+	}
+
+	// Build generation inputs from cached persona + history + aura.
+	var inp ai.BackgroundInput
+
+	if cached, err := db.GetPersonaJSON(username); err == nil {
+		var p ai.Persona
+		if json.Unmarshal([]byte(cached), &p) == nil {
+			inp.Archetype = p.Archetype
+			inp.Traits = p.Traits
+			inp.Headline = p.Headline
+		}
+	}
+
+	histBase := envOr("HISTORY_DIR", "data/history")
+	hist, _ := history.Load(filepath.Join(histBase, username))
+
+	var topGenres []string
+	seen := map[string]bool{}
+	for _, a := range hist.TopArtists {
+		for _, g := range a.Genres {
+			if !seen[g] {
+				topGenres = append(topGenres, g)
+				seen[g] = true
+			}
+			if len(topGenres) >= 5 {
+				break
+			}
+		}
+		if len(topGenres) >= 5 {
+			break
+		}
+	}
+	inp.TopGenres = topGenres
+
+	for _, a := range hist.TopArtists {
+		inp.TopArtists = append(inp.TopArtists, a.ArtistName)
+		if len(inp.TopArtists) >= 5 {
+			break
+		}
+	}
+
+	aura := computeAura(hist, nil, username)
+	inp.Hue = aura.Hue
+	inp.Hue2 = aura.Hue2
+	inp.Energy = aura.Energy
+	inp.Valence = aura.Valence
+	inp.Acoustic = aura.Acoustic
+
+	imgBytes, err := ai.GenerateBackground(inp)
+	if err != nil {
+		log.Printf("background: generation failed for %s: %v", username, err)
+		http.Error(w, "background generation failed", http.StatusServiceUnavailable)
+		return
+	}
+
+	if err := os.WriteFile(cachePath, imgBytes, 0o644); err != nil {
+		log.Printf("background: failed to cache for %s: %v", username, err)
+	}
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Cache-Control", "max-age=86400, immutable")
+	_, _ = io.Copy(w, bytes.NewReader(imgBytes))
 }
 
 // ── History handlers ──────────────────────────────────────────────────────────
@@ -687,6 +797,9 @@ func buildArgs(r *http.Request) []string {
 		}
 	case "expand":
 		args = append(args, "--expand")
+		if yr := r.FormValue("expand_year"); yr != "" && yr != "all" {
+			args = append(args, "--expand-year", yr)
+		}
 	case "rediscovery":
 		args = append(args, "--rediscovery")
 		if v := r.FormValue("stale_days"); v != "" {
@@ -720,20 +833,23 @@ func buildArgs(r *http.Request) []string {
 
 type auraParams struct {
 	Hue      int
+	Hue2     int     // accent hue — guaranteed unique per username
 	Sat      int
 	Energy   float64
 	Valence  float64
 	Dance    float64
 	Acoustic float64
 	Tempo    float64
+	Variety  int     // 0–3 visual layout variant — unique per username
 }
 
 // computeAura derives canvas background parameters from listening history,
 // falling back to Spotify audio features when available. The username is used
 // to seed a unique palette for users with no local export data.
 func computeAura(hist *history.Stats, af *spotify.AudioFeaturesSummary, username string) auraParams {
+	var a auraParams
 	if af != nil {
-		return auraParams{
+		a = auraParams{
 			Hue:      af.PrimaryHue,
 			Sat:      af.Saturation,
 			Energy:   af.Energy,
@@ -742,47 +858,55 @@ func computeAura(hist *history.Stats, af *spotify.AudioFeaturesSummary, username
 			Acoustic: af.Acousticness,
 			Tempo:    af.Tempo,
 		}
-	}
-	if hist.TotalMsPlayed == 0 {
-		// No export data — derive a stable, unique palette from the username so
-		// every user looks distinct rather than getting the same hardcoded defaults.
-		return usernameAura(username)
-	}
-	a := auraParams{}
-	// Peak listening hour → hue (night=250, morning=35, afternoon=130, evening=210)
-	peak := 0
-	for h := range hist.HourlyPattern {
-		if hist.HourlyPattern[h] > hist.HourlyPattern[peak] {
-			peak = h
+	} else if hist.TotalMsPlayed == 0 {
+		a = usernameAura(username)
+	} else {
+		// Peak listening hour → hue (night=250, morning=35, afternoon=130, evening=210)
+		peak := 0
+		for h := range hist.HourlyPattern {
+			if hist.HourlyPattern[h] > hist.HourlyPattern[peak] {
+				peak = h
+			}
 		}
+		a.Hue = (260 - peak*8 + 360) % 360
+		// Skip rate → energy (frequent skipper = restless/high-energy listener)
+		a.Energy = clamp01(float64(hist.SkipPct)/100.0*1.4 + 0.15)
+		// Completion rate → valence (finishers tend toward positive, upbeat music)
+		a.Valence = clamp01(float64(hist.CompletionPct)/100.0*1.2 + 0.1)
+		// Library breadth → saturation (wider taste = more vivid palette)
+		diversity := clamp01(float64(hist.UniqueArtistCount) / 400.0)
+		a.Sat = 35 + int(diversity*45)
+		// Danceability proxy: high completion + midday peak = more rhythmic
+		a.Dance = clamp01((a.Valence + (1 - float64(peak)/24)) / 2)
+		// Acousticness: patient listeners (low skip) lean acoustic
+		a.Acoustic = clamp01(1.0 - a.Energy*0.8)
+		// Tempo: peak hour maps to BPM range (late night=slow, daytime=fast)
+		a.Tempo = 70 + float64(peak)/24*80
 	}
-	a.Hue = (260 - peak*8 + 360) % 360
-	// Skip rate → energy (frequent skipper = restless/high-energy listener)
-	a.Energy = clamp01(float64(hist.SkipPct)/100.0*1.4 + 0.15)
-	// Completion rate → valence (finishers tend toward positive, upbeat music)
-	a.Valence = clamp01(float64(hist.CompletionPct)/100.0*1.2 + 0.1)
-	// Library breadth → saturation (wider taste = more vivid palette)
-	diversity := clamp01(float64(hist.UniqueArtistCount) / 400.0)
-	a.Sat = 35 + int(diversity*45)
-	// Danceability proxy: high completion + midday peak = more rhythmic
-	a.Dance = clamp01((a.Valence + (1 - float64(peak)/24)) / 2)
-	// Acousticness: patient listeners (low skip) lean acoustic
-	a.Acoustic = clamp01(1.0 - a.Energy*0.8)
-	// Tempo: peak hour maps to BPM range (late night=slow, daytime=fast)
-	a.Tempo = 70 + float64(peak)/24*80
+	// Inject accent hue and layout variant from username in every code path.
+	// This guarantees visual distinctiveness even when two users have identical listening data.
+	uh := usernameHash(username)
+	a.Hue2 = (a.Hue + 90 + int(uh%181)) % 360 // 90–270° away from primary
+	a.Variety = int((uh >> 16) % 4)
 	return a
 }
 
-// usernameAura produces a deterministic, visually varied aura seeded by username.
-// Ranges are intentionally wide so different usernames produce clearly distinct looks.
-func usernameAura(username string) auraParams {
-	// FNV-1a — well-distributed; use different bit windows for independent axes.
+// usernameHash returns a stable FNV-1a hash of the username.
+func usernameHash(username string) uint32 {
 	const offset, prime = uint32(2166136261), uint32(16777619)
 	h := offset
 	for _, c := range username {
 		h ^= uint32(c)
 		h *= prime
 	}
+	return h
+}
+
+// usernameAura produces a deterministic, visually varied aura seeded by username.
+// Ranges are intentionally wide so different usernames produce clearly distinct looks.
+// Hue2 and Variety are added by computeAura after this returns.
+func usernameAura(username string) auraParams {
+	h := usernameHash(username)
 	hue := int(h % 360)                          // 0–359°, full spectrum
 	energy := 0.10 + float64((h>>8)%100)/111.0   // 0.10–1.00
 	valence := 0.30 + float64((h>>16)%100)/143.0 // 0.30–1.00
@@ -885,6 +1009,7 @@ func main() {
 	protected.HandleFunc("GET /stream/{id}", handleStream)
 	protected.HandleFunc("DELETE /run/{id}", handleCancel)
 	protected.HandleFunc("GET /profile", handleProfile)
+	protected.HandleFunc("GET /profile/bg", handleProfileBg)
 	protected.HandleFunc("GET /history", handleHistoryGet)
 	protected.HandleFunc("POST /history", handleHistorySave)
 	protected.HandleFunc("DELETE /history", handleHistoryClear)

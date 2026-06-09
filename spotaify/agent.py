@@ -78,8 +78,8 @@ def _cap_result(result: dict) -> dict:
     return result
 
 
-_MAX_TURNS = 12
-_WRAP_UP_TURN = 9  # inject wrap-up nudge at this turn so the agent finishes cleanly
+_MAX_TURNS = 25
+_WRAP_UP_TURN = 21  # inject wrap-up nudge at this turn so the agent finishes cleanly
 
 _WRAP_UP_MSG = (
     "You have gathered enough material. Do NOT call any more search or info tools. "
@@ -305,7 +305,11 @@ def build_prompt(args: argparse.Namespace) -> str:
         parts.append(f"Scan {args.setlist_pages} pages of recent setlists.")
 
     elif args.expand:
-        parts.append("Expand mode: discover new music I haven't heard before, using my listening history as a springboard. Map connected artists and pull Spotify recommendations.")
+        if args.expand_year:
+            parts.append(f"Expand mode: discover new music I haven't heard before, seeded from my top artists of {args.expand_year}.")
+            parts.append(f"Call get_history_top_artists with year={args.expand_year} to get the seed artists, then map their connections and pull Spotify recommendations.")
+        else:
+            parts.append("Expand mode: discover new music I haven't heard before, using my all-time top artists as a springboard. Map connected artists and pull Spotify recommendations.")
 
     elif args.rediscovery:
         parts.append(f"Rediscovery mode: build a playlist from tracks I used to love but haven't played in at least {args.stale_days} days.")
@@ -361,6 +365,7 @@ def main():
     parser.add_argument("--tempo", help="Tempo range e.g. 120-180")
     parser.add_argument("--rediscovery", action="store_true", help="Build rediscovery playlist from listening history")
     parser.add_argument("--expand", action="store_true", help="Discover new music beyond current listening history")
+    parser.add_argument("--expand-year", type=int, default=None, dest="expand_year", help="Seed expand mode from top artists of this year")
     parser.add_argument("--setlist", action="store_true", help="Build playlist from artist's live setlists")
     parser.add_argument("--setlist-artist", default="", dest="setlist_artist", help="Artist name for setlist mode")
     parser.add_argument("--setlist-pages", type=int, default=3, dest="setlist_pages", help="Number of setlist pages to scan (1-5)")
