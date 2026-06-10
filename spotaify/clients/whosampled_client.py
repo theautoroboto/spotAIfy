@@ -1,7 +1,10 @@
 # whosampled_client.py
+import hashlib
+import json
 import random
 import re
 import time
+from pathlib import Path
 from urllib.parse import quote
 from curl_cffi import requests as cf_requests
 from bs4 import BeautifulSoup
@@ -9,6 +12,35 @@ from spotaify.config import WHOSAMPLED_USERNAME, WHOSAMPLED_PASSWORD
 
 _BASE = "https://www.whosampled.com"
 _DELAY = 2.0
+_CACHE_DIR = Path("data/cache/whosampled")
+
+
+def _cache_path(title: str, artist: str) -> Path:
+    key = hashlib.md5(f"{title.lower().strip()}|{artist.lower().strip()}".encode()).hexdigest()
+    return _CACHE_DIR / f"{key}.json"
+
+
+def _cache_load(title: str, artist: str) -> dict | None:
+    p = _cache_path(title, artist)
+    if p.exists():
+        try:
+            return json.loads(p.read_text())
+        except Exception:
+            pass
+    return None
+
+
+def _cache_save(title: str, artist: str, result: dict) -> None:
+    # Never cache failures — a transient Cloudflare block must not freeze a
+    # track's sample data as "error" forever.
+    if result.get("error"):
+        return
+    try:
+        p = _cache_path(title, artist)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(result))
+    except Exception:
+        pass
 _TRACK_HREF = re.compile(r"^/[^/]+/[^/]+/$")
 _ARTIST_HREF = re.compile(r"^/[^/]+/$")
 
@@ -16,7 +48,9 @@ _HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "Accept-Language": "en-US,en;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
-    "Sec-CH-UA": '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+    # Must match the curl_cffi impersonation target (chrome124) — a version
+    # mismatch between headers and TLS fingerprint is a bot-detection signal.
+    "Sec-CH-UA": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
     "Sec-CH-UA-Mobile": "?0",
     "Sec-CH-UA-Platform": '"Windows"',
     "Sec-Fetch-Dest": "document",
@@ -183,6 +217,12 @@ def _try_search_fallback(title: str, artist: str, original_url: str) -> dict:
 
 
 def fetch_samples(title: str, artist: str) -> dict:
+    # Sample relationships rarely change — serve from the on-disk cache when
+    # possible to keep request volume (and Cloudflare suspicion) low.
+    cached = _cache_load(title, artist)
+    if cached is not None:
+        return cached
+
     url = f"{_BASE}/{_slugify(artist)}/{_slugify(title)}/"
     resp = _get(url, referer=_BASE + "/")
 
@@ -204,10 +244,12 @@ def fetch_samples(title: str, artist: str) -> dict:
     soup = BeautifulSoup(resp.text, "html.parser")
     samples, sampled_by = _page_to_samples(soup)
 
-    return {
+    result = {
         "url": url,
         "samples": samples[:8],
         "sampled_by": sampled_by[:5],
         "sample_count": len(samples),
         "sampled_by_count": len(sampled_by),
     }
+    _cache_save(title, artist, result)
+    return result

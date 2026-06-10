@@ -116,6 +116,37 @@ def get_top_track_ids(n: int = 100) -> list[str]:
     return [tid for tid, _ in ranked[:n]]
 
 
+def top_tracks_for_dir(history_dir: Path, n: int = 100) -> list[dict]:
+    """Return the top-N tracks for an arbitrary user's history directory,
+    ranked by total milliseconds played.
+
+    Standalone — does not touch the module-level cache, so it can be called
+    for any number of users' directories within one process.
+    """
+    track_stats: dict[str, dict] = {}
+    for path in sorted(Path(history_dir).glob(_GLOB)):
+        try:
+            records = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for r in records:
+            uri = r.get("spotify_track_uri") or ""
+            if not uri.startswith("spotify:track:"):
+                continue
+            track_id = uri.split(":")[-1]
+            stats = track_stats.setdefault(track_id, {
+                "track_id": track_id,
+                "title": (r.get("master_metadata_track_name") or "").strip(),
+                "artist": (r.get("master_metadata_album_artist_name") or "").strip(),
+                "play_count": 0, "ms_played_total": 0,
+            })
+            stats["play_count"] += 1
+            stats["ms_played_total"] += r.get("ms_played") or 0
+
+    ranked = sorted(track_stats.values(), key=lambda s: -s["ms_played_total"])
+    return ranked[:n]
+
+
 def get_forgotten_favorites_with_meta(
     min_plays: int = 3,
     min_completion: float = 0.4,

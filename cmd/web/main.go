@@ -81,11 +81,14 @@ func loadTemplates() {
 	}
 }
 
-func render(w http.ResponseWriter, name string, data any) {
+func render(w http.ResponseWriter, r *http.Request, name string, data map[string]any) {
 	t, ok := tmpls[name]
 	if !ok {
 		http.Error(w, "unknown template: "+name, http.StatusInternalServerError)
 		return
+	}
+	if nonce, ok := r.Context().Value(nonceKey).(string); ok {
+		data["Nonce"] = nonce
 	}
 	if err := t.ExecuteTemplate(w, "base", data); err != nil {
 		log.Printf("template %s: %v", name, err)
@@ -109,9 +112,12 @@ func envOr(key, fallback string) string {
 }
 
 // realIP returns the client IP, preferring X-Forwarded-For set by Caddy.
+// Caddy appends the true client IP as the LAST entry; earlier entries are
+// client-supplied and spoofable, so never trust the first one.
 func realIP(r *http.Request) string {
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		if ip := strings.TrimSpace(strings.SplitN(xff, ",", 2)[0]); ip != "" {
+		parts := strings.Split(xff, ",")
+		if ip := strings.TrimSpace(parts[len(parts)-1]); ip != "" {
 			return ip
 		}
 	}
@@ -155,15 +161,23 @@ func (sw *statusWriter) Flush() {
 	}
 }
 
-// securityHeaders adds defensive HTTP headers to every response.
+// nonceKey carries the per-request CSP nonce through the request context.
+type ctxKey int
+
+const nonceKey ctxKey = 0
+
+// securityHeaders adds defensive HTTP headers to every response. Scripts are
+// allowed only with the per-request nonce — no unsafe-inline, no third-party
+// script hosts.
 func securityHeaders(next http.Handler) http.Handler {
-	const csp = "default-src 'self'; " +
-		"script-src 'self' 'unsafe-inline' https://unpkg.com; " +
-		"style-src 'self' 'unsafe-inline'; " +
-		"img-src 'self' data: https://*.scdn.co https://*.spotifycdn.com; " +
-		"connect-src 'self'; " +
-		"frame-ancestors 'none'"
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nonce := randomHex(16)
+		csp := "default-src 'self'; " +
+			"script-src 'self' 'nonce-" + nonce + "'; " +
+			"style-src 'self' 'unsafe-inline'; " +
+			"img-src 'self' data: https://*.scdn.co https://*.spotifycdn.com; " +
+			"connect-src 'self'; " +
+			"frame-ancestors 'none'"
 		h := w.Header()
 		h.Set("X-Frame-Options", "DENY")
 		h.Set("X-Content-Type-Options", "nosniff")
@@ -171,7 +185,7 @@ func securityHeaders(next http.Handler) http.Handler {
 		h.Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
 		h.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 		h.Set("Content-Security-Policy", csp)
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), nonceKey, nonce)))
 	})
 }
 
@@ -193,7 +207,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	render(w, "index.html", map[string]any{
+	render(w, r, "index.html", map[string]any{
 		"Username":      username,
 		"SpotifyLinked": db.HasToken(username),
 		"ExpandYears":   expandYears,
@@ -202,13 +216,13 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		render(w, "login.html", map[string]any{"Next": r.URL.Query().Get("next")})
+		render(w, r, "login.html", map[string]any{"Next": r.URL.Query().Get("next")})
 		return
 	}
 	next := safeNext(r.FormValue("next"))
 
 	if !auth.LoginAllowed(realIP(r)) {
-		render(w, "login.html", map[string]any{
+		render(w, r, "login.html", map[string]any{
 			"Error": "Too many login attempts. Please try again later.",
 			"Next":  next,
 		})
@@ -218,7 +232,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	username := strings.TrimSpace(r.FormValue("username"))
 	password := r.FormValue("password")
 	if !auth.CheckPassword(username, password) {
-		render(w, "login.html", map[string]any{"Error": "Invalid username or password.", "Next": next})
+		render(w, r, "login.html", map[string]any{"Error": "Invalid username or password.", "Next": next})
 		return
 	}
 	auth.SetSession(w, username)
@@ -300,9 +314,29 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
 	runID, run := newRun(cancel)
+	label := runLabel(r)
 
 	go func() {
+		// emit records every line server-side and forwards it to the live
+		// stream without blocking — if no browser is draining the channel,
+		// the line is still persisted and the agent never stalls on a full
+		// pipe.
+		var saved []string
+		emit := func(line string) {
+			saved = append(saved, line)
+			select {
+			case run.lines <- line:
+			default:
+			}
+		}
 		defer func() {
+			// Persist before close(run.done) so a history refresh triggered
+			// by the stream's done event already sees this run.
+			if len(saved) > 0 {
+				if err := db.InsertRun(username, label, saved); err != nil {
+					log.Printf("run[%s]: failed to save run history: %v", username, err)
+				}
+			}
 			close(run.done)
 			deleteRun(runID)
 			os.Remove(cachePath)
@@ -320,25 +354,68 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
-			run.lines <- "[error] " + err.Error()
+			emit("[error] " + err.Error())
 			return
 		}
 		if err := cmd.Start(); err != nil {
-			run.lines <- "[error] " + err.Error()
+			emit("[error] " + err.Error())
 			return
 		}
 
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
-			run.lines <- scanner.Text()
+			emit(scanner.Text())
 		}
-		if err := cmd.Wait(); err != nil && ctx.Err() == nil {
-			run.lines <- "[error] agent exited: " + err.Error()
+		if err := cmd.Wait(); err != nil {
+			switch ctx.Err() {
+			case context.DeadlineExceeded:
+				emit("[error] run timed out after 20 minutes")
+			case context.Canceled:
+				emit("[error] run cancelled")
+			default:
+				emit("[error] agent exited: " + err.Error())
+			}
 		}
 	}()
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"runId": runID})
+}
+
+// runLabel builds the run-history label from the submitted form, mirroring
+// the labels the UI previously generated client-side.
+func runLabel(r *http.Request) string {
+	switch r.FormValue("mode") {
+	case "connection":
+		if a := strings.TrimSpace(r.FormValue("artist")); a != "" {
+			return "Connection: " + a
+		}
+		return "Connection run"
+	case "dna":
+		if t := strings.TrimSpace(r.FormValue("dna_track")); t != "" {
+			return "DNA: " + t
+		}
+		return "DNA run"
+	case "rediscovery":
+		return "Rediscovery"
+	case "expand":
+		if y := r.FormValue("expand_year"); y != "" {
+			return "Expand: " + y
+		}
+		return "Expand run"
+	case "setlist":
+		if a := strings.TrimSpace(r.FormValue("setlist_artist")); a != "" {
+			return "Setlist: " + a
+		}
+		return "Setlist run"
+	case "everyone":
+		return "Everyone's Top Songs"
+	default:
+		if p := strings.TrimSpace(r.FormValue("prompt")); p != "" {
+			return `Sonic: "` + p + `"`
+		}
+		return "Sonic run"
+	}
 }
 
 // handleStream is the SSE endpoint. HTMX connects here after /run returns a runId.
@@ -421,9 +498,16 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		log.Printf("profile[%s]: no top tracks in history, skipping enrichment", username)
 	}
 	if spotifyErr == nil && len(hist.TopTracks) > 0 {
-		ids := make([]string, 0, len(hist.TopTracks))
+		ids := make([]string, 0, len(hist.TopTracks)+len(hist.TopSkipped))
+		seenIDs := map[string]bool{}
 		for _, t := range hist.TopTracks {
 			ids = append(ids, t.TrackID)
+			seenIDs[t.TrackID] = true
+		}
+		for _, t := range hist.TopSkipped {
+			if !seenIDs[t.TrackID] {
+				ids = append(ids, t.TrackID)
+			}
 		}
 		trackMeta := spotify.FetchTracksMeta(accessToken, ids)
 		audioFeatures = spotify.FetchAudioFeaturesSummary(accessToken, ids)
@@ -439,6 +523,13 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 					artistIDByTrackID[t.TrackID] = m.ArtistID
 					uniqueArtistIDs[m.ArtistID] = struct{}{}
 				}
+			}
+		}
+
+		for _, t := range hist.TopSkipped {
+			if m, ok := trackMeta[t.TrackID]; ok {
+				t.ImageURL = m.ImageURL
+				t.SpotifyURL = m.SpotifyURL
 			}
 		}
 
@@ -603,13 +694,21 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Cache-busting timestamp for the background image URL. Using the file's
 	// mod-time ensures the browser fetches a fresh image whenever the file changes.
+	// When no cached image exists yet, fall back to the current time so the
+	// URL stays unique — reusing ?t=0 would let the browser serve a stale
+	// immutable-cached image from before the cache was cleared.
 	bgDir := envOr("BG_CACHE_DIR", "/data/backgrounds")
-	var bgTimestamp int64
+	bgTimestamp := time.Now().Unix()
 	if info, err := os.Stat(filepath.Join(bgDir, username+".jpg")); err == nil {
 		bgTimestamp = info.ModTime().Unix()
 	}
+	avatarDir := envOr("AVATAR_CACHE_DIR", "/data/avatars")
+	avatarTimestamp := time.Now().Unix()
+	if info, err := os.Stat(filepath.Join(avatarDir, username+".jpg")); err == nil {
+		avatarTimestamp = info.ModTime().Unix()
+	}
 
-	render(w, "profile.html", map[string]any{
+	render(w, r, "profile.html", map[string]any{
 		"Title":           "Profile",
 		"Username":        username,
 		"SpotifyLinked":   db.HasToken(username),
@@ -620,6 +719,7 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		"Recommendations": recommendations,
 		"Persona":         persona,
 		"BGTimestamp":     bgTimestamp,
+		"AvatarTimestamp": avatarTimestamp,
 	})
 }
 
@@ -647,7 +747,25 @@ func handleProfileBg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Build generation inputs from cached persona + history + aura.
+	imgBytes, err := ai.GenerateBackground(buildBackgroundInput(username))
+	if err != nil {
+		log.Printf("background: generation failed for %s: %v", username, err)
+		http.Error(w, "background generation failed", http.StatusServiceUnavailable)
+		return
+	}
+
+	if err := os.WriteFile(cachePath, imgBytes, 0o644); err != nil {
+		log.Printf("background: failed to cache for %s: %v", username, err)
+	}
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Cache-Control", "max-age=86400, immutable")
+	_, _ = io.Copy(w, bytes.NewReader(imgBytes))
+}
+
+// buildBackgroundInput gathers cached persona + history + aura for the image
+// generation prompts. Shared by the banner and avatar handlers.
+func buildBackgroundInput(username string) ai.BackgroundInput {
 	var inp ai.BackgroundInput
 
 	if cached, err := db.GetPersonaJSON(username); err == nil {
@@ -693,16 +811,37 @@ func handleProfileBg(w http.ResponseWriter, r *http.Request) {
 	inp.Energy = aura.Energy
 	inp.Valence = aura.Valence
 	inp.Acoustic = aura.Acoustic
+	return inp
+}
 
-	imgBytes, err := ai.GenerateBackground(inp)
+// handleProfileAvatar serves the persona-mood profile picture, generated once
+// and cached to /data/avatars/{username}.jpg — same pattern as the banner.
+func handleProfileAvatar(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+
+	avatarDir := envOr("AVATAR_CACHE_DIR", "/data/avatars")
+	if err := os.MkdirAll(avatarDir, 0o755); err != nil {
+		http.Error(w, "cache dir error", http.StatusInternalServerError)
+		return
+	}
+	cachePath := filepath.Join(avatarDir, username+".jpg")
+
+	if img, err := os.ReadFile(cachePath); err == nil {
+		w.Header().Set("Content-Type", "image/jpeg")
+		w.Header().Set("Cache-Control", "max-age=3600")
+		_, _ = w.Write(img)
+		return
+	}
+
+	imgBytes, err := ai.GenerateAvatar(buildBackgroundInput(username))
 	if err != nil {
-		log.Printf("background: generation failed for %s: %v", username, err)
-		http.Error(w, "background generation failed", http.StatusServiceUnavailable)
+		log.Printf("avatar: generation failed for %s: %v", username, err)
+		http.Error(w, "avatar generation failed", http.StatusServiceUnavailable)
 		return
 	}
 
 	if err := os.WriteFile(cachePath, imgBytes, 0o644); err != nil {
-		log.Printf("background: failed to cache for %s: %v", username, err)
+		log.Printf("avatar: failed to cache for %s: %v", username, err)
 	}
 
 	w.Header().Set("Content-Type", "image/jpeg")
@@ -724,25 +863,6 @@ func handleHistoryGet(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(runs)
-}
-
-type saveRunReq struct {
-	Label string   `json:"label"`
-	Lines []string `json:"lines"`
-}
-
-func handleHistorySave(w http.ResponseWriter, r *http.Request) {
-	username, _ := auth.GetSession(r)
-	var req saveRunReq
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-	if err := db.InsertRun(username, req.Label, req.Lines); err != nil {
-		http.Error(w, "db error", http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
 }
 
 func handleHistoryClear(w http.ResponseWriter, r *http.Request) {
@@ -808,6 +928,14 @@ func buildArgs(r *http.Request) []string {
 		if v := r.FormValue("min_plays"); v != "" {
 			args = append(args, "--min-plays", v)
 		}
+	case "everyone":
+		args = append(args, "--everyone-top")
+		if v := r.FormValue("per_user_count"); v != "" {
+			args = append(args, "--per-user-count", v)
+		}
+		// Deterministic mode — the shared count/energy/valence/tempo filters
+		// don't apply.
+		return args
 	default: // sonic
 		if prompt := strings.TrimSpace(r.FormValue("prompt")); prompt != "" {
 			args = append(args, prompt)
@@ -964,10 +1092,11 @@ func writeTokenCache(username, accessToken string) (string, error) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 func main() {
-	// Auth setup.
-	secret := envOr("SESSION_SECRET", "dev-secret-change-me")
-	if secret == "dev-secret-change-me" {
-		log.Printf("WARNING: SESSION_SECRET is not set — using insecure default. Set it in your .env file.")
+	// Auth setup. Refuse to start without a real secret — a known default
+	// would let anyone forge session cookies.
+	secret := os.Getenv("SESSION_SECRET")
+	if secret == "" || secret == "dev-secret-change-me" {
+		log.Fatal("SESSION_SECRET is required — generate one with: openssl rand -hex 32")
 	}
 	auth.SetSecret(secret)
 	auth.Users = auth.ParseUsers(os.Getenv("USERS"))
@@ -996,6 +1125,9 @@ func main() {
 	mux.HandleFunc("GET /login", handleLogin)
 	mux.HandleFunc("POST /login", handleLogin)
 	mux.HandleFunc("GET /static/", func(w http.ResponseWriter, r *http.Request) {
+		// Always revalidate so deploys take effect immediately; unchanged files
+		// still answer 304 via Last-Modified.
+		w.Header().Set("Cache-Control", "no-cache")
 		http.StripPrefix("/static/", http.FileServer(http.Dir("static"))).ServeHTTP(w, r)
 	})
 
@@ -1010,8 +1142,8 @@ func main() {
 	protected.HandleFunc("DELETE /run/{id}", handleCancel)
 	protected.HandleFunc("GET /profile", handleProfile)
 	protected.HandleFunc("GET /profile/bg", handleProfileBg)
+	protected.HandleFunc("GET /profile/avatar", handleProfileAvatar)
 	protected.HandleFunc("GET /history", handleHistoryGet)
-	protected.HandleFunc("POST /history", handleHistorySave)
 	protected.HandleFunc("DELETE /history", handleHistoryClear)
 
 	mux.Handle("/", auth.RequireAuth(protected))

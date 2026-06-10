@@ -152,14 +152,14 @@ class SpotifyClient:
         return playlists
 
     def playlist_tracks(self, playlist_id: str) -> list[dict]:
-        tracks, results = [], self._sp.playlist_tracks(playlist_id, limit=100)
+        tracks, results = [], self._sp.playlist_items(playlist_id, limit=100)
         while results:
             tracks.extend(
-                self._parse_track(item["track"])
+                self._parse_track(track)
                 for item in results["items"]
-                if item["track"]
+                if (track := item.get("track"))
             )
-            results = self._sp.next(results) if results["next"] else None
+            results = self._sp.next(results) if results.get("next") else None
         return tracks
 
     def recently_played(self, limit: int = 50) -> list[dict]:

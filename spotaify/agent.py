@@ -252,7 +252,9 @@ def run_agent(prompt: str) -> None:
         response = _call_with_retry(
             client,
             model="claude-sonnet-4-6",
-            max_tokens=2048,
+            # Large enough for rank_and_select calls that echo a full
+            # candidate pool (~150 tracks) in the tool input.
+            max_tokens=16384,
             system=SYSTEM_PROMPT,
             tools=TOOLS,
             messages=messages,
@@ -290,7 +292,21 @@ def run_agent(prompt: str) -> None:
             if turn == _WRAP_UP_TURN:
                 print(f"\n[Turn {turn}] Injecting wrap-up nudge.", flush=True)
                 messages.append({"role": "user", "content": _WRAP_UP_MSG})
+        elif response.stop_reason == "max_tokens":
+            # The response was cut off mid-generation (usually a tool call
+            # echoing a huge candidate pool). Drop the truncated content and
+            # tell the agent to retry in smaller steps instead of quitting.
+            print("\n[warn] Output token limit hit — asking the agent to retry with smaller tool calls.", flush=True)
+            truncated_text = "".join(text_blocks).strip() or "(response cut off)"
+            messages.append({"role": "assistant", "content": truncated_text})
+            messages.append({"role": "user", "content": (
+                "Your last response was cut off by the output token limit. "
+                "Continue where you left off, but keep responses smaller — "
+                "for example, pass at most 60 candidates per rank_and_select call."
+            )})
+            turn += 1
         else:
+            print(f"\n[warn] Stopping: unexpected stop_reason={response.stop_reason!r}", flush=True)
             break
 
     if turn >= _MAX_TURNS:
@@ -372,7 +388,18 @@ def main():
     parser.add_argument("--stale-days", type=int, default=90, dest="stale_days", help="Days since last play threshold")
     parser.add_argument("--min-plays", type=int, default=3, dest="min_plays", help="Minimum past play count")
     parser.add_argument("--count", type=int, default=20, help="Target playlist length")
+    parser.add_argument("--everyone-top", action="store_true", dest="everyone_top", help="Build a combined top-songs playlist from all users' imported history")
+    parser.add_argument("--per-user-count", type=int, default=100, dest="per_user_count", help="Songs contributed per user in everyone-top mode")
     args = parser.parse_args()
+
+    if args.everyone_top:
+        # Deterministic mode — no AI agent involved.
+        from spotaify.everyone import build_everyone_top
+        try:
+            build_everyone_top(per_user=args.per_user_count)
+        except Exception as e:
+            print(f"\n[error] {e}", flush=True)
+        return
 
     prompt = build_prompt(args)
     if not prompt.strip():

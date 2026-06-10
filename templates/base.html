@@ -5,19 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light">
   <title>spotAIfy{{if .Title}} — {{.Title}}{{end}}</title>
+  <link rel="icon" type="image/png" href="/static/icon.png">
+  <link rel="apple-touch-icon" href="/static/icon.png">
   <link rel="stylesheet" href="/static/style.css">
-  <script>(function(){var t=localStorage.getItem('spotaify-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);})()</script>
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-  <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
+  <script nonce="{{.Nonce}}">(function(){var t=localStorage.getItem('spotaify-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);})()</script>
 </head>
 <body>
   <header>
     <a href="/" class="logo">spotAIfy</a>
     <nav>
       <div class="theme-switcher" id="theme-switcher" role="group" aria-label="Color theme">
-        <button class="theme-btn" data-t="light" onclick="setTheme('light')" aria-pressed="false">Light</button>
-        <button class="theme-btn" data-t="dark"  onclick="setTheme('dark')" aria-pressed="false">Dark</button>
-        <button class="theme-btn" data-t="system" onclick="setTheme('system')" aria-pressed="false">System</button>
+        <button class="theme-btn" data-t="light" aria-pressed="false">Light</button>
+        <button class="theme-btn" data-t="dark" aria-pressed="false">Dark</button>
+        <button class="theme-btn" data-t="system" aria-pressed="false">System</button>
       </div>
       {{if .Username}}
       <span class="user">{{.Username}}</span>
@@ -37,7 +37,7 @@
   <main>
     {{block "content" .}}{{end}}
   </main>
-  <script>
+  <script nonce="{{.Nonce}}">
     function setTheme(t) {
       localStorage.setItem('spotaify-theme', t);
       if (t === 'system') document.documentElement.removeAttribute('data-theme');
@@ -52,6 +52,7 @@
       document.querySelectorAll('.theme-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.t === saved);
         b.setAttribute('aria-pressed', b.dataset.t === saved ? 'true' : 'false');
+        b.addEventListener('click', function() { setTheme(b.dataset.t); });
       });
     })();
   </script>

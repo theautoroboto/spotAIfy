@@ -100,6 +100,7 @@ type Stats struct {
 	EarliestPlay      time.Time
 	LatestPlay        time.Time
 	TopTracks         []*TrackStats  // sorted by MsPlayedTotal desc, capped at 50
+	TopSkipped        []*TrackStats  // sorted by SkipCount desc, capped at 10
 	TopArtists        []*ArtistStats // sorted by MsPlayedTotal desc, capped at 20
 	HourlyPattern     [24]int        // play events by hour-of-day (local timezone)
 	YearlyTrend       []*YearStats   // sorted by year asc
@@ -250,6 +251,23 @@ func Load(dir string) (*Stats, error) {
 		allTracks = allTracks[:50]
 	}
 
+	// Sort and cap most-skipped tracks (10)
+	skipped := make([]*TrackStats, 0, len(trackMap))
+	for _, t := range trackMap {
+		if t.SkipCount > 0 {
+			skipped = append(skipped, t)
+		}
+	}
+	sort.Slice(skipped, func(i, j int) bool {
+		if skipped[i].SkipCount != skipped[j].SkipCount {
+			return skipped[i].SkipCount > skipped[j].SkipCount
+		}
+		return skipped[i].MsPlayedTotal > skipped[j].MsPlayedTotal
+	})
+	if len(skipped) > 10 {
+		skipped = skipped[:10]
+	}
+
 	// Sort and cap top artists (20)
 	allArtists := make([]*ArtistStats, 0, len(artistMap))
 	for _, a := range artistMap {
@@ -340,6 +358,7 @@ func Load(dir string) (*Stats, error) {
 		EarliestPlay:      earliest,
 		LatestPlay:        latest,
 		TopTracks:         allTracks,
+		TopSkipped:        skipped,
 		TopArtists:        allArtists,
 		HourlyPattern:     hourly,
 		YearlyTrend:       allYears,

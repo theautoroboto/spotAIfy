@@ -23,48 +23,58 @@
       <fieldset class="mode-tabs">
         <legend class="sr-only">Mode</legend>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="sonic" checked onchange="switchMode(this.value)">
+          <input type="radio" name="mode" value="sonic" checked>
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Sonic</span>
             <span class="mode-tab-desc">Describe a mood or vibe</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="connection" onchange="switchMode(this.value)">
+          <input type="radio" name="mode" value="connection">
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Connection</span>
             <span class="mode-tab-desc">Explore an artist's network</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="dna" onchange="switchMode(this.value)">
+          <input type="radio" name="mode" value="dna">
           <span class="mode-tab-inner">
             <span class="mode-tab-label">DNA</span>
             <span class="mode-tab-desc">Map a track's sample lineage</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="rediscovery" onchange="switchMode(this.value)">
+          <input type="radio" name="mode" value="rediscovery">
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Rediscovery</span>
             <span class="mode-tab-desc">Revisit tracks you used to love</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="expand" onchange="switchMode(this.value)">
+          <input type="radio" name="mode" value="expand">
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Expand</span>
             <span class="mode-tab-desc">Discover music beyond your history</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="setlist" onchange="switchMode(this.value)">
+          <input type="radio" name="mode" value="setlist">
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Setlist</span>
             <span class="mode-tab-desc">Build from an artist's live shows</span>
           </span>
         </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="everyone">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Everyone</span>
+            <span class="mode-tab-desc">Top songs from the whole household</span>
+          </span>
+        </label>
       </fieldset>
+
+      <!-- ── User entries — right of the mode selector ── -->
+      <div class="form-main">
 
       <!-- Sonic fields -->
       <div id="fields-sonic" class="mode-fields">
@@ -126,6 +136,13 @@
         <input id="min_plays" name="min_plays" type="number" value="3" min="1" max="20">
       </div>
 
+      <!-- Everyone fields -->
+      <div id="fields-everyone" class="mode-fields hidden">
+        <label for="per_user_count">Songs per person <span class="info-icon" data-tip="How many of each person's most-played songs to include. Duplicates shared between people are replaced by that person's next favourite, so everyone contributes this many unique tracks." tabindex="0" aria-label="More info">?</span></label>
+        <input id="per_user_count" name="per_user_count" type="number" value="100" min="10" max="100">
+        <p class="muted" style="font-size:0.8rem;margin:0.35rem 0 0">Combines the most-played tracks of everyone who has imported listening history into one shared playlist, alternating between people.</p>
+      </div>
+
       <!-- Shared filters -->
       <details class="filters">
         <summary>Filters <span class="muted">(optional)</span></summary>
@@ -138,8 +155,8 @@
             <label>Energy <span class="info-icon" data-tip="Audio energy from 0.0 (calm/quiet) to 1.0 (intense/loud)." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-energy-fill"></div></div>
-              <input type="range" class="dr-thumb" id="energy_min" name="energy_min" min="0" max="100" value="0" step="5" oninput="syncDR('energy',0,100,100)" aria-label="Energy minimum">
-              <input type="range" class="dr-thumb" id="energy_max" name="energy_max" min="0" max="100" value="100" step="5" oninput="syncDR('energy',0,100,100)" aria-label="Energy maximum">
+              <input type="range" class="dr-thumb" id="energy_min" name="energy_min" min="0" max="100" value="0" step="5" aria-label="Energy minimum">
+              <input type="range" class="dr-thumb" id="energy_max" name="energy_max" min="0" max="100" value="100" step="5" aria-label="Energy maximum">
               <div class="dr-vals"><span id="dr-energy-lo">0.00</span><span id="dr-energy-hi">1.00</span></div>
             </div>
           </div>
@@ -147,8 +164,8 @@
             <label>Valence <span class="info-icon" data-tip="Emotional positivity from 0.0 (dark/sad) to 1.0 (bright/happy)." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-valence-fill"></div></div>
-              <input type="range" class="dr-thumb" id="valence_min" name="valence_min" min="0" max="100" value="0" step="5" oninput="syncDR('valence',0,100,100)" aria-label="Valence minimum">
-              <input type="range" class="dr-thumb" id="valence_max" name="valence_max" min="0" max="100" value="100" step="5" oninput="syncDR('valence',0,100,100)" aria-label="Valence maximum">
+              <input type="range" class="dr-thumb" id="valence_min" name="valence_min" min="0" max="100" value="0" step="5" aria-label="Valence minimum">
+              <input type="range" class="dr-thumb" id="valence_max" name="valence_max" min="0" max="100" value="100" step="5" aria-label="Valence maximum">
               <div class="dr-vals"><span id="dr-valence-lo">0.00</span><span id="dr-valence-hi">1.00</span></div>
             </div>
           </div>
@@ -156,8 +173,8 @@
             <label>Tempo BPM <span class="info-icon" data-tip="Beats per minute. E.g. 120–140 for dance, 60–80 for ballads." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-tempo-fill"></div></div>
-              <input type="range" class="dr-thumb" id="tempo_min" name="tempo_min" min="40" max="300" value="40" step="1" oninput="syncDR('tempo',40,300,0)" aria-label="Tempo minimum BPM">
-              <input type="range" class="dr-thumb" id="tempo_max" name="tempo_max" min="40" max="300" value="300" step="1" oninput="syncDR('tempo',40,300,0)" aria-label="Tempo maximum BPM">
+              <input type="range" class="dr-thumb" id="tempo_min" name="tempo_min" min="40" max="300" value="40" step="1" aria-label="Tempo minimum BPM">
+              <input type="range" class="dr-thumb" id="tempo_max" name="tempo_max" min="40" max="300" value="300" step="1" aria-label="Tempo maximum BPM">
               <div class="dr-vals"><span id="dr-tempo-lo">40</span><span id="dr-tempo-hi">300</span></div>
             </div>
           </div>
@@ -168,7 +185,9 @@
               {{if not .SpotifyLinked}}disabled title="Connect Spotify first"{{end}}>
         Generate playlist
       </button>
-      <button id="cancel-btn" type="button" class="btn btn-ghost btn-full" style="display:none" onclick="cancelRun()">Stop</button>
+      <button id="cancel-btn" type="button" class="btn btn-ghost btn-full" style="display:none">Stop</button>
+
+      </div><!-- /.form-main -->
     </form>
   </section>
 
@@ -176,7 +195,7 @@
   <section class="output-panel">
     <div class="output-header">
       <span>Agent output <span id="run-dot" class="run-dot hidden"></span></span>
-      <button id="clear-btn" class="btn btn-sm btn-ghost" onclick="clearOutput()" style="display:none">Clear</button>
+      <button id="clear-btn" class="btn btn-sm btn-ghost" style="display:none">Clear</button>
     </div>
     <div id="output" class="output-log" aria-live="polite">
       <div class="output-empty">
@@ -194,20 +213,35 @@
 <div id="history-panel" class="history-panel hidden">
   <div class="history-header">
     <span>History</span>
-    <button type="button" class="btn btn-sm btn-ghost" onclick="clearHistory()">Clear</button>
+    <button type="button" id="history-clear-btn" class="btn btn-sm btn-ghost">Clear</button>
   </div>
   <div id="history-list"></div>
 </div>
 
-<script>
+<script nonce="{{.Nonce}}">
+// CSP forbids inline handlers — all events are bound here.
+document.querySelectorAll('input[name="mode"]').forEach((radio) => {
+  radio.addEventListener('change', () => switchMode(radio.value));
+});
+[['energy', 0, 100, 100], ['valence', 0, 100, 100], ['tempo', 40, 300, 0]].forEach(([key, min, max, scale]) => {
+  ['min', 'max'].forEach((end) => {
+    document.getElementById(key + '_' + end).addEventListener('input', () => syncDR(key, min, max, scale));
+  });
+});
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('cancel-btn').addEventListener('click', cancelRun);
+  document.getElementById('clear-btn').addEventListener('click', clearOutput);
+  document.getElementById('history-clear-btn').addEventListener('click', clearHistory);
+});
+
 function switchMode(mode) {
   document.querySelectorAll('.mode-fields').forEach(el => el.classList.add('hidden'));
   const next = document.getElementById('fields-' + mode);
   next.classList.remove('hidden');
   next.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
-  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna' || mode === 'setlist');
+  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna' || mode === 'setlist' || mode === 'everyone');
   document.querySelectorAll('.audio-filter').forEach(el =>
-    el.classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery' || mode === 'expand' || mode === 'setlist'));
+    el.classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery' || mode === 'expand' || mode === 'setlist' || mode === 'everyone'));
 }
 
 function clearOutput() {
@@ -281,7 +315,6 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
   }
 
   const data = new FormData(e.target);
-  const runLabel = _histLabel(data);
   const runLines = [];
   const eMin = parseInt(data.get('energy_min')||'0'), eMax = parseInt(data.get('energy_max')||'100');
   data.delete('energy_min'); data.delete('energy_max');
@@ -339,7 +372,8 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
     document.querySelector('.output-panel').classList.remove('running');
     document.getElementById('run-dot').classList.add('hidden');
     document.getElementById('clear-btn').style.display = '';
-    if (runLines.length > 0) _saveHistory(runLabel, runLines);
+    // The server persists run history itself; just refresh the panel.
+    _renderHistory();
   };
   es.addEventListener('done', onDone);
   es.onerror = () => {
@@ -359,28 +393,6 @@ async function cancelRun() {
 }
 
 // ── History ──────────────────────────────────────────────────────────────────
-
-function _histLabel(data) {
-  const mode = data.get('mode');
-  if (mode === 'dna') return `DNA: "${data.get('dna_track') || ''}"`;
-  if (mode === 'connection') return `Connection: "${data.get('artist') || ''}"`;
-  if (mode === 'rediscovery') return 'Rediscovery';
-  if (mode === 'expand') return 'Expand: horizon discovery';
-  if (mode === 'setlist') return `Setlist: "${data.get('setlist_artist') || ''}"`;
-  const p = (data.get('prompt') || '').trim();
-  return p ? `Sonic: "${p}"` : 'Sonic run';
-}
-
-async function _saveHistory(label, lines) {
-  try {
-    await fetch('/history', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ label, lines: lines.slice(0, 100) }),
-    });
-  } catch(e) {}
-  _renderHistory();
-}
 
 async function clearHistory() {
   try {
