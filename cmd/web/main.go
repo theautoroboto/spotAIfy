@@ -31,9 +31,10 @@ import (
 // ── Run registry ─────────────────────────────────────────────────────────────
 
 type run struct {
-	lines  chan string
-	done   chan struct{}
-	cancel context.CancelFunc
+	username string
+	lines    chan string
+	done     chan struct{}
+	cancel   context.CancelFunc
 }
 
 var (
@@ -41,9 +42,9 @@ var (
 	runs   = make(map[string]*run)
 )
 
-func newRun(cancel context.CancelFunc) (string, *run) {
+func newRun(username string, cancel context.CancelFunc) (string, *run) {
 	id := randomHex(16)
-	r := &run{lines: make(chan string, 256), done: make(chan struct{}), cancel: cancel}
+	r := &run{username: username, lines: make(chan string, 256), done: make(chan struct{}), cancel: cancel}
 	runsMu.Lock()
 	runs[id] = r
 	runsMu.Unlock()
@@ -220,6 +221,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		"Username":      username,
 		"SpotifyLinked": db.HasToken(username),
 		"ExpandYears":   expandYears,
+		"CSRFToken":     auth.CSRFToken(r),
 	})
 }
 
@@ -249,6 +251,10 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleLogout(w http.ResponseWriter, r *http.Request) {
+	if !auth.ValidateCSRF(r) {
+		http.Error(w, "invalid CSRF token", http.StatusForbidden)
+		return
+	}
 	auth.ClearSession(w)
 	http.Redirect(w, r, "/login", http.StatusFound)
 }
@@ -321,8 +327,13 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !auth.ValidateCSRF(r) {
+		http.Error(w, "invalid CSRF token", http.StatusForbidden)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
-	runID, run := newRun(cancel)
+	runID, run := newRun(username, cancel)
 	label := runLabel(r)
 
 	go func() {
@@ -432,7 +443,12 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
 	run, ok := getRun(runID)
 	if !ok {
-		http.Error(w, "run not found", http.StatusNotFound)
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	username, _ := auth.GetSession(r)
+	if run.username != username {
+		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
 
@@ -770,6 +786,7 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		"DayNames":        []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"},
 		"BGTimestamp":     bgTimestamp,
 		"AvatarTimestamp": avatarTimestamp,
+		"CSRFToken":       auth.CSRFToken(r),
 	})
 }
 
@@ -916,6 +933,10 @@ func handleHistoryGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleHistoryClear(w http.ResponseWriter, r *http.Request) {
+	if !auth.ValidateCSRF(r) {
+		http.Error(w, "invalid CSRF token", http.StatusForbidden)
+		return
+	}
 	username, _ := auth.GetSession(r)
 	if err := db.DeleteRuns(username); err != nil {
 		http.Error(w, "db error", http.StatusInternalServerError)
@@ -925,10 +946,19 @@ func handleHistoryClear(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCancel(w http.ResponseWriter, r *http.Request) {
+	if !auth.ValidateCSRF(r) {
+		http.Error(w, "invalid CSRF token", http.StatusForbidden)
+		return
+	}
 	runID := r.PathValue("id")
 	run, ok := getRun(runID)
 	if !ok {
-		http.Error(w, "run not found", http.StatusNotFound)
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	username, _ := auth.GetSession(r)
+	if run.username != username {
+		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
 	run.cancel()

@@ -1003,7 +1003,7 @@ from pathlib import Path
 import musicbrainzngs as mb
 from config import GRAPH_DIR
 
-mb.set_useragent("spotify-playlist-agent", "0.1", "brian.wade.smith@gmail.com")
+mb.set_useragent("spotify-playlist-agent", "0.1", "your@email.com")
 
 
 def resolve_artist_mbid(name: str) -> str | None:
@@ -1226,7 +1226,7 @@ import time
 import musicbrainzngs as mb
 from artist_graph import fetch_artist_relations, resolve_artist_mbid
 
-mb.set_useragent("spotify-playlist-agent", "0.1", "brian.wade.smith@gmail.com")
+mb.set_useragent("spotify-playlist-agent", "0.1", "your@email.com")
 
 COMPOSER_TYPES = {"composer", "lyricist", "writer", "arranger"}
 PRODUCER_TYPES = {"producer", "mix", "engineer", "recording"}

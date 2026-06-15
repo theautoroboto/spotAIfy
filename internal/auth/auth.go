@@ -140,6 +140,31 @@ func ClearSession(w http.ResponseWriter) {
 	})
 }
 
+// CSRFToken returns a per-session token derived from the session HMAC.
+// Returns "" when there is no valid session.
+func CSRFToken(r *http.Request) string {
+	username, ok := GetSession(r)
+	if !ok {
+		return ""
+	}
+	mac := hmac.New(sha256.New, sessionSecret)
+	mac.Write([]byte("csrf:" + username))
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
+// ValidateCSRF checks the X-CSRF-Token header or _csrf form field against the session token.
+func ValidateCSRF(r *http.Request) bool {
+	expected := CSRFToken(r)
+	if expected == "" {
+		return false
+	}
+	token := r.Header.Get("X-CSRF-Token")
+	if token == "" {
+		token = r.FormValue("_csrf")
+	}
+	return hmac.Equal([]byte(token), []byte(expected))
+}
+
 // RequireAuth wraps a handler and redirects to /login if not authenticated.
 func RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

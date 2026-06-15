@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="/static/icon.png">
   <link rel="apple-touch-icon" href="/static/icon.png">
   <link rel="stylesheet" href="/static/style.css">
+  <meta name="csrf-token" content="{{.CSRFToken}}">
   <script nonce="{{.Nonce}}">(function(){var t=localStorage.getItem('spotaify-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);})()</script>
 </head>
 <body>
@@ -29,6 +30,7 @@
         <a href="/profile" class="nav-link">Profile</a>
       {{end}}
       <form method="POST" action="/logout" style="display:inline">
+        <input type="hidden" name="_csrf" value="{{.CSRFToken}}">
         <button type="submit" class="btn btn-sm btn-ghost">Log out</button>
       </form>
       {{end}}

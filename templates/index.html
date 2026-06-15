@@ -219,6 +219,7 @@
 </div>
 
 <script nonce="{{.Nonce}}">
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 // CSP forbids inline handlers — all events are bound here.
 document.querySelectorAll('input[name="mode"]').forEach((radio) => {
   radio.addEventListener('change', () => switchMode(radio.value));
@@ -330,7 +331,7 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
 
   let resp;
   try {
-    resp = await fetch('/run', { method: 'POST', body: new URLSearchParams(data) });
+    resp = await fetch('/run', { method: 'POST', headers: { 'X-CSRF-Token': csrfToken }, body: new URLSearchParams(data) });
   } catch (err) {
     appendLine(out, '[error] Network error: ' + err.message, 'err');
     btn.disabled = false; btn.textContent = 'Generate playlist';
@@ -389,14 +390,14 @@ async function cancelRun() {
   if (!currentRunId) return;
   const cancelBtn = document.getElementById('cancel-btn');
   cancelBtn.disabled = true; cancelBtn.textContent = 'Stopping…';
-  await fetch('/run/' + currentRunId, { method: 'DELETE' }).catch(() => {});
+  await fetch('/run/' + currentRunId, { method: 'DELETE', headers: { 'X-CSRF-Token': csrfToken } }).catch(() => {});
 }
 
 // ── History ──────────────────────────────────────────────────────────────────
 
 async function clearHistory() {
   try {
-    await fetch('/history', { method: 'DELETE' });
+    await fetch('/history', { method: 'DELETE', headers: { 'X-CSRF-Token': csrfToken } });
   } catch(e) {}
   _renderHistory();
 }

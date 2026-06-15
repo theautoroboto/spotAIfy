@@ -68,15 +68,15 @@ def _write_export(d, filename="Streaming_History_Audio_2024.json"):
 
 
 def test_users_with_history_finds_only_dirs_with_exports(tmp_path):
-    _write_export(tmp_path / "brian")
-    _write_export(tmp_path / "andrea")
+    _write_export(tmp_path / "alice")
+    _write_export(tmp_path / "bob")
     (tmp_path / "empty").mkdir()
     (tmp_path / "videos_only").mkdir()
     (tmp_path / "videos_only" / "Streaming_History_Video_2024.json").write_text("[]")
     (tmp_path / "loose_file.json").write_text("[]")
 
     users = _users_with_history(tmp_path)
-    assert [d.name for d in users] == ["andrea", "brian"]
+    assert [d.name for d in users] == ["alice", "bob"]
 
 
 def test_users_with_history_sorted_case_insensitive(tmp_path):
