@@ -1,0 +1,60 @@
+{{define "base"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <title>spotAIfy{{if .Title}} — {{.Title}}{{end}}</title>
+  <link rel="icon" type="image/png" href="/static/icon.png">
+  <link rel="apple-touch-icon" href="/static/icon.png">
+  <link rel="stylesheet" href="/static/style.css">
+  <script nonce="{{.Nonce}}">(function(){var t=localStorage.getItem('spotaify-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);})()</script>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">spotAIfy</a>
+    <nav>
+      <div class="theme-switcher" id="theme-switcher" role="group" aria-label="Color theme">
+        <button class="theme-btn" data-t="light" aria-pressed="false">Light</button>
+        <button class="theme-btn" data-t="dark" aria-pressed="false">Dark</button>
+        <button class="theme-btn" data-t="system" aria-pressed="false">System</button>
+      </div>
+      {{if .Username}}
+      <span class="user">{{.Username}}</span>
+      {{if not .SpotifyLinked}}
+        <a href="/spotify/connect" class="btn btn-sm btn-spotify">Connect Spotify</a>
+      {{else}}
+        <span class="badge-spotify">Spotify ✓</span>
+        <a href="/" class="nav-link">Home</a>
+        <a href="/profile" class="nav-link">Profile</a>
+      {{end}}
+      <form method="POST" action="/logout" style="display:inline">
+        <button type="submit" class="btn btn-sm btn-ghost">Log out</button>
+      </form>
+      {{end}}
+    </nav>
+  </header>
+  <main>
+    {{block "content" .}}{{end}}
+  </main>
+  <script nonce="{{.Nonce}}">
+    function setTheme(t) {
+      localStorage.setItem('spotaify-theme', t);
+      if (t === 'system') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', t);
+      document.querySelectorAll('.theme-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.t === t);
+        b.setAttribute('aria-pressed', b.dataset.t === t ? 'true' : 'false');
+      });
+    }
+    (function() {
+      var saved = localStorage.getItem('spotaify-theme') || 'system';
+      document.querySelectorAll('.theme-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.t === saved);
+        b.setAttribute('aria-pressed', b.dataset.t === saved ? 'true' : 'false');
+        b.addEventListener('click', function() { setTheme(b.dataset.t); });
+      });
+    })();
+  </script>
+</body>
+</html>{{end}}

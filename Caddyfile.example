@@ -1,0 +1,14 @@
+# Option A — Manual TLS cert (e.g. exported from your router's Let's Encrypt)
+# Copy cert.pem and key.pem into ./certs/ then use this form:
+#
+# your.domain.example.com {
+#     tls /certs/cert.pem /certs/key.pem
+#     reverse_proxy web:8136
+# }
+
+# Option B — Automatic Let's Encrypt (requires ports 80 and 443 reachable from
+# the internet with no other service intercepting them)
+#
+# your.domain.example.com {
+#     reverse_proxy web:8136
+# }

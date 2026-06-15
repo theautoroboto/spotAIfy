@@ -1,0 +1,5119 @@
+{
+  "seed": "Nine Inch Nails",
+  "seed_mbid": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+  "depth": 1,
+  "nodes": {
+    "b7ffd2af-418f-4be2-bdd1-22f8b48613da": {
+      "mbid": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "name": "Nine Inch Nails",
+      "type": "Group",
+      "depth": 0
+    },
+    "f108a041-0581-4387-b741-3867c38c1e35": {
+      "mbid": "f108a041-0581-4387-b741-3867c38c1e35",
+      "name": "Nine Inch Noize",
+      "type": "Group",
+      "depth": 1
+    },
+    "0923598e-2b97-4527-b984-5feed94c168d": {
+      "mbid": "0923598e-2b97-4527-b984-5feed94c168d",
+      "name": "Chris Vrenna",
+      "type": "Person",
+      "depth": 1
+    },
+    "031e4b1f-460d-487d-ab01-9bae0992d4bc": {
+      "mbid": "031e4b1f-460d-487d-ab01-9bae0992d4bc",
+      "name": "Ron Musarra",
+      "type": "Person",
+      "depth": 1
+    },
+    "bc880664-6751-4998-984d-ebdbff15d229": {
+      "mbid": "bc880664-6751-4998-984d-ebdbff15d229",
+      "name": "Trent Reznor",
+      "type": "Person",
+      "depth": 1
+    },
+    "4d4e2261-02d2-4796-83bf-5bbadcbba629": {
+      "mbid": "4d4e2261-02d2-4796-83bf-5bbadcbba629",
+      "name": "Nick Rushe",
+      "type": "Person",
+      "depth": 1
+    },
+    "2cd8c19a-d942-456e-86de-72d581662ff9": {
+      "mbid": "2cd8c19a-d942-456e-86de-72d581662ff9",
+      "name": "Gary Talpas",
+      "type": "Person",
+      "depth": 1
+    },
+    "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79": {
+      "mbid": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "name": "Richard Patrick",
+      "type": "Person",
+      "depth": 1
+    },
+    "2014c417-f5ca-4f7e-b616-ba835608b5b6": {
+      "mbid": "2014c417-f5ca-4f7e-b616-ba835608b5b6",
+      "name": "David Haymes",
+      "type": "Person",
+      "depth": 1
+    },
+    "40adef79-bcdd-4bd3-a2ee-1e2d371cd6bc": {
+      "mbid": "40adef79-bcdd-4bd3-a2ee-1e2d371cd6bc",
+      "name": "Lee Mars",
+      "type": "Person",
+      "depth": 1
+    },
+    "90023d8a-3907-45ec-a2aa-b8da61a6d0bd": {
+      "mbid": "90023d8a-3907-45ec-a2aa-b8da61a6d0bd",
+      "name": "Jeff Ward",
+      "type": "Person",
+      "depth": 1
+    },
+    "4fdcc071-4125-433c-9b57-de2084d8d48f": {
+      "mbid": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "name": "Martin Atkins",
+      "type": "Person",
+      "depth": 1
+    },
+    "1f4ffb9e-2425-40fb-b054-68e80e2ef83d": {
+      "mbid": "1f4ffb9e-2425-40fb-b054-68e80e2ef83d",
+      "name": "James Woolley",
+      "type": "Person",
+      "depth": 1
+    },
+    "136b2664-686f-4ae4-acf9-6f34446636d4": {
+      "mbid": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "name": "Danny Lohner",
+      "type": "Person",
+      "depth": 1
+    },
+    "30343313-1e24-4758-950f-4a96309d7893": {
+      "mbid": "30343313-1e24-4758-950f-4a96309d7893",
+      "name": "Robin Finck",
+      "type": "Person",
+      "depth": 1
+    },
+    "2947dcd0-e65f-4293-af4b-3fe309e0dea0": {
+      "mbid": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "name": "Charlie Clouser",
+      "type": "Person",
+      "depth": 1
+    },
+    "28128435-f8c0-401c-a60d-ab3536cd573a": {
+      "mbid": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "name": "Kevin McMahon",
+      "type": "Person",
+      "depth": 1
+    },
+    "ddd579af-9ca1-41ff-96a4-6e55212923c0": {
+      "mbid": "ddd579af-9ca1-41ff-96a4-6e55212923c0",
+      "name": "Keith Hillebrandt",
+      "type": "Person",
+      "depth": 1
+    },
+    "9007d5ec-8abb-496d-9f49-8c89b9ba1381": {
+      "mbid": "9007d5ec-8abb-496d-9f49-8c89b9ba1381",
+      "name": "Dave Ogilvie",
+      "type": "Person",
+      "depth": 1
+    },
+    "e45b9930-0363-4a20-86f4-2ff05544d0a9": {
+      "mbid": "e45b9930-0363-4a20-86f4-2ff05544d0a9",
+      "name": "Jerome Dillon",
+      "type": "Person",
+      "depth": 1
+    },
+    "1fefa8b3-806b-4ab9-a066-66574b22aa16": {
+      "mbid": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "name": "Atticus Ross",
+      "type": "Person",
+      "depth": 1
+    },
+    "d735f972-f612-49e6-8815-f32994dad1af": {
+      "mbid": "d735f972-f612-49e6-8815-f32994dad1af",
+      "name": "Alex Carapetis",
+      "type": "Person",
+      "depth": 1
+    },
+    "2fd475b9-4a31-4b8c-8368-7b71118f2d71": {
+      "mbid": "2fd475b9-4a31-4b8c-8368-7b71118f2d71",
+      "name": "Aaron North",
+      "type": "Person",
+      "depth": 1
+    },
+    "ab4625d4-9947-481c-af95-5955b0b13023": {
+      "mbid": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "name": "Jeordie White",
+      "type": "Person",
+      "depth": 1
+    },
+    "7b88250d-891d-4186-9b16-b94c930be1b2": {
+      "mbid": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "name": "Alessandro Cortini",
+      "type": "Person",
+      "depth": 1
+    },
+    "1ba97964-8d70-4b33-a361-d1a4ed222672": {
+      "mbid": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "name": "Josh Freese",
+      "type": "Person",
+      "depth": 1
+    },
+    "673f2360-45c1-43d3-b0d2-cf6d798b2fdd": {
+      "mbid": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "name": "Justin Meldal\u2010Johnsen",
+      "type": "Person",
+      "depth": 1
+    },
+    "6b76ebd2-c44e-4059-b5ff-2854ccef92c1": {
+      "mbid": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "name": "Ilan Rubin",
+      "type": "Person",
+      "depth": 1
+    },
+    "73c3f499-60e2-44e1-81dd-7fe2191461fa": {
+      "mbid": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "name": "Adrian Belew",
+      "type": "Person",
+      "depth": 1
+    },
+    "3b5ed43f-9dfa-494b-a8f1-b152b6e75512": {
+      "mbid": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "name": "Joshua Eustis",
+      "type": "Person",
+      "depth": 1
+    },
+    "f887110a-ddd9-4a4e-b9ea-e567523ef6e2": {
+      "mbid": "f887110a-ddd9-4a4e-b9ea-e567523ef6e2",
+      "name": "Lisa Fischer",
+      "type": "Person",
+      "depth": 1
+    },
+    "844bdcef-7a35-41a2-ae27-c30ef94e7c03": {
+      "mbid": "844bdcef-7a35-41a2-ae27-c30ef94e7c03",
+      "name": "Sharlotte Gibson",
+      "type": "Person",
+      "depth": 1
+    },
+    "0dfd6aab-9056-4764-89b0-80bee7c9f998": {
+      "mbid": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "name": "Pino Palladino",
+      "type": "Person",
+      "depth": 1
+    },
+    "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e": {
+      "mbid": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "name": "Stu Brooks",
+      "type": "Person",
+      "depth": 1
+    },
+    "af4edd37-7f6a-494b-b807-f453e816ce8e": {
+      "mbid": "af4edd37-7f6a-494b-b807-f453e816ce8e",
+      "name": "Nailed",
+      "type": "Group",
+      "depth": 1
+    },
+    "949b3565-b284-4aae-9cd0-d1998ba575e6": {
+      "mbid": "949b3565-b284-4aae-9cd0-d1998ba575e6",
+      "name": "NIN UK",
+      "type": "Group",
+      "depth": 1
+    },
+    "22f535c8-f35a-4a84-875a-e7a2de6860ca": {
+      "mbid": "22f535c8-f35a-4a84-875a-e7a2de6860ca",
+      "name": "Nine Ish Nails",
+      "type": "Group",
+      "depth": 1
+    },
+    "52474f36-5caa-45a5-89a6-ca25daa81195": {
+      "mbid": "52474f36-5caa-45a5-89a6-ca25daa81195",
+      "name": "Not Nine Inch Nails",
+      "type": "Group",
+      "depth": 1
+    },
+    "1085512c-38b9-4b00-8fcc-800664039d7c": {
+      "mbid": "1085512c-38b9-4b00-8fcc-800664039d7c",
+      "name": "Now I\u2019m Nothing",
+      "type": "Group",
+      "depth": 1
+    },
+    "f2aa5019-8fd6-4617-9463-8f8f42c626f0": {
+      "mbid": "f2aa5019-8fd6-4617-9463-8f8f42c626f0",
+      "name": "Patsy Cline Inch Nails",
+      "type": "Group",
+      "depth": 1
+    }
+  },
+  "edges": [
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "f108a041-0581-4387-b741-3867c38c1e35",
+      "type": "collaboration",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "0923598e-2b97-4527-b984-5feed94c168d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "1988-10",
+      "end": "1990"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "0923598e-2b97-4527-b984-5feed94c168d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1988-10",
+      "end": "1990"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "0923598e-2b97-4527-b984-5feed94c168d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "sampler"
+      ],
+      "begin": "1988-10",
+      "end": "1990"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "0923598e-2b97-4527-b984-5feed94c168d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1988-10",
+      "end": "1990"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "031e4b1f-460d-487d-ab01-9bae0992d4bc",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1988",
+      "end": "1988"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "bc880664-6751-4998-984d-ebdbff15d229",
+      "type": "member of band",
+      "attributes": [
+        "lead vocals",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "bc880664-6751-4998-984d-ebdbff15d229",
+      "type": "member of band",
+      "attributes": [
+        "background vocals",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "bc880664-6751-4998-984d-ebdbff15d229",
+      "type": "member of band",
+      "attributes": [
+        "original",
+        "saxophone"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "bc880664-6751-4998-984d-ebdbff15d229",
+      "type": "member of band",
+      "attributes": [
+        "bass",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "bc880664-6751-4998-984d-ebdbff15d229",
+      "type": "member of band",
+      "attributes": [
+        "original",
+        "percussion"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "bc880664-6751-4998-984d-ebdbff15d229",
+      "type": "member of band",
+      "attributes": [
+        "original",
+        "synthesizer"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "bc880664-6751-4998-984d-ebdbff15d229",
+      "type": "member of band",
+      "attributes": [
+        "original",
+        "piano"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "bc880664-6751-4998-984d-ebdbff15d229",
+      "type": "member of band",
+      "attributes": [
+        "guitar",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "bc880664-6751-4998-984d-ebdbff15d229",
+      "type": "member of band",
+      "attributes": [
+        "keyboard",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "4d4e2261-02d2-4796-83bf-5bbadcbba629",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1989",
+      "end": "1989"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2cd8c19a-d942-456e-86de-72d581662ff9",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1989",
+      "end": "1989"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1989",
+      "end": "1993"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1989",
+      "end": "1993"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2014c417-f5ca-4f7e-b616-ba835608b5b6",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1990",
+      "end": "1990"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "40adef79-bcdd-4bd3-a2ee-1e2d371cd6bc",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1990",
+      "end": "1991"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "90023d8a-3907-45ec-a2aa-b8da61a6d0bd",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1990",
+      "end": "1991"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1991",
+      "end": "1991"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1f4ffb9e-2425-40fb-b054-68e80e2ef83d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1991",
+      "end": "1994"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1f4ffb9e-2425-40fb-b054-68e80e2ef83d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1991",
+      "end": "1994"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1f4ffb9e-2425-40fb-b054-68e80e2ef83d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1991",
+      "end": "1994"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "0923598e-2b97-4527-b984-5feed94c168d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "1992",
+      "end": "1997"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "0923598e-2b97-4527-b984-5feed94c168d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1992",
+      "end": "1997"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "0923598e-2b97-4527-b984-5feed94c168d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "sampler"
+      ],
+      "begin": "1992",
+      "end": "1997"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "0923598e-2b97-4527-b984-5feed94c168d",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1992",
+      "end": "1997"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "violin"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "lap steel guitar"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "theremin"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1996",
+      "end": "1996"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1996",
+      "end": "1996"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "ddd579af-9ca1-41ff-96a4-6e55212923c0",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "piano"
+      ],
+      "begin": "1997",
+      "end": "1999"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "ddd579af-9ca1-41ff-96a4-6e55212923c0",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1997",
+      "end": "1999"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "9007d5ec-8abb-496d-9f49-8c89b9ba1381",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1997",
+      "end": "1999"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "violin"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "lap steel guitar"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "e45b9930-0363-4a20-86f4-2ff05544d0a9",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1999",
+      "end": "2005-10-01"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "e45b9930-0363-4a20-86f4-2ff05544d0a9",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1999",
+      "end": "2005-10-01"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "type": "member of band",
+      "attributes": [
+        "background vocals"
+      ],
+      "begin": "2004",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "type": "member of band",
+      "attributes": [
+        "bass"
+      ],
+      "begin": "2004",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "type": "member of band",
+      "attributes": [
+        "synthesizer"
+      ],
+      "begin": "2004",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "type": "member of band",
+      "attributes": [
+        "keyboard"
+      ],
+      "begin": "2004",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "d735f972-f612-49e6-8815-f32994dad1af",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2005-10-07",
+      "end": "2005-12-01"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2fd475b9-4a31-4b8c-8368-7b71118f2d71",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2fd475b9-4a31-4b8c-8368-7b71118f2d71",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "marimba"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "violin"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "lap steel guitar"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)",
+        "keyboard",
+        "percussion"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "cello"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "marimba"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "mandolin"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "marimba"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "erhu"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "f887110a-ddd9-4a4e-b9ea-e567523ef6e2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "844bdcef-7a35-41a2-ae27-c30ef94e7c03",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "cello"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "violin"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "30343313-1e24-4758-950f-4a96309d7893",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "lap steel guitar"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2025",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2026-02",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "electric bass guitar"
+      ],
+      "begin": "2026-02",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "electric guitar"
+      ],
+      "begin": "2026-02",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2026-02",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "af4edd37-7f6a-494b-b807-f453e816ce8e",
+      "type": "named after artist",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "949b3565-b284-4aae-9cd0-d1998ba575e6",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "22f535c8-f35a-4a84-875a-e7a2de6860ca",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "52474f36-5caa-45a5-89a6-ca25daa81195",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "1085512c-38b9-4b00-8fcc-800664039d7c",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "to": "f2aa5019-8fd6-4617-9463-8f8f42c626f0",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "f108a041-0581-4387-b741-3867c38c1e35",
+      "to": "d2f4a968-1f6e-4a4a-9376-ee2b2a50c87a",
+      "type": "collaboration",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "f108a041-0581-4387-b741-3867c38c1e35",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "collaboration",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "f108a041-0581-4387-b741-3867c38c1e35",
+      "to": "b46773fe-5809-45e2-bd74-e2e3308433b0",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "45074d7c-5307-44a8-854f-ae072e1622ae",
+      "type": "instrumental supporting musician",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "1992",
+      "end": "1992"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "f82ac8f9-5390-4123-87f8-7c8fb10649b2",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1986",
+      "end": "1988"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "1988-10",
+      "end": "1990"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1988-10",
+      "end": "1990"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "sampler"
+      ],
+      "begin": "1988-10",
+      "end": "1990"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1988-10",
+      "end": "1990"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "6f29020d-49c1-4e26-869a-0603d14b7ca7",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "1992",
+      "end": "1992"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "1992",
+      "end": "1997"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1992",
+      "end": "1997"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "sampler"
+      ],
+      "begin": "1992",
+      "end": "1997"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1992",
+      "end": "1997"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "5dfdca28-9ddc-4853-933c-8bc97d87beec",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2004",
+      "end": "2005"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "5dfdca28-9ddc-4853-933c-8bc97d87beec",
+      "type": "member of band",
+      "attributes": [
+        "keyboard"
+      ],
+      "begin": "2007",
+      "end": "2011-11"
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "11137c88-a9a2-4ffa-a97d-fb058c6d6ce2",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "7e870dd5-2667-454b-9fcf-a132dd8071f1",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "45dc44ab-ebd5-48ed-9fc9-6f8de561656d",
+      "type": "member of band",
+      "attributes": [
+        "additional"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "bbcf65ec-b49a-4612-a767-c1062fba84f8",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "3a8ee67d-c722-423e-8c85-4e54dd1ad0f1",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "2e4fa00c-0377-40f1-b113-2f2a6d9d59bb",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0923598e-2b97-4527-b984-5feed94c168d",
+      "to": "2e4fa00c-0377-40f1-b113-2f2a6d9d59bb",
+      "type": "member of band",
+      "attributes": [
+        "keyboard"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "031e4b1f-460d-487d-ab01-9bae0992d4bc",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1988",
+      "end": "1988"
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b46773fe-5809-45e2-bd74-e2e3308433b0",
+      "type": "married",
+      "attributes": [],
+      "begin": "2009-10-17",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "1f7fcc16-7da1-4dd2-8193-ff93a9cfeca9",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1982",
+      "end": "1984"
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "525c98cf-ea01-422e-8276-a2b948d76770",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1985",
+      "end": "1985"
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "f82ac8f9-5390-4123-87f8-7c8fb10649b2",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1986",
+      "end": "1988"
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "447411ac-af07-423a-9be1-12ae0cafc640",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1988",
+      "end": "1988"
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "lead vocals",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "background vocals",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "original",
+        "saxophone"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "bass",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "original",
+        "percussion"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "original",
+        "synthesizer"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "original",
+        "piano"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "guitar",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "keyboard",
+        "original"
+      ],
+      "begin": "1988",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "0cb4663d-70a1-4fcd-96ff-8674cb51b7d3",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1996",
+      "end": "2004-05-08"
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "143b396d-a678-43aa-8c74-628fea8e381f",
+      "type": "member of band",
+      "attributes": [
+        "original"
+      ],
+      "begin": "2010",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "f96e9973-585e-483f-90da-aa477256a734",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "",
+      "end": "1988"
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "f96e9973-585e-483f-90da-aa477256a734",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "",
+      "end": "1988"
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "4c44479c-8fde-4754-b9e2-5129eb6fb28d",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "11137c88-a9a2-4ffa-a97d-fb058c6d6ce2",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "b9a9487b-abf6-4a95-a8fd-238cc093e99b",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "747c4064-cf47-459a-985d-3021e52dcf89",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "bc880664-6751-4998-984d-ebdbff15d229",
+      "to": "93e1cea8-0e66-4bbb-bf6a-5747796ce618",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4d4e2261-02d2-4796-83bf-5bbadcbba629",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1989",
+      "end": "1989"
+    },
+    {
+      "from": "2cd8c19a-d942-456e-86de-72d581662ff9",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1989",
+      "end": "1989"
+    },
+    {
+      "from": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1989",
+      "end": "1993"
+    },
+    {
+      "from": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1989",
+      "end": "1993"
+    },
+    {
+      "from": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "to": "6ae51665-8261-4ae5-883f-1899651ad31b",
+      "type": "member of band",
+      "attributes": [
+        "lead vocals",
+        "original"
+      ],
+      "begin": "1993",
+      "end": ""
+    },
+    {
+      "from": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "to": "0d501a8e-e923-4885-8a50-4c6cb11265d6",
+      "type": "member of band",
+      "attributes": [
+        "guitar",
+        "lead vocals",
+        "original"
+      ],
+      "begin": "2005-09-29",
+      "end": "2007"
+    },
+    {
+      "from": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "to": "8bd05603-f169-47c1-8e34-1c3f9573f822",
+      "type": "member of band",
+      "attributes": [
+        "original"
+      ],
+      "begin": "2023",
+      "end": ""
+    },
+    {
+      "from": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "to": "e565d961-c4c8-47d0-b3c1-4825952600db",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "5bcda370-1cd4-40ce-89a5-6ec6a0a7fc79",
+      "to": "2a3dc878-34f8-48a6-8591-caa8f7b1f70f",
+      "type": "member of band",
+      "attributes": [
+        "lead vocals",
+        "original"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "2014c417-f5ca-4f7e-b616-ba835608b5b6",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1990",
+      "end": "1990"
+    },
+    {
+      "from": "40adef79-bcdd-4bd3-a2ee-1e2d371cd6bc",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1990",
+      "end": "1991"
+    },
+    {
+      "from": "90023d8a-3907-45ec-a2aa-b8da61a6d0bd",
+      "to": "4430600b-0fdb-43a1-be52-c81aa7ab1682",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1988",
+      "end": "1993"
+    },
+    {
+      "from": "90023d8a-3907-45ec-a2aa-b8da61a6d0bd",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1990",
+      "end": "1991"
+    },
+    {
+      "from": "90023d8a-3907-45ec-a2aa-b8da61a6d0bd",
+      "to": "11137c88-a9a2-4ffa-a97d-fb058c6d6ce2",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "90023d8a-3907-45ec-a2aa-b8da61a6d0bd",
+      "to": "2865730a-5757-4005-875e-84d6274cb1c0",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "90023d8a-3907-45ec-a2aa-b8da61a6d0bd",
+      "to": "13df2a46-f72f-40e7-aa63-26fcf62c7048",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "90023d8a-3907-45ec-a2aa-b8da61a6d0bd",
+      "to": "ecb6b31e-b37d-4d4e-92c5-535650bfac1e",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "90023d8a-3907-45ec-a2aa-b8da61a6d0bd",
+      "to": "5ba08f3b-56c0-452a-b0eb-f7dc6e82289c",
+      "type": "sibling",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "d1fb8bbd-abe2-490b-b76e-17b840ec7db2",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "ef0b6da1-b15b-4be1-b5dc-9c70498bcaf8",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "68950696-ee9a-49b2-a8c2-d1d6c19355cc",
+      "type": "member of band",
+      "attributes": [
+        "membranophone"
+      ],
+      "begin": "1979",
+      "end": "1985"
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "f5aca88c-e3c1-4bc2-af33-68a9a9f7b56a",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1990",
+      "end": "1990"
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1991",
+      "end": "1991"
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "61b21c03-acbd-450e-a167-7850bfa42c31",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "cdf641ac-e901-4207-b412-57814298cadc",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "54fc7b6c-6cfb-4ce3-bc9b-60dfc6e90764",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "11137c88-a9a2-4ffa-a97d-fb058c6d6ce2",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "6b50ae97-4011-474d-a848-708977d3a6ce",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "0ba96c43-c23c-40c7-88e7-b1afe7956cc9",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "161fbf19-86d7-47ce-b3ee-76b4ea3724d7",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "4fdcc071-4125-433c-9b57-de2084d8d48f",
+      "to": "0f104a87-7915-4310-b117-6cac516f015e",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1f4ffb9e-2425-40fb-b054-68e80e2ef83d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1991",
+      "end": "1994"
+    },
+    {
+      "from": "1f4ffb9e-2425-40fb-b054-68e80e2ef83d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1991",
+      "end": "1994"
+    },
+    {
+      "from": "1f4ffb9e-2425-40fb-b054-68e80e2ef83d",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1991",
+      "end": "1994"
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "3e9dae29-b455-4c6b-b054-373c3fc91567",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "d41885a6-14ce-4ea4-8ce7-d0b222af897e",
+      "type": "member of band",
+      "attributes": [
+        "original"
+      ],
+      "begin": "1990",
+      "end": "1994"
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1993",
+      "end": "2003"
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "078a9376-3c04-4280-b7d7-b20e158f345d",
+      "type": "member of band",
+      "attributes": [
+        "guitar"
+      ],
+      "begin": "2003",
+      "end": "2004"
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "0cb4663d-70a1-4fcd-96ff-8674cb51b7d3",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "80a24ed2-e9fe-4230-8063-022be63341dc",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "a33ecf1b-a4ed-43e4-b6ab-26623b40cfad",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "f5aca88c-e3c1-4bc2-af33-68a9a9f7b56a",
+      "type": "member of band",
+      "attributes": [
+        "additional"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "a5f8887e-e178-4969-ba9a-18a64156c42f",
+      "type": "member of band",
+      "attributes": [
+        "additional"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "136b2664-686f-4ae4-acf9-6f34446636d4",
+      "to": "2a3dc878-34f8-48a6-8591-caa8f7b1f70f",
+      "type": "member of band",
+      "attributes": [
+        "bass guitar",
+        "original"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "violin"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "lap steel guitar"
+      ],
+      "begin": "1994",
+      "end": "1996"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "eeb1195b-f213-4ce1-b28c-8565211f8e43",
+      "type": "member of band",
+      "attributes": [
+        "electric guitar"
+      ],
+      "begin": "1997",
+      "end": "2007"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "violin"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "lap steel guitar"
+      ],
+      "begin": "1999",
+      "end": "2000"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "violin"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "lap steel guitar"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "violin"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "30343313-1e24-4758-950f-4a96309d7893",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "lap steel guitar"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "theremin"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1994",
+      "end": "2001"
+    },
+    {
+      "from": "2947dcd0-e65f-4293-af4b-3fe309e0dea0",
+      "to": "0cb4663d-70a1-4fcd-96ff-8674cb51b7d3",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": "2002"
+    },
+    {
+      "from": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1996",
+      "end": "1996"
+    },
+    {
+      "from": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "1996",
+      "end": "1996"
+    },
+    {
+      "from": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "to": "1268cf43-fa5d-48fd-a0b7-2fb5bcb8ee72",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "to": "447411ac-af07-423a-9be1-12ae0cafc640",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "to": "f35abb3a-6eb9-46d7-aaa9-d06b321f64dd",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "to": "372e3c3c-d514-4d95-a310-96f30992e86b",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "28128435-f8c0-401c-a60d-ab3536cd573a",
+      "to": "092400a0-da79-447c-a25c-806e21c1cd41",
+      "type": "sibling",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "ddd579af-9ca1-41ff-96a4-6e55212923c0",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "piano"
+      ],
+      "begin": "1997",
+      "end": "1999"
+    },
+    {
+      "from": "ddd579af-9ca1-41ff-96a4-6e55212923c0",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1997",
+      "end": "1999"
+    },
+    {
+      "from": "ddd579af-9ca1-41ff-96a4-6e55212923c0",
+      "to": "ef6acfcb-2c12-419d-bfcf-4ffaac9f3e8d",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "ddd579af-9ca1-41ff-96a4-6e55212923c0",
+      "to": "b34ca318-069e-4d0d-b939-a53e6052af2c",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "9007d5ec-8abb-496d-9f49-8c89b9ba1381",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "1997",
+      "end": "1999"
+    },
+    {
+      "from": "9007d5ec-8abb-496d-9f49-8c89b9ba1381",
+      "to": "117a8255-3b06-4339-b5ba-038d0fdb6a85",
+      "type": "member of band",
+      "attributes": [
+        "original"
+      ],
+      "begin": "2003",
+      "end": ""
+    },
+    {
+      "from": "9007d5ec-8abb-496d-9f49-8c89b9ba1381",
+      "to": "d4bca920-3e2a-4990-9953-5032a1be78c0",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "9007d5ec-8abb-496d-9f49-8c89b9ba1381",
+      "to": "57928ae9-5742-408f-b953-9e1c8110b405",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "9007d5ec-8abb-496d-9f49-8c89b9ba1381",
+      "to": "42509bd3-6fa1-459a-8e40-127a3ef8663b",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "9007d5ec-8abb-496d-9f49-8c89b9ba1381",
+      "to": "87b35fa8-a602-4a8c-abc1-5a46fb85d8f8",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "9007d5ec-8abb-496d-9f49-8c89b9ba1381",
+      "to": "5a24bc1a-c093-4a82-84ed-8d7f2da0570d",
+      "type": "supporting musician",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "e45b9930-0363-4a20-86f4-2ff05544d0a9",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1999",
+      "end": "2005-10-01"
+    },
+    {
+      "from": "e45b9930-0363-4a20-86f4-2ff05544d0a9",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "1999",
+      "end": "2005-10-01"
+    },
+    {
+      "from": "e45b9930-0363-4a20-86f4-2ff05544d0a9",
+      "to": "ef6acfcb-2c12-419d-bfcf-4ffaac9f3e8d",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "e45b9930-0363-4a20-86f4-2ff05544d0a9",
+      "to": "85c98899-dd47-435d-9977-8ff45910f111",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "6f9fb456-043c-47fe-9cdf-31701f4243ff",
+      "type": "married",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "bdd9619a-f369-4401-a181-7b50cf8f407f",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "2003",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "background vocals"
+      ],
+      "begin": "2004",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "bass"
+      ],
+      "begin": "2004",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "synthesizer"
+      ],
+      "begin": "2004",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "keyboard"
+      ],
+      "begin": "2004",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "143b396d-a678-43aa-8c74-628fea8e381f",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "2010",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "0cb4663d-70a1-4fcd-96ff-8674cb51b7d3",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "e3bcef9d-c2cd-44cb-a4ef-6c58914b886d",
+      "type": "member of band",
+      "attributes": [
+        "bass",
+        "keyboard",
+        "original"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "747c4064-cf47-459a-985d-3021e52dcf89",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "dc1690ea-8547-408c-8fa3-9fafdf5ccfee",
+      "type": "sibling",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "842ed7a0-46d1-450d-8f7a-ee5876ba3c3d",
+      "type": "sibling",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "c57d1db1-d633-4a82-aa4a-2e231833dcf5",
+      "type": "sibling",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1fefa8b3-806b-4ab9-a066-66574b22aa16",
+      "to": "93e1cea8-0e66-4bbb-bf6a-5747796ce618",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "d735f972-f612-49e6-8815-f32994dad1af",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2005-10-07",
+      "end": "2005-12-01"
+    },
+    {
+      "from": "d735f972-f612-49e6-8815-f32994dad1af",
+      "to": "e935d070-004d-405a-8b9d-1d9e51590b55",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "d735f972-f612-49e6-8815-f32994dad1af",
+      "to": "6a93cb2b-d33a-42fc-a41a-542e3a887ba6",
+      "type": "member of band",
+      "attributes": [
+        "bass",
+        "drums (drum set)",
+        "original",
+        "percussion"
+      ],
+      "begin": "2013",
+      "end": ""
+    },
+    {
+      "from": "2fd475b9-4a31-4b8c-8368-7b71118f2d71",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "2fd475b9-4a31-4b8c-8368-7b71118f2d71",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "f2b32ea0-8983-4b30-b706-5840ad083350",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1989",
+      "end": "1993"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "5dfdca28-9ddc-4853-933c-8bc97d87beec",
+      "type": "member of band",
+      "attributes": [
+        "bass guitar",
+        "electric guitar"
+      ],
+      "begin": "1994",
+      "end": "2002"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "078a9376-3c04-4280-b7d7-b20e158f345d",
+      "type": "member of band",
+      "attributes": [
+        "bass guitar"
+      ],
+      "begin": "2003",
+      "end": "2004"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "5dfdca28-9ddc-4853-933c-8bc97d87beec",
+      "type": "member of band",
+      "attributes": [
+        "bass guitar",
+        "electric guitar"
+      ],
+      "begin": "2008-01",
+      "end": "2017-10-24"
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "29e7a565-5ae6-4bed-9fa5-7f9a74d5f2e3",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "7a2e6b55-f149-4e74-be6a-30a1b1a387bb",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "af7ee72a-e8ed-4b93-b4aa-9ce9b4ca8c1c",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "ab4625d4-9947-481c-af95-5955b0b13023",
+      "to": "a3e3ba4c-07ae-42c9-ab4b-3573a2c4fa9f",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "a6c4ccb7-9b34-4115-91e8-2c838ff0f794",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "eedb5afd-1a6b-4d7b-a5ce-3cfb7a506a37",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "19bb9047-161d-4a33-9266-9325b386e316",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "dd3ee893-0371-4dbf-a632-80174c402c31",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2013",
+      "end": "2026-01"
+    },
+    {
+      "from": "7b88250d-891d-4186-9b16-b94c930be1b2",
+      "to": "5dd561f7-7264-42cb-a3b2-bddeb750eb39",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "23a03e33-a603-404e-bcbf-2c00159d7067",
+      "type": "instrumental supporting musician",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "2003",
+      "end": "2012"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "26f07661-e115-471d-a930-206f5c89d17c",
+      "type": "instrumental supporting musician",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "2005",
+      "end": "2005"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "44cf61b8-5197-448a-b82b-cef6ee89fac5",
+      "type": "instrumental supporting musician",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "2010",
+      "end": "2011"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "92c2aeab-7b48-4658-864a-ea28a140bee0",
+      "type": "instrumental supporting musician",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "2015",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "f54fc7c3-3a40-4f26-83cf-328d9b097e93",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "1989",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "e9e2a634-984f-4c10-bf7b-7970179e1ef1",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "1991",
+      "end": "1992"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "7ba311d4-c068-4b85-a64f-c7d4f1adb868",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "1995",
+      "end": "1995"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "64b20ec0-db9e-4a06-924e-1f5d87e26669",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "1996",
+      "end": "1996"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "d2db1078-c170-4e22-b261-14f3ad60a690",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "1996",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "eeb1195b-f213-4ce1-b28c-8565211f8e43",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "1997",
+      "end": "2000-03"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "078a9376-3c04-4280-b7d7-b20e158f345d",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)",
+        "percussion"
+      ],
+      "begin": "1999",
+      "end": "2011"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "c0eee88b-47f2-4cd2-ac48-a045e902a432",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2002",
+      "end": "2002"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "0cdf71c3-1265-4e48-b211-61800be4d5ab",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)",
+        "original"
+      ],
+      "begin": "2002",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "7a2e6b55-f149-4e74-be6a-30a1b1a387bb",
+      "type": "member of band",
+      "attributes": [
+        "bass guitar",
+        "drums (drum set)",
+        "keyboard"
+      ],
+      "begin": "2003",
+      "end": "2003"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "2a3dc878-34f8-48a6-8591-caa8f7b1f70f",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)",
+        "original"
+      ],
+      "begin": "2003",
+      "end": "2003"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "a33ecf1b-a4ed-43e4-b6ab-26623b40cfad",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)",
+        "percussion"
+      ],
+      "begin": "2005",
+      "end": "2007"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "marimba"
+      ],
+      "begin": "2005",
+      "end": "2008-12"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "7acc6c97-2654-4ffa-945f-daeabaa8e5ae",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "2005",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "dc0d05ce-2f47-4962-b4fa-8631a0a51987",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2006",
+      "end": "2006"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "6ae51665-8261-4ae5-883f-1899651ad31b",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2007",
+      "end": "2008"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "6fe07aa5-fec0-4eca-a456-f29bff451b04",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "2009",
+      "end": "2012"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "6fe07aa5-fec0-4eca-a456-f29bff451b04",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2009",
+      "end": "2012"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "079f2e2b-b3f9-4574-ac5c-add977b40762",
+      "type": "member of band",
+      "attributes": [
+        "percussion"
+      ],
+      "begin": "2011",
+      "end": "2017"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "079f2e2b-b3f9-4574-ac5c-add977b40762",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "2011",
+      "end": "2017"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "dc0d05ce-2f47-4962-b4fa-8631a0a51987",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2012",
+      "end": "2015"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "67f66c07-6e61-4026-ade5-7e782fad3a5d",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)"
+      ],
+      "begin": "2023",
+      "end": "2025-05-12"
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "6fe07aa5-fec0-4eca-a456-f29bff451b04",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "2025",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "6fe07aa5-fec0-4eca-a456-f29bff451b04",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2025",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2025",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "0cb4663d-70a1-4fcd-96ff-8674cb51b7d3",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "73333565-3dff-48da-9c60-f2bf100e25e9",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "faa80f3b-a095-48ba-8164-2de70a71bde2",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "cc1e1fbe-4a41-4fa5-b4fb-80b6e57857dd",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "0f617fd0-e840-439f-a1b6-5857d9c0805a",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "0612a024-6265-4179-a1a6-12d4141aeccc",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "471dad71-8cae-4c0c-9a99-7c84afd8aac0",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "03214f15-3323-4964-8b9e-1d71496fa524",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "d48a1b03-50b1-4be6-be27-92530600e917",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "0efa265c-e11a-4a37-a0de-5b40417587de",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "acfdc017-9351-4853-b95a-fa59ba2d7b2d",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "8ebcdee1-67ed-432d-948b-0f428c6e6f35",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "66cf5ff0-f1d2-498c-a050-9150b66c34c8",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "0329701a-ecb1-40e8-a382-2a9418c078a7",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "6fdccc63-06c3-411e-aaed-a676eb5dbbd0",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "eb66ae37-891a-4fdd-990c-2157b28190a1",
+      "type": "parent",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1ba97964-8d70-4b33-a361-d1a4ed222672",
+      "to": "33864d96-253a-458f-a293-8cc3bf935586",
+      "type": "sibling",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "309c62ba-7a22-4277-9f67-4a162526d18a",
+      "type": "instrumental supporting musician",
+      "attributes": [
+        "bass guitar"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "2f156b02-bd2f-49ab-9dde-66269ccdff75",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "synthesizer"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "aff5ddd6-f315-4187-8522-25bf11a0f91e",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "577758f9-73db-44cb-9cb6-8508a842db77",
+      "type": "member of band",
+      "attributes": [
+        "bass"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "6ad5da01-2ba5-46e7-ba8b-5cdd267c5e4b",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "664e77fd-d050-4671-86cd-89081098c2ea",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "673f2360-45c1-43d3-b0d2-cf6d798b2fdd",
+      "to": "bd07e833-c428-401a-848e-9bea782fe758",
+      "type": "parent",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "6aed5498-c7c4-4b23-8091-949b41d737fd",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "ef6e2e49-aa93-41bd-89b0-8c7d2f260a83",
+      "type": "member of band",
+      "attributes": [
+        "drums (drum set)",
+        "percussion"
+      ],
+      "begin": "2006",
+      "end": "2008"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "cec8cd6a-e3e6-464d-a3e1-ed4ab9953c9a",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "2006",
+      "end": "2008"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)",
+        "keyboard",
+        "percussion"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "cello"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2008",
+      "end": "2009"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "05071a7e-e71c-4306-a509-591cd3686893",
+      "type": "member of band",
+      "attributes": [
+        "background vocals",
+        "drums (drum set)",
+        "percussion"
+      ],
+      "begin": "2011",
+      "end": ""
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "cello"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "drums (drum set)"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2013",
+      "end": "2025"
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "05071a7e-e71c-4306-a509-591cd3686893",
+      "type": "member of band",
+      "attributes": [
+        "guitar"
+      ],
+      "begin": "2014",
+      "end": ""
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "05071a7e-e71c-4306-a509-591cd3686893",
+      "type": "member of band",
+      "attributes": [
+        "keyboard"
+      ],
+      "begin": "2014",
+      "end": ""
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "05071a7e-e71c-4306-a509-591cd3686893",
+      "type": "member of band",
+      "attributes": [
+        "bass guitar"
+      ],
+      "begin": "2014",
+      "end": ""
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "9e47e029-e63d-48d8-a8b8-fd46cc9db1ce",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "6b76ebd2-c44e-4059-b5ff-2854ccef92c1",
+      "to": "16e4f976-dda8-4468-bbbe-a3a52d779cb5",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "c1fb4936-e47a-4a52-b1eb-f3f1606a1d4b",
+      "type": "collaboration",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "c49f28d7-7269-4863-adcb-89f2fe2e5485",
+      "type": "married",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "b38225b8-8e5f-42aa-bcdc-7bae5b5bdab3",
+      "type": "member of band",
+      "attributes": [
+        "electric guitar",
+        "lead vocals"
+      ],
+      "begin": "1981",
+      "end": "2013"
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "b5ebf9fb-43f5-407f-a49b-8355e5c5667b",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "1985",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "30fda151-9520-44b5-82ba-a9ed7bce85c4",
+      "type": "member of band",
+      "attributes": [
+        "original"
+      ],
+      "begin": "2006-05",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "marimba"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "74a2ff82-992b-4696-b603-c6f747bec2b7",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "3dc66525-d359-406d-9cdf-cdd3a7de289c",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "7e2466e5-b279-452d-ad01-b5875361d4dd",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "2ab80f85-4b7f-4be8-a74f-a954c8f53cbb",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "ef767a5a-cbb1-420f-822c-4a3308e730ac",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "3732fb22-a2f4-4087-9be1-4504dc26e83b",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "c3c5f47b-0117-4bfa-ad28-ff7c8093faa2",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "37abc279-f281-4543-8e98-8fd0510b65b4",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "aff74a2c-de0c-487d-b7fd-24caea74047d",
+      "type": "member of band",
+      "attributes": [
+        "lead vocals"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "aff74a2c-de0c-487d-b7fd-24caea74047d",
+      "type": "member of band",
+      "attributes": [
+        "percussion"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "aff74a2c-de0c-487d-b7fd-24caea74047d",
+      "type": "member of band",
+      "attributes": [
+        "guitar"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "84b8abf0-7f36-45f1-8a97-3d11aff2ae03",
+      "type": "parent",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "5441c29d-3602-4898-b1a1-b77fa23b8e50",
+      "type": "supporting musician",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "e20747e7-55a4-452e-8766-7b985585082d",
+      "type": "supporting musician",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "73c3f499-60e2-44e1-81dd-7fe2191461fa",
+      "to": "a94a7155-c79d-4409-9fcf-220cb0e4dc3a",
+      "type": "supporting musician",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "c4d333e4-1036-43b5-99af-a9ef6a65ac40",
+      "type": "collaboration",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "63bb8a28-a343-4eff-a2af-33e0d2e0fa3b",
+      "type": "collaboration",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "6c3ed431-e46e-4639-b64d-b200ef18285e",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "guitar"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "mandolin"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "percussion"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "marimba"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "erhu"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "e89e325e-ae11-4c2a-86a8-3e9a967ffda3",
+      "type": "member of band",
+      "attributes": [
+        "original"
+      ],
+      "begin": "2015",
+      "end": ""
+    },
+    {
+      "from": "3b5ed43f-9dfa-494b-a8f1-b152b6e75512",
+      "to": "453f1594-112e-4d3c-921a-8d14e9c97b2e",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "f887110a-ddd9-4a4e-b9ea-e567523ef6e2",
+      "to": "f1db3d2c-0585-40df-a451-5784aba72666",
+      "type": "is person",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "f887110a-ddd9-4a4e-b9ea-e567523ef6e2",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "f887110a-ddd9-4a4e-b9ea-e567523ef6e2",
+      "to": "9974d324-3d58-4f93-812b-41eb3ca75eed",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "f887110a-ddd9-4a4e-b9ea-e567523ef6e2",
+      "to": "2a4929b0-3056-48ed-90f7-a0b58ab42329",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "f887110a-ddd9-4a4e-b9ea-e567523ef6e2",
+      "to": "319500d8-9807-49a6-9b97-8f4db9dbfb80",
+      "type": "member of band",
+      "attributes": [
+        "background vocals"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "f887110a-ddd9-4a4e-b9ea-e567523ef6e2",
+      "to": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+      "type": "vocal supporting musician",
+      "attributes": [
+        "background vocals"
+      ],
+      "begin": "1989",
+      "end": "1990"
+    },
+    {
+      "from": "f887110a-ddd9-4a4e-b9ea-e567523ef6e2",
+      "to": "b071f9fa-14b0-4217-8e97-eb41da73f598",
+      "type": "vocal supporting musician",
+      "attributes": [
+        "background vocals"
+      ],
+      "begin": "1993",
+      "end": ""
+    },
+    {
+      "from": "844bdcef-7a35-41a2-ae27-c30ef94e7c03",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "a41f7a9b-e0f6-47d1-b238-91b18686e56e",
+      "type": "married",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "9fdaa16b-a6c4-4831-b87c-bc9ca8ce7eaa",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass guitar"
+      ],
+      "begin": "2002",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "64ecce47-720d-4caa-a59d-350380c3ced1",
+      "type": "member of band",
+      "attributes": [
+        "background vocals",
+        "original"
+      ],
+      "begin": "2005",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "64ecce47-720d-4caa-a59d-350380c3ced1",
+      "type": "member of band",
+      "attributes": [
+        "electric bass guitar",
+        "original"
+      ],
+      "begin": "2005",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "d708a7b6-0658-43de-993e-092077955680",
+      "type": "member of band",
+      "attributes": [
+        "bass"
+      ],
+      "begin": "2010",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "bass"
+      ],
+      "begin": "2013",
+      "end": "2013"
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "27decac7-06de-4a04-ab45-d214dfae5d19",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "83462985-b204-4bf5-91ee-a8278b8d35fc",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "06c744b8-328d-46a3-96ea-7b98055c702f",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "6f8212b8-153d-4c20-8394-c2c0d9a8966b",
+      "type": "member of band",
+      "attributes": [
+        "bass"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "564ce54b-bed1-4e75-aa2b-803934b43c85",
+      "type": "member of band",
+      "attributes": [
+        "bass"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "95500c2d-930e-49ba-be89-3b3d875c1450",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "82d6c629-d9cf-46c7-aa1e-a511eb344ab1",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "87e23315-d32b-4bfd-9116-afe8beafe6de",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "9031031f-54e9-489c-a738-0e296f05104e",
+      "type": "parent",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "f34566ed-92c6-4db2-8a30-21ff2533acaf",
+      "type": "parent",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "0dfd6aab-9056-4764-89b0-80bee7c9f998",
+      "to": "bb7ece1c-2db3-460a-b8db-463117bad52e",
+      "type": "parent",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "to": "8e68819d-71be-4e7d-b41d-f1df81b01d3f",
+      "type": "instrumental supporting musician",
+      "attributes": [
+        "bass"
+      ],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "to": "df7de72b-8603-41fd-8bb1-e0e97d995121",
+      "type": "married",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "background vocals"
+      ],
+      "begin": "2026-02",
+      "end": ""
+    },
+    {
+      "from": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "electric bass guitar"
+      ],
+      "begin": "2026-02",
+      "end": ""
+    },
+    {
+      "from": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "electric guitar"
+      ],
+      "begin": "2026-02",
+      "end": ""
+    },
+    {
+      "from": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "member of band",
+      "attributes": [
+        "additional",
+        "keyboard"
+      ],
+      "begin": "2026-02",
+      "end": ""
+    },
+    {
+      "from": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "to": "abe8e2a6-17f3-420b-8e62-805cf8dd74fd",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "2d8e6fbf-d30d-47e2-89f9-76eba6b1860e",
+      "to": "4caec583-cdcb-437c-af84-8797b11b6807",
+      "type": "member of band",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "af4edd37-7f6a-494b-b807-f453e816ce8e",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "named after artist",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "949b3565-b284-4aae-9cd0-d1998ba575e6",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "22f535c8-f35a-4a84-875a-e7a2de6860ca",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "52474f36-5caa-45a5-89a6-ca25daa81195",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "1085512c-38b9-4b00-8fcc-800664039d7c",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    },
+    {
+      "from": "f2aa5019-8fd6-4617-9463-8f8f42c626f0",
+      "to": "b7ffd2af-418f-4be2-bdd1-22f8b48613da",
+      "type": "tribute",
+      "attributes": [],
+      "begin": "",
+      "end": ""
+    }
+  ]
+}

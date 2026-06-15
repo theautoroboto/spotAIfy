@@ -1,0 +1,780 @@
+{{template "base" .}}
+
+{{define "content"}}
+{{$h := .History}}
+{{$sp := .Spotify}}
+{{$af := .Audio}}
+{{$p := .Persona}}
+{{$recs := .Recommendations}}
+
+<!-- ── Hero banner — AI generated image ── -->
+<div class="aura-wrap">
+  <img id="aura-bg" class="aura-bg-img" src="/profile/bg?t={{.BGTimestamp}}" alt="" aria-hidden="true">
+</div>
+
+<!-- ── Profile identity — avatar overlaps banner bottom edge ── -->
+<div class="profile-identity">
+  <!-- AI persona-mood avatar; falls back to the Spotify photo, then the placeholder -->
+  <img class="profile-avatar" id="persona-avatar" src="/profile/avatar?t={{.AvatarTimestamp}}" alt="" width="88" height="88"
+       {{if and $sp $sp.User.ImageURL}}data-fallback="{{$sp.User.ImageURL}}"{{end}}>
+  <div class="profile-avatar-placeholder" id="avatar-placeholder" style="display:none">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    </svg>
+  </div>
+  <div class="profile-hero-info">
+    <h1 class="profile-name">
+      {{if and $sp $sp.User.DisplayName}}{{$sp.User.DisplayName}}{{else}}{{.Username}}{{end}}
+    </h1>
+    <div class="profile-meta">
+      {{if and $sp $sp.User.Followers}}<span>{{$sp.User.Followers}} followers</span>{{end}}
+      {{if and $sp $sp.User.SpotifyURL}}
+        <a href="{{$sp.User.SpotifyURL}}" target="_blank" rel="noopener" class="playlist-link">Open in Spotify</a>
+      {{end}}
+      {{if and $sp $sp.MissingScopes}}
+        <a href="/spotify/connect" class="btn btn-sm btn-spotify" style="margin-left:0.5rem">Reconnect for full stats</a>
+      {{end}}
+    </div>
+  </div>
+</div>
+
+{{if $af}}
+<!-- ── Vibe strip ── -->
+<div class="vibe-strip">
+  <div class="vibe-badge">
+    <span class="vibe-emoji" aria-hidden="true">{{$af.VibeEmoji}}</span>
+    <div class="vibe-text">
+      <div class="vibe-label">{{$af.VibeLabel}}</div>
+      <div class="vibe-desc">{{$af.VibeDesc}}</div>
+    </div>
+  </div>
+  <div class="vibe-tempo">
+    <span class="vibe-tempo-val">{{printf "%.0f" $af.Tempo}}</span>
+    <span class="vibe-tempo-unit">avg BPM</span>
+  </div>
+</div>
+{{end}}
+
+<!-- ── Psychological Persona ── -->
+{{if $p}}
+<details class="persona-card" open>
+  <summary class="persona-summary">
+    <div class="persona-header">
+      <div class="persona-archetype">{{$p.Archetype}}</div>
+      {{if $p.Traits}}
+      <div class="persona-traits">
+        {{range $i, $t := $p.Traits}}
+        <span class="persona-trait ptrait-{{add $i 1}}">{{$t}}</span>
+        {{end}}
+      </div>
+      {{end}}
+    </div>
+  </summary>
+  {{if $p.Headline}}
+  <div class="persona-headline">{{$p.Headline}}</div>
+  {{end}}
+  {{if $p.Narrative}}
+  <div class="persona-narrative">
+    {{range paragraphs $p.Narrative}}
+    <p class="persona-para">{{.}}</p>
+    {{end}}
+  </div>
+  {{end}}
+</details>
+{{end}}
+
+<!-- ── All-time stat pills ── -->
+{{if $h.TotalMsPlayed}}
+<div class="stat-row">
+  <div class="stat-pill">
+    <div class="stat-pill-value">{{printf "%.0f" $h.TotalHours}}</div>
+    <div class="stat-pill-label">hours listened</div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-value">{{$h.UniqueTrackCount}}</div>
+    <div class="stat-pill-label">unique tracks</div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-value">{{$h.UniqueArtistCount}}</div>
+    <div class="stat-pill-label">unique artists</div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-value">{{$h.SkipPct}}%</div>
+    <div class="stat-pill-label">skip rate</div>
+  </div>
+  {{if not $h.EarliestPlay.IsZero}}
+  <div class="stat-pill stat-pill-accent">
+    <div class="stat-pill-value">{{$h.EarliestPlay.Year}}</div>
+    <div class="stat-pill-label">listening since</div>
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+<!-- ── Unlock full stats card (no export yet) ── -->
+{{if eq $h.TotalMsPlayed 0}}
+<div class="unlock-card">
+  <div class="unlock-title">Unlock your full listening history</div>
+  <div class="unlock-desc">Your profile is showing live Spotify data only. To unlock years of listening stats, all-time top tracks and artists, yearly trends, and your musical persona, request your Extended Streaming History export from Spotify.</div>
+  <div class="unlock-steps">
+    <div class="unlock-step">
+      <div class="unlock-step-num">1</div>
+      <div>Open Spotify → <strong>Settings → Security and privacy → Account privacy</strong> and scroll to <strong>Download your data</strong></div>
+    </div>
+    <div class="unlock-step">
+      <div class="unlock-step-num">2</div>
+      <div>Choose <strong>Extended streaming history</strong> (not just "Account data") and submit the request</div>
+    </div>
+    <div class="unlock-step">
+      <div class="unlock-step-num">3</div>
+      <div>Wait for Spotify's email — delivery typically takes a few days up to 30 days</div>
+    </div>
+    <div class="unlock-step">
+      <div class="unlock-step-num">4</div>
+      <div>Copy all <strong>Streaming_History_Audio_*.json</strong> files from the zip into your history folder and reload this page</div>
+    </div>
+  </div>
+  <div class="unlock-note">data/history/{{.Username}}/Streaming_History_Audio_*.json</div>
+</div>
+
+{{if and $sp $sp.Recent}}
+<details class="profile-section" open>
+  <summary class="section-title">Recently Played</summary>
+  <div class="track-list">
+    {{range $sp.Recent}}
+    <a class="track-row" href="{{.SpotifyURL}}" target="_blank" rel="noopener">
+      {{if .ImageURL}}
+      <img class="track-img" src="{{.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+      {{else}}
+      <div class="track-img track-img-placeholder">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="track-info">
+        <div class="track-title">{{.Title}}</div>
+        <div class="track-artist">{{.Artist}}</div>
+      </div>
+      <div class="track-stats">
+        <div class="track-stat-primary track-time" data-ts="{{.PlayedAt.Unix}}"></div>
+      </div>
+    </a>
+    {{end}}
+  </div>
+</details>
+{{end}}
+{{end}}
+
+<!-- ── Sound DNA ── -->
+{{if $af}}
+<details class="profile-section" open>
+  <summary class="section-title">Sound DNA <span class="section-sub">from {{$af.TrackCount}} tracks</span></summary>
+  <div class="dna-layout">
+
+    <!-- Radar chart -->
+    <div class="radar-wrap">
+      <canvas id="radar-chart" width="220" height="220"
+        data-hue="{{$af.PrimaryHue}}"
+        data-sat="{{$af.Saturation}}"
+        data-dance="{{printf "%.3f" $af.Danceability}}"
+        data-energy="{{printf "%.3f" $af.Energy}}"
+        data-valence="{{printf "%.3f" $af.Valence}}"
+        data-acoustic="{{printf "%.3f" $af.Acousticness}}"
+        data-instrumental="{{printf "%.3f" $af.Instrumentalness}}"
+        data-liveness="{{printf "%.3f" $af.Liveness}}"
+      ></canvas>
+    </div>
+
+    <!-- Attribute bars -->
+    <div class="attr-list">
+      <div class="attr-row">
+        <span class="attr-name">Energy</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-energy" style="width:{{pct $af.Energy}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Energy}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Danceability</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-dance" style="width:{{pct $af.Danceability}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Danceability}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Positivity</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-valence" style="width:{{pct $af.Valence}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Valence}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Acousticness</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-acoustic" style="width:{{pct $af.Acousticness}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Acousticness}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Instrumental</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-instrumental" style="width:{{pct $af.Instrumentalness}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Instrumentalness}}%</span>
+      </div>
+      <div class="attr-row">
+        <span class="attr-name">Liveness</span>
+        <div class="attr-bar-wrap">
+          <div class="attr-bar attr-bar-live" style="width:{{pct $af.Liveness}}%"></div>
+        </div>
+        <span class="attr-pct">{{pct $af.Liveness}}%</span>
+      </div>
+    </div>
+
+  </div>
+</details>
+{{end}}
+
+<!-- ── Year-by-year timeline ── -->
+{{if $h.YearlyTrend}}
+<details class="profile-section" open>
+  <summary class="section-title">Year by Year <span class="section-sub">listening history</span></summary>
+  <div class="year-timeline">
+    {{range $h.YearlyTrend}}
+    <div class="year-card">
+      <div class="year-header">
+        <span class="year-number">{{.Year}}</span>
+        <div class="year-bar-wrap">
+          <div class="year-bar-fill" style="width:{{.BarPct}}%"></div>
+        </div>
+        <span class="year-hours">{{printf "%.0f" .HoursPlayed}}h</span>
+        <span class="year-plays">{{.PlayCount}} plays</span>
+      </div>
+      {{if or .TopArtists .TopTracks}}
+      <div class="year-details">
+        {{if .TopArtists}}
+        <div class="year-row">
+          <span class="year-row-label">Artists</span>
+          <div class="year-tags">
+            {{range $i, $a := .TopArtists}}
+            <span class="ytag ytag-{{add $i 1}}" title="{{printf "%.0f" $a.HoursPlayed}}h · {{$a.PlayCount}} plays">{{$a.Name}}</span>
+            {{end}}
+          </div>
+        </div>
+        {{end}}
+        {{if .TopTracks}}
+        <div class="year-row">
+          <span class="year-row-label">Tracks</span>
+          <div class="year-tags">
+            {{range $i, $t := .TopTracks}}
+            <span class="ytag ytag-t{{add $i 1}}" title="{{$t.ArtistName}} · {{$t.PlayCount}} plays">{{$t.TrackName}}</span>
+            {{end}}
+          </div>
+        </div>
+        {{end}}
+      </div>
+      {{end}}
+    </div>
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Hall of Fame ── -->
+{{if or $h.TopArtists $h.TopTracks}}
+<div class="hof-grid">
+
+  {{if $h.TopArtists}}
+  <details class="profile-section" open>
+    <summary class="section-title">Top Artists <span class="section-sub">all time</span></summary>
+    <div class="hof-list">
+      {{range $i, $a := $h.TopArtists}}
+      {{if lt $i 5}}
+      <a class="hof-row{{if $a.SpotifyURL}}{{else}} hof-row-nolink{{end}}"
+         {{if $a.SpotifyURL}}href="{{$a.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+        <span class="hof-rank hof-rank-{{add $i 1}}">{{add $i 1}}</span>
+        {{if $a.ImageURL}}
+        <img class="hof-img" src="{{$a.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+        {{else}}
+        <div class="hof-img hof-img-placeholder">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        {{end}}
+        <div class="hof-info">
+          <div class="hof-name">{{$a.ArtistName}}</div>
+          <div class="hof-sub">{{printf "%.1f" $a.HoursPlayed}}h · {{$a.PlayCount}} plays</div>
+        </div>
+        {{if $a.Genres}}<span class="hof-genre">{{index $a.Genres 0}}</span>{{end}}
+      </a>
+      {{end}}
+      {{end}}
+    </div>
+  </details>
+  {{end}}
+
+  {{if $h.TopTracks}}
+  <details class="profile-section" open>
+    <summary class="section-title">Top Tracks <span class="section-sub">all time</span></summary>
+    <div class="hof-list">
+      {{range $i, $t := $h.TopTracks}}
+      {{if lt $i 5}}
+      <a class="hof-row{{if $t.SpotifyURL}}{{else}} hof-row-nolink{{end}}"
+         {{if $t.SpotifyURL}}href="{{$t.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+        <span class="hof-rank hof-rank-{{add $i 1}}">{{add $i 1}}</span>
+        {{if $t.ImageURL}}
+        <img class="hof-img" src="{{$t.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+        {{else}}
+        <div class="hof-img hof-img-placeholder">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+        </div>
+        {{end}}
+        <div class="hof-info">
+          <div class="hof-name">{{$t.TrackName}}</div>
+          <div class="hof-sub">{{$t.ArtistName}} · {{printf "%.1f" $t.HoursPlayed}}h</div>
+        </div>
+        <span class="hof-pct">{{pct $t.CompletionRate}}%</span>
+      </a>
+      {{end}}
+      {{end}}
+    </div>
+  </details>
+  {{end}}
+
+</div>
+{{end}}
+
+<!-- ── Full top artists grid ── -->
+{{if $h.TopArtists}}
+<details class="profile-section" open>
+  <summary class="section-title">All Artists <span class="section-sub">by listening time</span></summary>
+  <div class="top-grid">
+    {{range $i, $a := $h.TopArtists}}
+    {{if lt $i 10}}
+    <a class="top-card{{if $a.SpotifyURL}}{{else}} top-card-nolink{{end}}"
+       {{if $a.SpotifyURL}}href="{{$a.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+      <div class="top-card-rank">{{add $i 1}}</div>
+      {{if $a.ImageURL}}
+      <img class="top-card-img" src="{{$a.ImageURL}}" alt="" width="56" height="56" loading="lazy">
+      {{else}}
+      <div class="top-card-img top-card-img-placeholder">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="top-card-info">
+        <div class="top-card-name">{{$a.ArtistName}}</div>
+        <div class="top-card-sub">{{printf "%.1f" $a.HoursPlayed}}h · {{$a.PlayCount}} plays</div>
+        {{if $a.Genres}}<div class="top-card-genre">{{index $a.Genres 0}}</div>{{end}}
+      </div>
+    </a>
+    {{end}}
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Full top tracks list ── -->
+{{if $h.TopTracks}}
+<details class="profile-section" open>
+  <summary class="section-title">All Tracks <span class="section-sub">by listening time</span></summary>
+  <div class="track-list">
+    {{range $i, $t := $h.TopTracks}}
+    {{if lt $i 20}}
+    <a class="track-row{{if not $t.SpotifyURL}} track-row-nolink{{end}}"
+       {{if $t.SpotifyURL}}href="{{$t.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+      <span class="track-rank">{{add $i 1}}</span>
+      {{if $t.ImageURL}}
+      <img class="track-img" src="{{$t.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+      {{else}}
+      <div class="track-img track-img-placeholder">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="track-info">
+        <div class="track-title">{{$t.TrackName}}</div>
+        <div class="track-artist">{{$t.ArtistName}}</div>
+      </div>
+      <div class="track-stats">
+        <div class="track-stat-primary">{{printf "%.1f" $t.HoursPlayed}}h</div>
+        <div class="track-stat-secondary">{{$t.PlayCount}} plays · {{pct $t.CompletionRate}}% done</div>
+      </div>
+    </a>
+    {{end}}
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Most skipped tracks ── -->
+{{if $h.TopSkipped}}
+<details class="profile-section" open>
+  <summary class="section-title">Most Skipped <span class="section-sub">top 10 by skip count</span></summary>
+  <div class="track-list">
+    {{range $i, $t := $h.TopSkipped}}
+    <a class="track-row{{if not $t.SpotifyURL}} track-row-nolink{{end}}"
+       {{if $t.SpotifyURL}}href="{{$t.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
+      <span class="track-rank">{{add $i 1}}</span>
+      {{if $t.ImageURL}}
+      <img class="track-img" src="{{$t.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+      {{else}}
+      <div class="track-img track-img-placeholder">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="track-info">
+        <div class="track-title">{{$t.TrackName}}</div>
+        <div class="track-artist">{{$t.ArtistName}}</div>
+      </div>
+      <div class="track-stats">
+        <div class="track-stat-primary">{{$t.SkipCount}} skips</div>
+        <div class="track-stat-secondary">{{$t.PlayCount}} plays</div>
+      </div>
+    </a>
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Taste DNA + Listening patterns ── -->
+{{if or (and $sp $sp.Insights.TopGenres) $h.HourlyPattern}}
+<details class="profile-section" open>
+  <summary class="section-title">Listening Patterns</summary>
+  <div class="insights-grid">
+
+    {{if and $sp $sp.Insights.TopGenres}}
+    <div class="stat-card">
+      <div class="stat-card-label">Taste Profile</div>
+      <div class="stat-card-value">{{$sp.Insights.ObscurityLabel}}</div>
+      <div class="mainstream-bar-wrap" title="Mainstream score: {{$sp.Insights.MainstreamScore}}/100">
+        <div class="mainstream-bar" style="width:{{$sp.Insights.MainstreamScore}}%"></div>
+      </div>
+      <div class="mainstream-labels"><span>Underground</span><span>Mainstream</span></div>
+      <div class="genre-list" style="margin-top:1rem">
+        {{range $i, $g := $sp.Insights.TopGenres}}
+        <span class="genre-tag gtag-{{add $i 1}}">{{$g.Genre}}</span>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+
+    {{if .GenreHours}}
+    <div class="stat-card">
+      <div class="stat-card-label">Top Genres <span class="section-sub">hours, from your top artists</span></div>
+      <div class="genre-hours">
+        {{range .GenreHours}}
+        <div class="gh-row">
+          <span class="gh-name" title="{{.Genre}}">{{.Genre}}</span>
+          <div class="gh-bar-wrap"><div class="gh-bar" style="width:{{.BarPct}}%"></div></div>
+          <span class="gh-val">{{printf "%.0f" .Hours}}h</span>
+        </div>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+
+    {{if $h.HourlyPattern}}
+    <div class="stat-card">
+      <div class="stat-card-label">When You Listen <span class="section-sub">by hour of day</span></div>
+      <div class="hourly-chart" id="hourly-chart" data-vals="{{range $h.HourlyPattern}}{{.}} {{end}}"></div>
+      <div class="hourly-labels">
+        <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+      </div>
+    </div>
+    {{end}}
+
+    {{if .WeekHeatMax}}
+    <div class="stat-card heatmap-card">
+      <div class="stat-card-label">Weekly Rhythm <span class="section-sub">by weekday and hour</span></div>
+      <div class="week-heatmap">
+        {{$root := .}}
+        {{$max := .WeekHeatMax}}
+        {{range $d, $day := $h.WeekPattern}}
+        <div class="wh-row">
+          <span class="wh-day">{{index $root.DayNames $d}}</span>
+          {{range $day}}<span class="wh-cell" style="opacity:{{heat . $max}}"></span>{{end}}
+        </div>
+        {{end}}
+      </div>
+      <div class="hourly-labels heatmap-labels">
+        <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+      </div>
+    </div>
+    {{end}}
+
+  </div>
+</details>
+{{end}}
+
+<!-- ── Recently Played (Spotify API) — only shown when history is present ── -->
+{{if and $h.TotalMsPlayed (and $sp $sp.Recent)}}
+<details class="profile-section" open>
+  <summary class="section-title">Recently Played</summary>
+  <div class="track-list">
+    {{range $sp.Recent}}
+    <a class="track-row" href="{{.SpotifyURL}}" target="_blank" rel="noopener">
+      {{if .ImageURL}}
+      <img class="track-img" src="{{.ImageURL}}" alt="" width="44" height="44" loading="lazy">
+      {{else}}
+      <div class="track-img track-img-placeholder">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="track-info">
+        <div class="track-title">{{.Title}}</div>
+        <div class="track-artist">{{.Artist}}</div>
+      </div>
+      <div class="track-stats">
+        <div class="track-stat-primary track-time" data-ts="{{.PlayedAt.Unix}}"></div>
+      </div>
+    </a>
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Artist Recommendations ── -->
+{{if $recs}}
+<details class="profile-section" open>
+  <summary class="section-title">Discover <span class="section-sub">artists you'd love but haven't heard</span></summary>
+  <div class="rec-grid">
+    {{range $recs}}
+    <a class="rec-card" href="{{if .SpotifyURL}}{{.SpotifyURL}}{{else}}{{.TrackURL}}{{end}}" target="_blank" rel="noopener">
+      {{if .ImageURL}}
+      <img class="rec-img" src="{{.ImageURL}}" alt="" width="80" height="80" loading="lazy">
+      {{else}}
+      <div class="rec-img rec-img-placeholder">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+      </div>
+      {{end}}
+      <div class="rec-info">
+        <div class="rec-name">{{.ArtistName}}</div>
+        {{if .Genres}}<div class="rec-genre">{{index .Genres 0}}</div>{{end}}
+        {{if .SampleTrack}}
+        <a class="rec-track" href="{{.TrackURL}}" target="_blank" rel="noopener">
+          ♪ {{.SampleTrack}}
+        </a>
+        {{end}}
+      </div>
+    </a>
+    {{end}}
+  </div>
+</details>
+{{end}}
+
+<!-- ── Scripts ── -->
+<script nonce="{{.Nonce}}">
+// ── Avatar fallback: Spotify photo, then placeholder ─────────────────────────
+(function() {
+  const av = document.getElementById('persona-avatar');
+  if (!av) return;
+  function fallback() {
+    if (av.dataset.fallback) {
+      const src = av.dataset.fallback;
+      delete av.dataset.fallback;
+      av.src = src;
+    } else {
+      av.style.display = 'none';
+      const ph = document.getElementById('avatar-placeholder');
+      if (ph) ph.style.display = 'flex';
+    }
+  }
+  av.addEventListener('error', fallback);
+  // The image may have already failed before this script ran.
+  if (av.complete && av.naturalWidth === 0) fallback();
+})();
+
+// Keep sample-track links from triggering their parent card.
+document.querySelectorAll('.rec-track').forEach((a) => {
+  a.addEventListener('click', (e) => e.stopPropagation());
+});
+
+// ── AI background fade-in ────────────────────────────────────────────────────
+(function() {
+  const img = document.getElementById('aura-bg');
+  if (!img) return;
+  function show() { img.classList.add('aura-bg-loaded'); }
+  // img may already be complete (browser cache hit before this script ran)
+  if (img.complete && img.naturalWidth > 0) { show(); }
+  else { img.addEventListener('load', show); }
+  img.addEventListener('error', () => { img.style.display = 'none'; });
+})();
+
+
+// ── Radar chart (Round 2: glow + idle pulse + value labels) ──────────────────
+(function() {
+  const canvas = document.getElementById('radar-chart');
+  if (!canvas) return;
+  const d   = canvas.dataset;
+  const hue = parseInt(d.hue || 200);
+  const sat = parseInt(d.sat || 60);
+  const vals   = [
+    parseFloat(d.dance        || 0),
+    parseFloat(d.energy       || 0),
+    parseFloat(d.valence      || 0),
+    parseFloat(d.acoustic     || 0),
+    parseFloat(d.instrumental || 0),
+    parseFloat(d.liveness     || 0),
+  ];
+  const labels = ['Dance','Energy','Mood','Acoustic','Instru.','Live'];
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R  = Math.min(W, H) / 2 - 38;
+  const N  = 6;
+
+  function pt(axis, val) {
+    const a = (axis / N) * Math.PI * 2 - Math.PI / 2;
+    return { x: cx + Math.cos(a) * R * val, y: cy + Math.sin(a) * R * val };
+  }
+
+  function easeOutBack(x) {
+    const c1 = 1.70158, c3 = c1 + 1;
+    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+  }
+
+  let prog = 0, idleT = 0, animating = true;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    const eased = animating ? Math.min(1, easeOutBack(Math.min(prog, 0.999))) : 1;
+    const pulse = animating ? 0 : Math.sin(idleT * 1.8) * 0.018 + 1;
+
+    // Grid rings with fade-in
+    for (let ring = 1; ring <= 4; ring++) {
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) {
+        const p = pt(i, ring / 4);
+        i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = `hsla(${hue}, 30%, 60%, ${ring === 4 ? 0.28 : 0.11})`;
+      ctx.lineWidth = ring === 4 ? 1.5 : 1;
+      ctx.stroke();
+      if (ring === 4) {
+        ctx.font = '7px system-ui';
+        ctx.fillStyle = `hsla(${hue}, 15%, 55%, 0.6)`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('100%', cx + 4, cy - R - 2);
+      }
+    }
+
+    // Axis spokes
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, 1);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(p.x, p.y);
+      ctx.strokeStyle = `hsla(${hue}, 20%, 50%, 0.18)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Data polygon — glow fill + stroke
+    const av = vals.map(v => v * eased * pulse);
+    ctx.save();
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = `hsla(${hue}, ${sat}%, 65%, 0.45)`;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, av[i]);
+      i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+    }
+    ctx.closePath();
+    const fillGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+    fillGrad.addColorStop(0,   `hsla(${hue}, ${sat+15}%, 70%, 0.35)`);
+    fillGrad.addColorStop(0.6, `hsla(${hue}, ${sat}%,   55%, 0.20)`);
+    fillGrad.addColorStop(1,   `hsla(${hue}, ${sat-10}%,45%, 0.08)`);
+    ctx.fillStyle = fillGrad;
+    ctx.fill();
+    ctx.strokeStyle = `hsla(${hue}, ${sat+15}%, 75%, 0.95)`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+
+    // Vertex dots with glow
+    for (let i = 0; i < N; i++) {
+      const p = pt(i, av[i]);
+      ctx.save();
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = `hsl(${hue}, ${sat}%, 75%)`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${hue+10}, ${sat+15}%, 85%)`;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Axis labels + value badges
+    ctx.font = 'bold 9.5px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < N; i++) {
+      const lp = pt(i, 1.3);
+      ctx.fillStyle = `hsla(${hue}, 18%, 72%, 0.88)`;
+      ctx.fillText(labels[i], lp.x, lp.y);
+      if (prog > 0.92) {
+        const vp  = pt(i, av[i]);
+        const pct = Math.round(vals[i] * 100);
+        const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
+        const ox = Math.cos(angle) * 13, oy = Math.sin(angle) * 13;
+        ctx.font = '7.5px system-ui';
+        ctx.fillStyle = `hsla(${hue}, ${sat}%, 85%, 0.8)`;
+        ctx.fillText(pct + '%', vp.x + ox, vp.y + oy);
+        ctx.font = 'bold 9.5px system-ui, sans-serif';
+      }
+    }
+
+    if (animating) {
+      prog = Math.min(1, prog + 0.022);
+      if (prog >= 1) animating = false;
+      requestAnimationFrame(draw);
+    } else {
+      idleT += 0.016;
+      requestAnimationFrame(draw);
+    }
+  }
+  draw();
+})();
+
+// ── Hourly chart ───────────────────────────────────────────────────────────────
+(function() {
+  const wrap = document.getElementById('hourly-chart');
+  if (!wrap) return;
+  const vals = wrap.dataset.vals.trim().split(/\s+/).map(Number);
+  const max  = Math.max(...vals, 1);
+  vals.forEach((v, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'hourly-bar';
+    bar.style.height = Math.round((v / max) * 100) + '%';
+    bar.title = `${i}:00 — ${v} plays`;
+    if (i >= 8 && i <= 22) bar.classList.add('hourly-bar-active');
+    wrap.appendChild(bar);
+  });
+})();
+
+// ── Relative timestamps ────────────────────────────────────────────────────────
+document.querySelectorAll('.track-time[data-ts]').forEach(el => {
+  const diff = Math.floor((Date.now() - parseInt(el.dataset.ts, 10) * 1000) / 1000);
+  if (diff < 60)         el.textContent = 'just now';
+  else if (diff < 3600)  el.textContent = Math.floor(diff / 60) + 'm ago';
+  else if (diff < 86400) el.textContent = Math.floor(diff / 3600) + 'h ago';
+  else                   el.textContent = Math.floor(diff / 86400) + 'd ago';
+});
+</script>
+{{end}}

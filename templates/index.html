@@ -1,0 +1,469 @@
+{{template "base" .}}
+
+{{define "content"}}
+{{if not .SpotifyLinked}}
+<div class="banner-warning">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;color:var(--err)">
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/>
+    <line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+  Your Spotify account isn't connected yet.
+  <a href="/spotify/connect" class="btn btn-sm btn-spotify">Connect Spotify</a>
+</div>
+{{end}}
+
+<div class="layout">
+  <!-- ── Form ── -->
+  <section class="form-panel">
+    <h2>Build a playlist</h2>
+
+    <form id="run-form">
+      <!-- Mode selector -->
+      <fieldset class="mode-tabs">
+        <legend class="sr-only">Mode</legend>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="sonic" checked>
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Sonic</span>
+            <span class="mode-tab-desc">Describe a mood or vibe</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="connection">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Connection</span>
+            <span class="mode-tab-desc">Explore an artist's network</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="dna">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">DNA</span>
+            <span class="mode-tab-desc">Map a track's sample lineage</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="rediscovery">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Rediscovery</span>
+            <span class="mode-tab-desc">Revisit tracks you used to love</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="expand">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Expand</span>
+            <span class="mode-tab-desc">Discover music beyond your history</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="setlist">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Setlist</span>
+            <span class="mode-tab-desc">Build from an artist's live shows</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="everyone">
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Everyone</span>
+            <span class="mode-tab-desc">Top songs from the whole household</span>
+          </span>
+        </label>
+      </fieldset>
+
+      <!-- ── User entries — right of the mode selector ── -->
+      <div class="form-main">
+
+      <!-- Sonic fields -->
+      <div id="fields-sonic" class="mode-fields">
+        <label for="prompt">Describe the playlist <span class="info-icon" data-tip="Natural language description of the sound you want — mood, genre, activity, or vibe." tabindex="0" aria-label="More info">?</span></label>
+        <input id="prompt" name="prompt" type="text"
+               placeholder="dark ambient for late-night coding" autocomplete="off">
+      </div>
+
+      <!-- Connection fields -->
+      <div id="fields-connection" class="mode-fields hidden">
+        <label for="artist">Seed artist <span class="info-icon" data-tip="The artist to start from. The agent will explore their collaborators, influences, and fans to build a constellation playlist." tabindex="0" aria-label="More info">?</span></label>
+        <input id="artist" name="artist" type="text" placeholder="Nine Inch Nails" autocomplete="off">
+        <div class="row">
+          <label class="checkbox-label">
+            <input type="checkbox" name="new_only"> Discoveries only <span class="info-icon" data-tip="Prefer artists not already in your Spotify listening history — great for finding new music." tabindex="0" aria-label="More info">?</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" name="match_sound"> Match sound <span class="info-icon" data-tip="Also filter results by audio similarity to the seed artist's sound, not just graph connections." tabindex="0" aria-label="More info">?</span>
+          </label>
+        </div>
+        <label for="depth">Graph depth <span class="info-icon" data-tip="How many hops away from the seed artist to explore. 2 = friends of friends. Higher values find more obscure connections but take longer." tabindex="0" aria-label="More info">?</span></label>
+        <input id="depth" name="depth" type="number" value="2" min="1" max="4">
+      </div>
+
+      <!-- DNA fields -->
+      <div id="fields-dna" class="mode-fields hidden">
+        <label for="dna_track">Track <span class="info-icon" data-tip="The track to deep-dive. The agent will find every sample it contains, every track that sampled it, and any melodic interpolations." tabindex="0" aria-label="More info">?</span></label>
+        <input id="dna_track" name="dna_track" type="text"
+               placeholder="Hurt" autocomplete="off">
+        <label for="dna_artist">Artist <span class="muted">(optional)</span> <span class="info-icon" data-tip="Disambiguates tracks with common names — e.g. 'Hurt' exists by Nine Inch Nails and Johnny Cash. Leave blank if the track name is unique." tabindex="0" aria-label="More info">?</span></label>
+        <input id="dna_artist" name="dna_artist" type="text"
+               placeholder="Nine Inch Nails" autocomplete="off">
+      </div>
+
+      <!-- Setlist fields -->
+      <div id="fields-setlist" class="mode-fields hidden">
+        <label for="setlist_artist">Artist</label>
+        <input id="setlist_artist" name="setlist_artist" type="text"
+               placeholder="Radiohead" autocomplete="off">
+        <label for="setlist_pages">Setlists to scan <span class="muted">(1–5, more = broader)</span></label>
+        <input id="setlist_pages" name="setlist_pages" type="number" value="3" min="1" max="5">
+      </div>
+
+      <!-- Expand fields -->
+      <div id="fields-expand" class="mode-fields hidden">
+        <label for="expand_year">Seed year</label>
+        <select id="expand_year" name="expand_year">
+          <option value="all">All time</option>
+          {{range .ExpandYears}}<option value="{{.}}">{{.}}</option>{{end}}
+        </select>
+        <p class="muted" style="font-size:0.8rem;margin:0.35rem 0 0">Discover new music seeded from your top artists of that year.</p>
+      </div>
+
+      <!-- Rediscovery fields -->
+      <div id="fields-rediscovery" class="mode-fields hidden">
+        <label for="stale_days">Unplayed for at least (days) <span class="info-icon" data-tip="Tracks not played for this many days are considered forgotten." tabindex="0" aria-label="More info">?</span></label>
+        <input id="stale_days" name="stale_days" type="number" value="90" min="30" max="730">
+        <label for="min_plays">Minimum past plays <span class="info-icon" data-tip="Only include tracks you played at least this many times — ensures you actually liked them." tabindex="0" aria-label="More info">?</span></label>
+        <input id="min_plays" name="min_plays" type="number" value="3" min="1" max="20">
+      </div>
+
+      <!-- Everyone fields -->
+      <div id="fields-everyone" class="mode-fields hidden">
+        <label for="per_user_count">Songs per person <span class="info-icon" data-tip="How many of each person's most-played songs to include. Duplicates shared between people are replaced by that person's next favourite, so everyone contributes this many unique tracks." tabindex="0" aria-label="More info">?</span></label>
+        <input id="per_user_count" name="per_user_count" type="number" value="100" min="10" max="100">
+        <p class="muted" style="font-size:0.8rem;margin:0.35rem 0 0">Combines the most-played tracks of everyone who has imported listening history into one shared playlist, alternating between people.</p>
+      </div>
+
+      <!-- Shared filters -->
+      <details class="filters">
+        <summary>Filters <span class="muted">(optional)</span></summary>
+        <div class="filter-grid">
+          <div>
+            <label for="count">Tracks <span class="info-icon" data-tip="Number of tracks to include in the final playlist (5–200)." tabindex="0" aria-label="More info">?</span></label>
+            <input id="count" name="count" type="number" value="20" min="5" max="200">
+          </div>
+          <div class="audio-filter">
+            <label>Energy <span class="info-icon" data-tip="Audio energy from 0.0 (calm/quiet) to 1.0 (intense/loud)." tabindex="0" aria-label="More info">?</span></label>
+            <div class="dual-range">
+              <div class="dr-track"><div class="dr-fill" id="dr-energy-fill"></div></div>
+              <input type="range" class="dr-thumb" id="energy_min" name="energy_min" min="0" max="100" value="0" step="5" aria-label="Energy minimum">
+              <input type="range" class="dr-thumb" id="energy_max" name="energy_max" min="0" max="100" value="100" step="5" aria-label="Energy maximum">
+              <div class="dr-vals"><span id="dr-energy-lo">0.00</span><span id="dr-energy-hi">1.00</span></div>
+            </div>
+          </div>
+          <div class="audio-filter">
+            <label>Valence <span class="info-icon" data-tip="Emotional positivity from 0.0 (dark/sad) to 1.0 (bright/happy)." tabindex="0" aria-label="More info">?</span></label>
+            <div class="dual-range">
+              <div class="dr-track"><div class="dr-fill" id="dr-valence-fill"></div></div>
+              <input type="range" class="dr-thumb" id="valence_min" name="valence_min" min="0" max="100" value="0" step="5" aria-label="Valence minimum">
+              <input type="range" class="dr-thumb" id="valence_max" name="valence_max" min="0" max="100" value="100" step="5" aria-label="Valence maximum">
+              <div class="dr-vals"><span id="dr-valence-lo">0.00</span><span id="dr-valence-hi">1.00</span></div>
+            </div>
+          </div>
+          <div class="audio-filter">
+            <label>Tempo BPM <span class="info-icon" data-tip="Beats per minute. E.g. 120–140 for dance, 60–80 for ballads." tabindex="0" aria-label="More info">?</span></label>
+            <div class="dual-range">
+              <div class="dr-track"><div class="dr-fill" id="dr-tempo-fill"></div></div>
+              <input type="range" class="dr-thumb" id="tempo_min" name="tempo_min" min="40" max="300" value="40" step="1" aria-label="Tempo minimum BPM">
+              <input type="range" class="dr-thumb" id="tempo_max" name="tempo_max" min="40" max="300" value="300" step="1" aria-label="Tempo maximum BPM">
+              <div class="dr-vals"><span id="dr-tempo-lo">40</span><span id="dr-tempo-hi">300</span></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <button id="run-btn" type="submit" class="btn btn-primary btn-full"
+              {{if not .SpotifyLinked}}disabled title="Connect Spotify first"{{end}}>
+        Generate playlist
+      </button>
+      <button id="cancel-btn" type="button" class="btn btn-ghost btn-full" style="display:none">Stop</button>
+
+      </div><!-- /.form-main -->
+    </form>
+  </section>
+
+  <!-- ── Output pane ── -->
+  <section class="output-panel">
+    <div class="output-header">
+      <span>Agent output <span id="run-dot" class="run-dot hidden"></span></span>
+      <button id="clear-btn" class="btn btn-sm btn-ghost" style="display:none">Clear</button>
+    </div>
+    <div id="output" class="output-log" aria-live="polite">
+      <div class="output-empty">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.5rem;opacity:0.4">
+          <circle cx="9" cy="21" r="1"/><circle cx="15" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Output will appear here once the agent starts.
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ── History ── -->
+<div id="history-panel" class="history-panel hidden">
+  <div class="history-header">
+    <span>History</span>
+    <button type="button" id="history-clear-btn" class="btn btn-sm btn-ghost">Clear</button>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<script nonce="{{.Nonce}}">
+// CSP forbids inline handlers — all events are bound here.
+document.querySelectorAll('input[name="mode"]').forEach((radio) => {
+  radio.addEventListener('change', () => switchMode(radio.value));
+});
+[['energy', 0, 100, 100], ['valence', 0, 100, 100], ['tempo', 40, 300, 0]].forEach(([key, min, max, scale]) => {
+  ['min', 'max'].forEach((end) => {
+    document.getElementById(key + '_' + end).addEventListener('input', () => syncDR(key, min, max, scale));
+  });
+});
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('cancel-btn').addEventListener('click', cancelRun);
+  document.getElementById('clear-btn').addEventListener('click', clearOutput);
+  document.getElementById('history-clear-btn').addEventListener('click', clearHistory);
+});
+
+function switchMode(mode) {
+  document.querySelectorAll('.mode-fields').forEach(el => el.classList.add('hidden'));
+  const next = document.getElementById('fields-' + mode);
+  next.classList.remove('hidden');
+  next.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna' || mode === 'setlist' || mode === 'everyone');
+  document.querySelectorAll('.audio-filter').forEach(el =>
+    el.classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery' || mode === 'expand' || mode === 'setlist' || mode === 'everyone'));
+}
+
+function clearOutput() {
+  const out = document.getElementById('output');
+  const empty = document.createElement('div');
+  empty.className = 'output-empty';
+  empty.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.5rem;opacity:0.4"><circle cx="9" cy="21" r="1"/><circle cx="15" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Output will appear here once the agent starts.';
+  out.innerHTML = '';
+  out.appendChild(empty);
+  document.getElementById('clear-btn').style.display = 'none';
+}
+
+function syncDR(id, absMin, absMax, scale) {
+  const lo = document.getElementById(id + '_min');
+  const hi = document.getElementById(id + '_max');
+  let loVal = parseInt(lo.value), hiVal = parseInt(hi.value);
+  if (loVal > hiVal) { lo.value = loVal = hiVal; }
+  const fill = document.getElementById('dr-' + id + '-fill');
+  const pct = v => ((v - absMin) / (absMax - absMin)) * 100;
+  fill.style.left = pct(loVal) + '%';
+  fill.style.width = (pct(hiVal) - pct(loVal)) + '%';
+  const loDisp = document.getElementById('dr-' + id + '-lo');
+  const hiDisp = document.getElementById('dr-' + id + '-hi');
+  if (loDisp) loDisp.textContent = scale ? (loVal / scale).toFixed(2) : loVal;
+  if (hiDisp) hiDisp.textContent = scale ? (hiVal / scale).toFixed(2) : hiVal;
+}
+
+syncDR('energy', 0, 100, 100);
+syncDR('valence', 0, 100, 100);
+syncDR('tempo', 40, 300, 0);
+
+function _shakeField(id) {
+  const el = document.getElementById(id);
+  el.classList.add('field-error');
+  el.focus();
+  el.addEventListener('input', () => el.classList.remove('field-error'), { once: true });
+  setTimeout(() => el.classList.remove('field-error'), 1500);
+}
+
+let activeSource = null;
+let currentRunId = null;
+
+document.getElementById('run-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const mode = document.querySelector('input[name="mode"]:checked')?.value || 'sonic';
+  if (mode === 'sonic' && !document.getElementById('prompt').value.trim()) { _shakeField('prompt'); return; }
+  if (mode === 'connection' && !document.getElementById('artist').value.trim()) { _shakeField('artist'); return; }
+  if (mode === 'dna' && !document.getElementById('dna_track').value.trim()) { _shakeField('dna_track'); return; }
+  if (mode === 'setlist' && !document.getElementById('setlist_artist').value.trim()) { _shakeField('setlist_artist'); return; }
+  if (activeSource) { activeSource.close(); activeSource = null; }
+
+  const btn = document.getElementById('run-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+  btn.disabled = true; btn.textContent = 'Running…';
+  cancelBtn.disabled = false; cancelBtn.textContent = 'Stop';
+  cancelBtn.style.display = '';
+  document.querySelector('.output-panel').classList.add('running');
+  document.getElementById('run-dot').classList.remove('hidden');
+
+  const out = document.getElementById('output');
+  if (out.children.length > 0 && !out.querySelector('.output-empty')) {
+    const sep = document.createElement('div');
+    sep.className = 'run-separator';
+    out.appendChild(sep);
+  } else {
+    out.innerHTML = '';
+  }
+  document.getElementById('clear-btn').style.display = 'none';
+  if (window.innerWidth <= 860) {
+    document.querySelector('.output-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  const data = new FormData(e.target);
+  const runLines = [];
+  const eMin = parseInt(data.get('energy_min')||'0'), eMax = parseInt(data.get('energy_max')||'100');
+  data.delete('energy_min'); data.delete('energy_max');
+  if (eMin !== 0 || eMax !== 100) data.set('energy', (eMin/100).toFixed(2)+'-'+(eMax/100).toFixed(2));
+
+  const vMin = parseInt(data.get('valence_min')||'0'), vMax = parseInt(data.get('valence_max')||'100');
+  data.delete('valence_min'); data.delete('valence_max');
+  if (vMin !== 0 || vMax !== 100) data.set('valence', (vMin/100).toFixed(2)+'-'+(vMax/100).toFixed(2));
+
+  const tMin = parseInt(data.get('tempo_min')||'40'), tMax = parseInt(data.get('tempo_max')||'300');
+  data.delete('tempo_min'); data.delete('tempo_max');
+  if (tMin !== 40 || tMax !== 300) data.set('tempo', tMin+'-'+tMax);
+
+  let resp;
+  try {
+    resp = await fetch('/run', { method: 'POST', body: new URLSearchParams(data) });
+  } catch (err) {
+    appendLine(out, '[error] Network error: ' + err.message, 'err');
+    btn.disabled = false; btn.textContent = 'Generate playlist';
+    cancelBtn.style.display = 'none';
+    document.querySelector('.output-panel').classList.remove('running');
+    document.getElementById('run-dot').classList.add('hidden');
+    return;
+  }
+  if (!resp.ok) {
+    const msg = await resp.text();
+    appendLine(out, '[error] ' + msg, 'err');
+    btn.disabled = false; btn.textContent = 'Generate playlist';
+    cancelBtn.style.display = 'none';
+    document.querySelector('.output-panel').classList.remove('running');
+    document.getElementById('run-dot').classList.add('hidden');
+    return;
+  }
+
+  const { runId } = await resp.json();
+  currentRunId = runId;
+  const es = new EventSource('/stream/' + runId);
+  activeSource = es;
+
+  es.onmessage = (ev) => {
+    const line = ev.data;
+    runLines.push(line);
+    if (line.startsWith('->')) appendLine(out, line, 'tool-call');
+    else if (line.startsWith('  <-')) appendLine(out, line, 'tool-result');
+    else if (line.startsWith('[error]')) appendLine(out, line, 'err');
+    else appendLine(out, line, '');
+    const atBottom = out.scrollHeight - out.scrollTop - out.clientHeight < 50;
+    if (atBottom) out.scrollTop = out.scrollHeight;
+  };
+
+  const onDone = () => {
+    es.close(); activeSource = null; currentRunId = null;
+    btn.disabled = false; btn.textContent = 'Generate playlist';
+    cancelBtn.style.display = 'none';
+    document.querySelector('.output-panel').classList.remove('running');
+    document.getElementById('run-dot').classList.add('hidden');
+    document.getElementById('clear-btn').style.display = '';
+    // The server persists run history itself; just refresh the panel.
+    _renderHistory();
+  };
+  es.addEventListener('done', onDone);
+  es.onerror = () => {
+    if (runLines.length === 0) {
+      appendLine(out, '[error] Lost connection to the run — the server may have restarted. Try again.', 'err');
+      document.getElementById('clear-btn').style.display = '';
+    }
+    onDone();
+  };
+});
+
+async function cancelRun() {
+  if (!currentRunId) return;
+  const cancelBtn = document.getElementById('cancel-btn');
+  cancelBtn.disabled = true; cancelBtn.textContent = 'Stopping…';
+  await fetch('/run/' + currentRunId, { method: 'DELETE' }).catch(() => {});
+}
+
+// ── History ──────────────────────────────────────────────────────────────────
+
+async function clearHistory() {
+  try {
+    await fetch('/history', { method: 'DELETE' });
+  } catch(e) {}
+  _renderHistory();
+}
+
+async function _renderHistory() {
+  let runs = [];
+  try {
+    const r = await fetch('/history');
+    if (r.ok) runs = await r.json();
+  } catch(e) {}
+  const panel = document.getElementById('history-panel');
+  const list = document.getElementById('history-list');
+  panel.classList.toggle('hidden', runs.length === 0);
+  list.innerHTML = '';
+  runs.forEach(run => {
+    const m = (run.lines || []).find(l => /Done — https?:\/\//.test(l));
+    const url = m ? m.match(/https?:\/\/\S+/)[0] : null;
+    const d = document.createElement('details');
+    d.className = 'history-item';
+    const s = document.createElement('summary');
+    s.className = 'history-summary';
+    const timeEl = document.createElement('span');
+    timeEl.className = 'history-time';
+    timeEl.textContent = new Date(run.ts).toLocaleString();
+    const labelEl = document.createElement('span');
+    labelEl.className = 'history-label';
+    labelEl.textContent = run.label;
+    s.appendChild(timeEl);
+    s.appendChild(labelEl);
+    if (url) {
+      const linkEl = document.createElement('a');
+      linkEl.href = url; linkEl.target = '_blank'; linkEl.rel = 'noopener';
+      linkEl.className = 'playlist-link history-link';
+      linkEl.textContent = 'Open playlist';
+      linkEl.onclick = e => e.stopPropagation();
+      s.appendChild(linkEl);
+    }
+    const c = document.createElement('div');
+    c.className = 'history-content output-log';
+    (run.lines || []).forEach(line => {
+      const el = document.createElement('div');
+      el.className = 'log-line' + (line.startsWith('->') ? ' tool-call' : line.startsWith('  <-') ? ' tool-result' : line.startsWith('[error]') ? ' err' : '');
+      el.textContent = line;
+      c.appendChild(el);
+    });
+    d.appendChild(s); d.appendChild(c);
+    list.appendChild(d);
+  });
+}
+
+_renderHistory();
+
+function appendLine(container, text, cls) {
+  const el = document.createElement('div');
+  el.className = 'log-line' + (cls ? ' ' + cls : '');
+  const m = text.match(/(Done — )(https?:\/\/\S+)/);
+  if (m) {
+    el.classList.add('log-done');
+    el.appendChild(document.createTextNode(m[1]));
+    const a = document.createElement('a');
+    a.href = m[2]; a.textContent = 'Open playlist';
+    a.target = '_blank'; a.rel = 'noopener'; a.className = 'playlist-link';
+    el.appendChild(a);
+  } else {
+    el.textContent = text;
+  }
+  container.appendChild(el);
+}
+</script>
+{{end}}
