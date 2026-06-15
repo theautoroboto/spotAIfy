@@ -25,3 +25,5 @@ data/backup/*
 
 *.db
 *.sqlite
+start-dev.bat
+docs/launch_server.py

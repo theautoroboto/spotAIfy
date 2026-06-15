@@ -2,6 +2,8 @@
 
 A local AI agent that generates Spotify playlists using Claude Sonnet. Runs as a web app (Go + Python) or as a CLI tool.
 
+![spotAIfy demo](docs/demo.gif)
+
 Seven playlist modes:
 
 | Mode | How it works |
