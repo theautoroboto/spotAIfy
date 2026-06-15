@@ -88,8 +88,9 @@ Please add tests alongside behavior changes:
   `addEventListener` — an `onclick=` attribute will be silently blocked by
   the browser.
 - **Secrets** stay in `.env` (or the OS keyring for the CLI) — never in code,
-  templates, or test fixtures. `SESSION_SECRET` is mandatory; the server
-  refuses to start without it.
+  templates, or test fixtures. `USERS` is mandatory (the server exits on startup
+  without it); `SESSION_SECRET` defaults to an insecure placeholder with a
+  warning — always set it in production.
 - **User data**: anything under `data/` is real listening history and stays
   out of git. Don't commit fixtures derived from it — synthesize test data
   instead.
