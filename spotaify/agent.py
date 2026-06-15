@@ -53,7 +53,7 @@ Rules:
 - Never explain what tools do — just use them and describe results
 - Write all narrative text as plain prose. No markdown: no *, **, _, #, or em-dashes. The output is displayed as plain text."""
 
-SYSTEM_PROMPT = [{"type": "text", "text": _SYSTEM_PROMPT_TEXT, "cache_control": {"type": "ephemeral"}}]
+SYSTEM_PROMPT = [{"type": "text", "text": _SYSTEM_PROMPT_TEXT, "cache_control": {"type": "ephemeral", "ttl": "1h"}}]
 
 
 def _strip_embeddings(obj):
@@ -197,6 +197,26 @@ def _prune_messages(messages: list, keep_turns: int = 3) -> list:
     return [messages[0]] + tail
 
 
+def _add_cache_breakpoint(messages: list) -> None:
+    """Mark the tail of conversation history for caching before each API call.
+
+    Puts ephemeral cache_control on the last content block of the most recent
+    message so the growing history prefix is read from cache rather than billed
+    at full input price on every turn.  Skipped on the first turn (only the
+    initial prompt exists — nothing accumulated yet).
+    """
+    if len(messages) < 2:
+        return
+    last = messages[-1]
+    content = last.get("content")
+    if isinstance(content, list) and content:
+        last_block = content[-1]
+        if isinstance(last_block, dict) and "cache_control" not in last_block:
+            last_block["cache_control"] = {"type": "ephemeral"}
+    elif isinstance(content, str):
+        last["content"] = [{"type": "text", "text": content, "cache_control": {"type": "ephemeral"}}]
+
+
 _MAX_RETRY_WAIT = 90  # seconds — don't burn time waiting on daily/usage limits
 
 
@@ -249,6 +269,7 @@ def run_agent(prompt: str) -> None:
 
     turn = 0
     while turn < _MAX_TURNS:
+        _add_cache_breakpoint(messages)
         response = _call_with_retry(
             client,
             model="claude-sonnet-4-6",
@@ -259,6 +280,12 @@ def run_agent(prompt: str) -> None:
             tools=TOOLS,
             messages=messages,
         )
+
+        u = response.usage
+        cc = getattr(u, "cache_creation_input_tokens", None) or 0
+        cr = getattr(u, "cache_read_input_tokens", None) or 0
+        if cc or cr:
+            print(f"[cache] write={cc} read={cr} billed={u.input_tokens}", file=sys.stderr, flush=True)
 
         text_blocks = [block.text for block in response.content if hasattr(block, "text")]
         if text_blocks:

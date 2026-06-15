@@ -118,7 +118,8 @@ def get_top_track_ids(n: int = 100) -> list[str]:
 
 def top_tracks_for_dir(history_dir: Path, n: int = 100) -> list[dict]:
     """Return the top-N tracks for an arbitrary user's history directory,
-    ranked by total milliseconds played.
+    ranked by total milliseconds played. Skipped plays are excluded so
+    background noise (e.g. shuffled-past sleep tracks) can't reach the top.
 
     Standalone — does not touch the module-level cache, so it can be called
     for any number of users' directories within one process.
@@ -132,6 +133,8 @@ def top_tracks_for_dir(history_dir: Path, n: int = 100) -> list[dict]:
         for r in records:
             uri = r.get("spotify_track_uri") or ""
             if not uri.startswith("spotify:track:"):
+                continue
+            if r.get("skipped"):
                 continue
             track_id = uri.split(":")[-1]
             stats = track_stats.setdefault(track_id, {

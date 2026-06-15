@@ -43,6 +43,25 @@ def test_respects_n_limit(tmp_path):
     assert top[0]["track_id"] == "id9"
 
 
+def test_skipped_plays_are_excluded(tmp_path):
+    noise = _record("noise", 99999)
+    noise["skipped"] = True
+    mixed_skip = _record("mixed", 50000)
+    mixed_skip["skipped"] = True
+    _write(tmp_path, [
+        noise,                     # all plays skipped — must vanish entirely
+        mixed_skip,                # skipped play of a real track — ms ignored
+        _record("mixed", 2000),
+        _record("fav", 3000),
+    ])
+
+    top = top_tracks_for_dir(tmp_path)
+    assert [t["track_id"] for t in top] == ["fav", "mixed"]
+    mixed = top[1]
+    assert mixed["ms_played_total"] == 2000
+    assert mixed["play_count"] == 1
+
+
 def test_skips_non_track_records(tmp_path):
     _write(tmp_path, [
         _record("real", 1000),

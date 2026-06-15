@@ -879,6 +879,73 @@ input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
   color: var(--muted);
 }
 
+/* ── Genre hours (Listening Patterns) ───────────────────────────────────────── */
+.genre-hours {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+}
+.gh-row {
+  display: grid;
+  grid-template-columns: minmax(80px, 130px) 1fr 44px;
+  align-items: center;
+  gap: 0.6rem;
+}
+.gh-name {
+  font-size: 0.8rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+}
+.gh-bar-wrap {
+  background: var(--surface2);
+  border-radius: 99px;
+  height: 8px;
+  overflow: hidden;
+}
+.gh-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+}
+.gh-val {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* ── Week heatmap (Listening Patterns) ──────────────────────────────────────── */
+.week-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 0.6rem;
+  margin-bottom: 0.35rem;
+}
+.wh-row {
+  display: grid;
+  grid-template-columns: 34px repeat(24, 1fr);
+  gap: 3px;
+  align-items: center;
+}
+.wh-day {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+.wh-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--accent);
+  display: block;
+  min-height: 8px;
+}
+.heatmap-labels {
+  margin-left: 37px; /* align with heatmap cells, past the day labels */
+}
+
 /* ── Profile sections ────────────────────────────────────────────────────────── */
 .profile-section {
   background: var(--surface);

@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -70,6 +71,14 @@ var tmplFuncs = template.FuncMap{
 	"add":        func(a, b int) int { return a + b },
 	"pct":        func(f float64) int { return int(f * 100) },
 	"paragraphs": func(s string) []string { return strings.Split(strings.TrimSpace(s), "\n\n") },
+	// heat maps a cell count to a CSS opacity for the week heatmap: zero
+	// stays faint, the busiest cell is fully opaque.
+	"heat": func(v, max int) string {
+		if v == 0 || max == 0 {
+			return "0.05"
+		}
+		return fmt.Sprintf("%.2f", 0.15+0.85*float64(v)/float64(max))
+	},
 }
 
 func loadTemplates() {
@@ -694,6 +703,44 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Cache-busting timestamp for the background image URL. Using the file's
 	// mod-time ensures the browser fetches a fresh image whenever the file changes.
+	// Genre hours: attribute each enriched top artist's listening time to its
+	// primary genre — approximate, but the top artists dominate total hours.
+	type genreHours struct {
+		Genre  string
+		Hours  float64
+		BarPct int
+	}
+	byGenre := map[string]float64{}
+	for _, a := range hist.TopArtists {
+		if len(a.Genres) > 0 {
+			byGenre[a.Genres[0]] += a.HoursPlayed()
+		}
+	}
+	genreHrs := make([]genreHours, 0, len(byGenre))
+	for g, hrs := range byGenre {
+		genreHrs = append(genreHrs, genreHours{Genre: g, Hours: hrs})
+	}
+	sort.Slice(genreHrs, func(i, j int) bool { return genreHrs[i].Hours > genreHrs[j].Hours })
+	if len(genreHrs) > 8 {
+		genreHrs = genreHrs[:8]
+	}
+	if len(genreHrs) > 0 {
+		maxH := genreHrs[0].Hours
+		for i := range genreHrs {
+			genreHrs[i].BarPct = int(genreHrs[i].Hours * 100 / maxH)
+		}
+	}
+
+	// Busiest week-heatmap cell, for intensity normalization.
+	weekMax := 0
+	for _, day := range hist.WeekPattern {
+		for _, v := range day {
+			if v > weekMax {
+				weekMax = v
+			}
+		}
+	}
+
 	// When no cached image exists yet, fall back to the current time so the
 	// URL stays unique — reusing ?t=0 would let the browser serve a stale
 	// immutable-cached image from before the cache was cleared.
@@ -718,6 +765,9 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		"Aura":            aura,
 		"Recommendations": recommendations,
 		"Persona":         persona,
+		"GenreHours":      genreHrs,
+		"WeekHeatMax":     weekMax,
+		"DayNames":        []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"},
 		"BGTimestamp":     bgTimestamp,
 		"AvatarTimestamp": avatarTimestamp,
 	})

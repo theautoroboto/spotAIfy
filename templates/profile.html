@@ -467,11 +467,45 @@
     </div>
     {{end}}
 
+    {{if .GenreHours}}
+    <div class="stat-card">
+      <div class="stat-card-label">Top Genres <span class="section-sub">hours, from your top artists</span></div>
+      <div class="genre-hours">
+        {{range .GenreHours}}
+        <div class="gh-row">
+          <span class="gh-name" title="{{.Genre}}">{{.Genre}}</span>
+          <div class="gh-bar-wrap"><div class="gh-bar" style="width:{{.BarPct}}%"></div></div>
+          <span class="gh-val">{{printf "%.0f" .Hours}}h</span>
+        </div>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+
     {{if $h.HourlyPattern}}
     <div class="stat-card">
-      <div class="stat-card-label">When You Listen</div>
+      <div class="stat-card-label">When You Listen <span class="section-sub">by hour of day</span></div>
       <div class="hourly-chart" id="hourly-chart" data-vals="{{range $h.HourlyPattern}}{{.}} {{end}}"></div>
       <div class="hourly-labels">
+        <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+      </div>
+    </div>
+    {{end}}
+
+    {{if .WeekHeatMax}}
+    <div class="stat-card heatmap-card">
+      <div class="stat-card-label">Weekly Rhythm <span class="section-sub">by weekday and hour</span></div>
+      <div class="week-heatmap">
+        {{$root := .}}
+        {{$max := .WeekHeatMax}}
+        {{range $d, $day := $h.WeekPattern}}
+        <div class="wh-row">
+          <span class="wh-day">{{index $root.DayNames $d}}</span>
+          {{range $day}}<span class="wh-cell" style="opacity:{{heat . $max}}"></span>{{end}}
+        </div>
+        {{end}}
+      </div>
+      <div class="hourly-labels heatmap-labels">
         <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
       </div>
     </div>

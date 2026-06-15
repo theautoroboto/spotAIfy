@@ -71,8 +71,7 @@ TOOLS = [
     {"name": "resolve_samples",
      "description": "Find specific tracks on Spotify from a list of {title, artist, dna_path, dna_link_type} objects. Pass items from fetch_whosampled `samples` with dna_link_type='samples_from', and items from `sampled_by` with dna_link_type='sampled_by'. Returns only those exact tracks — no additional artist tracks.",
      "input_schema": {"type": "object", "properties": {
-         "samples": {"type": "array", "items": {"type": "object"}}}, "required": ["samples"]},
-     "cache_control": {"type": "ephemeral"}},
+         "samples": {"type": "array", "items": {"type": "object"}}}, "required": ["samples"]}},
     {"name": "fetch_whosampled",
      "description": "Scrape WhoSampled.com for a track's sample relationships: what it samples and what samples it.",
      "input_schema": {"type": "object", "properties": {
