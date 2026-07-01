@@ -152,14 +152,14 @@ class SpotifyClient:
         return playlists
 
     def playlist_tracks(self, playlist_id: str) -> list[dict]:
-        tracks, results = [], self._sp.playlist_items(playlist_id, limit=100)
+        tracks, results = [], self._sp.playlist_tracks(playlist_id, limit=100)
         while results:
             tracks.extend(
-                self._parse_track(track)
+                self._parse_track(item["track"])
                 for item in results["items"]
-                if (track := item.get("track"))
+                if item["track"]
             )
-            results = self._sp.next(results) if results.get("next") else None
+            results = self._sp.next(results) if results["next"] else None
         return tracks
 
     def recently_played(self, limit: int = 50) -> list[dict]:
@@ -171,6 +171,32 @@ class SpotifyClient:
         for i in range(0, len(track_ids), 100):
             self._sp.playlist_add_items(playlist["id"], track_ids[i : i + 100])
         return playlist["external_urls"]["spotify"]
+
+    def replace_playlist_tracks(self, playlist_id: str, track_ids: list[str]) -> str:
+        """Replace all tracks in an existing playlist with the given track IDs."""
+        self._sp.playlist_replace_items(playlist_id, track_ids[:100])
+        for i in range(100, len(track_ids), 100):
+            self._sp.playlist_add_items(playlist_id, track_ids[i : i + 100])
+        pl = self._sp.playlist(playlist_id, fields="external_urls")
+        return pl["external_urls"]["spotify"]
+
+    def add_tracks_deduped(self, playlist_id: str, track_ids: list[str]) -> tuple[str, int]:
+        """Add tracks to an existing playlist, skipping any already present.
+        Returns (playlist_url, count_added).
+        """
+        existing: set[str] = set()
+        results = self._sp.playlist_tracks(playlist_id, fields="items(track(id)),next", limit=100)
+        while results:
+            for item in results["items"]:
+                t = item.get("track")
+                if t and t.get("id"):
+                    existing.add(t["id"])
+            results = self._sp.next(results) if results.get("next") else None
+        new_ids = [tid for tid in track_ids if tid not in existing]
+        for i in range(0, len(new_ids), 100):
+            self._sp.playlist_add_items(playlist_id, new_ids[i : i + 100])
+        pl = self._sp.playlist(playlist_id, fields="external_urls")
+        return pl["external_urls"]["spotify"], len(new_ids)
 
     def _parse_track(self, t: dict) -> dict:
         album = t.get("album", {})

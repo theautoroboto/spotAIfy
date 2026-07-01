@@ -1,5 +1,4 @@
 env/
-.venv/
 __pycache__/
 *.pyc
 *.pyo
@@ -17,13 +16,5 @@ data/history/**/*.json
 
 /learning/*
 data/cache/*
-data/graph/*
 
 data/history/*/*.json
-data/history/*.pdf
-data/backup/*
-
-*.db
-*.sqlite
-start-dev.bat
-docs/launch_server.py

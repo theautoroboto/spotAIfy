@@ -5,20 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light">
   <title>spotAIfy{{if .Title}} — {{.Title}}{{end}}</title>
-  <link rel="icon" type="image/png" href="/static/icon.png">
-  <link rel="apple-touch-icon" href="/static/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
-  <meta name="csrf-token" content="{{.CSRFToken}}">
-  <script nonce="{{.Nonce}}">(function(){var t=localStorage.getItem('spotaify-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);})()</script>
+  <script>(function(){var t=localStorage.getItem('spotaify-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);})()</script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
 </head>
 <body>
   <header>
-    <a href="/" class="logo">spotAIfy</a>
+    <a href="/" class="logo">spot<span class="logo-ai">AI</span>fy</a>
     <nav>
-      <div class="theme-switcher" id="theme-switcher" role="group" aria-label="Color theme">
-        <button class="theme-btn" data-t="light" aria-pressed="false">Light</button>
-        <button class="theme-btn" data-t="dark" aria-pressed="false">Dark</button>
-        <button class="theme-btn" data-t="system" aria-pressed="false">System</button>
+      <div class="theme-toggle">
+        <button class="theme-btn-icon" id="theme-toggle-btn" onclick="cycleTheme()" aria-label="Toggle color theme">
+          <!-- sun — light mode -->
+          <svg class="icon-light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <!-- moon — dark mode -->
+          <svg class="icon-dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <!-- monitor — system mode -->
+          <svg class="icon-system" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </button>
       </div>
       {{if .Username}}
       <span class="user">{{.Username}}</span>
@@ -26,11 +39,10 @@
         <a href="/spotify/connect" class="btn btn-sm btn-spotify">Connect Spotify</a>
       {{else}}
         <span class="badge-spotify">Spotify ✓</span>
-        <a href="/" class="nav-link">Home</a>
-        <a href="/profile" class="nav-link">Profile</a>
+        <a href="/" class="nav-link{{if eq .Page "home"}} nav-link-active{{end}}">Home</a>
+        <a href="/profile" class="nav-link{{if eq .Page "profile"}} nav-link-active{{end}}">Profile</a>
       {{end}}
       <form method="POST" action="/logout" style="display:inline">
-        <input type="hidden" name="_csrf" value="{{.CSRFToken}}">
         <button type="submit" class="btn btn-sm btn-ghost">Log out</button>
       </form>
       {{end}}
@@ -39,23 +51,31 @@
   <main>
     {{block "content" .}}{{end}}
   </main>
-  <script nonce="{{.Nonce}}">
+  <script>
+    var _themeOrder = ['system', 'light', 'dark'];
+    function _applyThemeIcon(t) {
+      var btn = document.getElementById('theme-toggle-btn');
+      if (!btn) return;
+      btn.classList.remove('t-light', 't-dark', 't-system');
+      btn.classList.add('t-' + t);
+      var labels = { light: 'Theme: Light', dark: 'Theme: Dark', system: 'Theme: System' };
+      btn.setAttribute('aria-label', labels[t] || 'Toggle color theme');
+    }
     function setTheme(t) {
       localStorage.setItem('spotaify-theme', t);
       if (t === 'system') document.documentElement.removeAttribute('data-theme');
       else document.documentElement.setAttribute('data-theme', t);
-      document.querySelectorAll('.theme-btn').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.t === t);
-        b.setAttribute('aria-pressed', b.dataset.t === t ? 'true' : 'false');
-      });
+      _applyThemeIcon(t);
+    }
+    function cycleTheme() {
+      var current = localStorage.getItem('spotaify-theme') || 'system';
+      var idx = _themeOrder.indexOf(current);
+      var next = _themeOrder[(idx + 1) % _themeOrder.length];
+      setTheme(next);
     }
     (function() {
       var saved = localStorage.getItem('spotaify-theme') || 'system';
-      document.querySelectorAll('.theme-btn').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.t === saved);
-        b.setAttribute('aria-pressed', b.dataset.t === saved ? 'true' : 'false');
-        b.addEventListener('click', function() { setTheme(b.dataset.t); });
-      });
+      _applyThemeIcon(saved);
     })();
   </script>
 </body>

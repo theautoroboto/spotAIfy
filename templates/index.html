@@ -23,64 +23,110 @@
       <fieldset class="mode-tabs">
         <legend class="sr-only">Mode</legend>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="sonic" checked>
+          <input type="radio" name="mode" value="sonic" checked onchange="switchMode(this.value)">
+          <svg class="mode-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 10v4M6 6v12M10 4v16M14 6v12M18 10v4M22 12v0"/>
+          </svg>
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Sonic</span>
             <span class="mode-tab-desc">Describe a mood or vibe</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="connection">
+          <input type="radio" name="mode" value="connection" onchange="switchMode(this.value)">
+          <svg class="mode-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Connection</span>
             <span class="mode-tab-desc">Explore an artist's network</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="dna">
+          <input type="radio" name="mode" value="dna" onchange="switchMode(this.value)">
+          <svg class="mode-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 15c6.667-6 13.333 0 20-6M2 9c6.667 6 13.333 0 20 6M7 11.5c0 0 2.5-1.5 5 0M12 15.5c2.5 1.5 5 0 5 0"/>
+          </svg>
           <span class="mode-tab-inner">
             <span class="mode-tab-label">DNA</span>
             <span class="mode-tab-desc">Map a track's sample lineage</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="rediscovery">
+          <input type="radio" name="mode" value="rediscovery" onchange="switchMode(this.value)">
+          <svg class="mode-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+          </svg>
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Rediscovery</span>
             <span class="mode-tab-desc">Revisit tracks you used to love</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="expand">
+          <input type="radio" name="mode" value="expand" onchange="switchMode(this.value)">
+          <svg class="mode-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+          </svg>
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Expand</span>
             <span class="mode-tab-desc">Discover music beyond your history</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="setlist">
+          <input type="radio" name="mode" value="setlist" onchange="switchMode(this.value)">
+          <svg class="mode-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
           <span class="mode-tab-inner">
             <span class="mode-tab-label">Setlist</span>
             <span class="mode-tab-desc">Build from an artist's live shows</span>
           </span>
         </label>
         <label class="mode-tab">
-          <input type="radio" name="mode" value="everyone">
+          <input type="radio" name="mode" value="liked" onchange="switchMode(this.value)">
+          <svg class="mode-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
           <span class="mode-tab-inner">
-            <span class="mode-tab-label">Everyone</span>
-            <span class="mode-tab-desc">Top songs from the whole household</span>
+            <span class="mode-tab-label">Liked Export</span>
+            <span class="mode-tab-desc">Export your liked songs to a playlist</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="enhance" onchange="switchMode(this.value)">
+          <svg class="mode-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+          </svg>
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Enhance</span>
+            <span class="mode-tab-desc">Extend an existing playlist</span>
+          </span>
+        </label>
+        <label class="mode-tab">
+          <input type="radio" name="mode" value="timeline" onchange="switchMode(this.value)">
+          <svg class="mode-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <circle cx="6" cy="12" r="2.5" fill="currentColor" stroke="none"/>
+            <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/>
+            <circle cx="18" cy="12" r="2.5" fill="currentColor" stroke="none"/>
+          </svg>
+          <span class="mode-tab-inner">
+            <span class="mode-tab-label">Timeline</span>
+            <span class="mode-tab-desc">Trace a genre's evolution</span>
           </span>
         </label>
       </fieldset>
 
-      <!-- ── User entries — right of the mode selector ── -->
-      <div class="form-main">
+      <div class="form-right">
 
       <!-- Sonic fields -->
       <div id="fields-sonic" class="mode-fields">
         <label for="prompt">Describe the playlist <span class="info-icon" data-tip="Natural language description of the sound you want — mood, genre, activity, or vibe." tabindex="0" aria-label="More info">?</span></label>
         <input id="prompt" name="prompt" type="text"
                placeholder="dark ambient for late-night coding" autocomplete="off">
+        <div class="prompt-hint">e.g. "upbeat 90s hip-hop", "rainy day jazz", "post-punk for a long drive"</div>
       </div>
 
       <!-- Connection fields -->
@@ -136,11 +182,63 @@
         <input id="min_plays" name="min_plays" type="number" value="3" min="1" max="20">
       </div>
 
-      <!-- Everyone fields -->
-      <div id="fields-everyone" class="mode-fields hidden">
-        <label for="per_user_count">Songs per person <span class="info-icon" data-tip="How many of each person's most-played songs to include. Duplicates shared between people are replaced by that person's next favourite, so everyone contributes this many unique tracks." tabindex="0" aria-label="More info">?</span></label>
-        <input id="per_user_count" name="per_user_count" type="number" value="100" min="10" max="100">
-        <p class="muted" style="font-size:0.8rem;margin:0.35rem 0 0">Combines the most-played tracks of everyone who has imported listening history into one shared playlist, alternating between people.</p>
+      <!-- Liked Export fields -->
+      <div id="fields-liked" class="mode-fields hidden">
+        <div class="row" style="gap:1.2rem; margin-bottom:0.5rem">
+          <label class="checkbox-label">
+            <input type="radio" name="liked_action" value="new" checked onchange="switchLikedAction('new')">
+            Create new playlist
+          </label>
+          <label class="checkbox-label">
+            <input type="radio" name="liked_action" value="update" onchange="switchLikedAction('update')">
+            Update existing playlist
+          </label>
+        </div>
+        <div id="liked-new-fields">
+          <label for="liked_name">Playlist name</label>
+          <input id="liked_name" name="liked_name" type="text" placeholder="My Liked Songs" autocomplete="off">
+          <label for="liked_description">Description <span class="muted">(optional)</span></label>
+          <input id="liked_description" name="liked_description" type="text" placeholder="Shared from my Spotify liked songs" autocomplete="off">
+          <label class="checkbox-label">
+            <input type="checkbox" name="liked_public"> Make playlist public
+            <span class="info-icon" data-tip="Public playlists are visible on your Spotify profile and anyone with the link can follow them." tabindex="0" aria-label="More info">?</span>
+          </label>
+        </div>
+        <div id="liked-update-fields" class="hidden">
+          <label for="liked_playlist_id">Choose playlist to update <span class="info-icon" data-tip="All tracks in this playlist will be replaced with your current liked songs." tabindex="0" aria-label="More info">?</span></label>
+          <select id="liked_playlist_id" name="liked_playlist_id">
+            <option value="">— select a playlist —</option>
+          </select>
+          <input type="hidden" id="liked_playlist_name" name="liked_playlist_name">
+          <div class="prompt-hint" id="liked-playlist-hint" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Timeline fields -->
+      <div id="fields-timeline" class="mode-fields hidden">
+        <label for="timeline_genre">Genre <span class="info-icon" data-tip="The genre or style to trace. Be specific — 'UK garage', 'Chicago house', 'British post-punk' work better than 'electronic' or 'rock'." tabindex="0" aria-label="More info">?</span></label>
+        <input id="timeline_genre" name="timeline_genre" type="text" placeholder="hip-hop" autocomplete="off">
+        <div style="display:flex;gap:0.75rem">
+          <div style="flex:1">
+            <label for="timeline_from">From</label>
+            <input id="timeline_from" name="timeline_from" type="number" value="1980" min="1950" max="2026">
+          </div>
+          <div style="flex:1">
+            <label for="timeline_to">To</label>
+            <input id="timeline_to" name="timeline_to" type="number" value="2020" min="1950" max="2026">
+          </div>
+        </div>
+        <div class="prompt-hint">e.g. "hip-hop 1985–2005", "ambient 1970–2000", "UK garage 1995–2003"</div>
+      </div>
+
+      <!-- Enhance fields -->
+      <div id="fields-enhance" class="mode-fields hidden">
+        <label for="enhance_playlist_id">Your playlist <span class="info-icon" data-tip="The agent will read this playlist's tracks, identify its vibe, and create a new extended playlist with similar tracks you haven't heard." tabindex="0" aria-label="More info">?</span></label>
+        <select id="enhance_playlist_id" name="enhance_playlist_id">
+          <option value="">— select a playlist —</option>
+        </select>
+        <input type="hidden" id="enhance_playlist_name" name="enhance_playlist_name">
+        <div class="prompt-hint" id="enhance-track-hint" style="display:none"></div>
       </div>
 
       <!-- Shared filters -->
@@ -155,8 +253,8 @@
             <label>Energy <span class="info-icon" data-tip="Audio energy from 0.0 (calm/quiet) to 1.0 (intense/loud)." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-energy-fill"></div></div>
-              <input type="range" class="dr-thumb" id="energy_min" name="energy_min" min="0" max="100" value="0" step="5" aria-label="Energy minimum">
-              <input type="range" class="dr-thumb" id="energy_max" name="energy_max" min="0" max="100" value="100" step="5" aria-label="Energy maximum">
+              <input type="range" class="dr-thumb" id="energy_min" name="energy_min" min="0" max="100" value="0" step="5" oninput="syncDR('energy',0,100,100)" aria-label="Energy minimum">
+              <input type="range" class="dr-thumb" id="energy_max" name="energy_max" min="0" max="100" value="100" step="5" oninput="syncDR('energy',0,100,100)" aria-label="Energy maximum">
               <div class="dr-vals"><span id="dr-energy-lo">0.00</span><span id="dr-energy-hi">1.00</span></div>
             </div>
           </div>
@@ -164,8 +262,8 @@
             <label>Valence <span class="info-icon" data-tip="Emotional positivity from 0.0 (dark/sad) to 1.0 (bright/happy)." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-valence-fill"></div></div>
-              <input type="range" class="dr-thumb" id="valence_min" name="valence_min" min="0" max="100" value="0" step="5" aria-label="Valence minimum">
-              <input type="range" class="dr-thumb" id="valence_max" name="valence_max" min="0" max="100" value="100" step="5" aria-label="Valence maximum">
+              <input type="range" class="dr-thumb" id="valence_min" name="valence_min" min="0" max="100" value="0" step="5" oninput="syncDR('valence',0,100,100)" aria-label="Valence minimum">
+              <input type="range" class="dr-thumb" id="valence_max" name="valence_max" min="0" max="100" value="100" step="5" oninput="syncDR('valence',0,100,100)" aria-label="Valence maximum">
               <div class="dr-vals"><span id="dr-valence-lo">0.00</span><span id="dr-valence-hi">1.00</span></div>
             </div>
           </div>
@@ -173,8 +271,8 @@
             <label>Tempo BPM <span class="info-icon" data-tip="Beats per minute. E.g. 120–140 for dance, 60–80 for ballads." tabindex="0" aria-label="More info">?</span></label>
             <div class="dual-range">
               <div class="dr-track"><div class="dr-fill" id="dr-tempo-fill"></div></div>
-              <input type="range" class="dr-thumb" id="tempo_min" name="tempo_min" min="40" max="300" value="40" step="1" aria-label="Tempo minimum BPM">
-              <input type="range" class="dr-thumb" id="tempo_max" name="tempo_max" min="40" max="300" value="300" step="1" aria-label="Tempo maximum BPM">
+              <input type="range" class="dr-thumb" id="tempo_min" name="tempo_min" min="40" max="300" value="40" step="1" oninput="syncDR('tempo',40,300,0)" aria-label="Tempo minimum BPM">
+              <input type="range" class="dr-thumb" id="tempo_max" name="tempo_max" min="40" max="300" value="300" step="1" oninput="syncDR('tempo',40,300,0)" aria-label="Tempo maximum BPM">
               <div class="dr-vals"><span id="dr-tempo-lo">40</span><span id="dr-tempo-hi">300</span></div>
             </div>
           </div>
@@ -185,9 +283,9 @@
               {{if not .SpotifyLinked}}disabled title="Connect Spotify first"{{end}}>
         Generate playlist
       </button>
-      <button id="cancel-btn" type="button" class="btn btn-ghost btn-full" style="display:none">Stop</button>
+      <button id="cancel-btn" type="button" class="btn btn-ghost btn-full" style="display:none" onclick="cancelRun()">Stop</button>
 
-      </div><!-- /.form-main -->
+      </div><!-- /.form-right -->
     </form>
   </section>
 
@@ -195,13 +293,14 @@
   <section class="output-panel">
     <div class="output-header">
       <span>Agent output <span id="run-dot" class="run-dot hidden"></span></span>
-      <button id="clear-btn" class="btn btn-sm btn-ghost" style="display:none">Clear</button>
+      <button id="clear-btn" class="btn btn-sm btn-ghost" onclick="clearOutput()" style="display:none">Clear</button>
     </div>
     <div id="output" class="output-log" aria-live="polite">
       <div class="output-empty">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.5rem;opacity:0.4">
-          <circle cx="9" cy="21" r="1"/><circle cx="15" cy="21" r="1"/>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/>
+          <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
         </svg>
         Output will appear here once the agent starts.
       </div>
@@ -213,43 +312,115 @@
 <div id="history-panel" class="history-panel hidden">
   <div class="history-header">
     <span>History</span>
-    <button type="button" id="history-clear-btn" class="btn btn-sm btn-ghost">Clear</button>
+    <button type="button" class="btn btn-sm btn-ghost" onclick="clearHistory()">Clear</button>
   </div>
   <div id="history-list"></div>
 </div>
 
-<script nonce="{{.Nonce}}">
-const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-// CSP forbids inline handlers — all events are bound here.
-document.querySelectorAll('input[name="mode"]').forEach((radio) => {
-  radio.addEventListener('change', () => switchMode(radio.value));
-});
-[['energy', 0, 100, 100], ['valence', 0, 100, 100], ['tempo', 40, 300, 0]].forEach(([key, min, max, scale]) => {
-  ['min', 'max'].forEach((end) => {
-    document.getElementById(key + '_' + end).addEventListener('input', () => syncDR(key, min, max, scale));
-  });
-});
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('cancel-btn').addEventListener('click', cancelRun);
-  document.getElementById('clear-btn').addEventListener('click', clearOutput);
-  document.getElementById('history-clear-btn').addEventListener('click', clearHistory);
-});
-
+<script>
 function switchMode(mode) {
   document.querySelectorAll('.mode-fields').forEach(el => el.classList.add('hidden'));
   const next = document.getElementById('fields-' + mode);
   next.classList.remove('hidden');
   next.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
-  document.querySelector('.filters').classList.toggle('hidden', mode === 'dna' || mode === 'setlist' || mode === 'everyone');
+  const noFilters = mode === 'dna' || mode === 'setlist' || mode === 'liked';
+  document.querySelector('.filters').classList.toggle('hidden', noFilters);
   document.querySelectorAll('.audio-filter').forEach(el =>
-    el.classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery' || mode === 'expand' || mode === 'setlist' || mode === 'everyone'));
+    el.classList.toggle('hidden', mode === 'dna' || mode === 'rediscovery' || mode === 'expand' || mode === 'setlist' || mode === 'liked' || mode === 'timeline'));
+  if (mode === 'enhance') loadPlaylists();
 }
+
+// ── Playlist picker (shared cache, used by Enhance + Liked Export) ────────────
+var _playlistsData = null;
+var _enhancePlaylistsLoaded = false;
+var _likedPlaylistsLoaded = false;
+
+async function _fetchPlaylists() {
+  if (_playlistsData !== null) return _playlistsData;
+  const r = await fetch('/playlists');
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  _playlistsData = await r.json();
+  return _playlistsData;
+}
+
+function _fillPlaylistSelect(sel, playlists) {
+  sel.innerHTML = '<option value="">— select a playlist —</option>';
+  (playlists || []).forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.dataset.name = p.name;
+    opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+}
+
+async function loadPlaylists() {
+  if (_enhancePlaylistsLoaded) return;
+  const sel = document.getElementById('enhance_playlist_id');
+  sel.innerHTML = '<option value="">Loading your playlists…</option>';
+  sel.disabled = true;
+  try {
+    _fillPlaylistSelect(sel, await _fetchPlaylists());
+    _enhancePlaylistsLoaded = true;
+  } catch(e) {
+    sel.innerHTML = '<option value="">— failed to load playlists —</option>';
+  }
+  sel.disabled = false;
+}
+
+async function loadLikedPlaylists() {
+  if (_likedPlaylistsLoaded) return;
+  const sel = document.getElementById('liked_playlist_id');
+  sel.innerHTML = '<option value="">Loading your playlists…</option>';
+  sel.disabled = true;
+  try {
+    _fillPlaylistSelect(sel, await _fetchPlaylists());
+    _likedPlaylistsLoaded = true;
+  } catch(e) {
+    sel.innerHTML = '<option value="">— failed to load playlists —</option>';
+  }
+  sel.disabled = false;
+}
+
+function switchLikedAction(action) {
+  document.getElementById('liked-new-fields').classList.toggle('hidden', action !== 'new');
+  document.getElementById('liked-update-fields').classList.toggle('hidden', action !== 'update');
+  if (action === 'update') loadLikedPlaylists();
+}
+
+document.getElementById('enhance_playlist_id').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  const hint = document.getElementById('enhance-track-hint');
+  const nameField = document.getElementById('enhance_playlist_name');
+  if (opt.value) {
+    nameField.value = opt.dataset.name || '';
+    hint.textContent = 'The agent will analyze this playlist\'s vibe and build an extended companion playlist.';
+    hint.style.display = '';
+  } else {
+    nameField.value = '';
+    hint.style.display = 'none';
+  }
+});
+
+document.getElementById('liked_playlist_id').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  const hint = document.getElementById('liked-playlist-hint');
+  const nameField = document.getElementById('liked_playlist_name');
+  if (opt.value) {
+    nameField.value = opt.dataset.name || '';
+    hint.textContent = 'Liked songs not already in this playlist will be added. Existing songs are kept.';
+    hint.style.display = '';
+  } else {
+    nameField.value = '';
+    hint.style.display = 'none';
+  }
+});
 
 function clearOutput() {
   const out = document.getElementById('output');
   const empty = document.createElement('div');
   empty.className = 'output-empty';
-  empty.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.5rem;opacity:0.4"><circle cx="9" cy="21" r="1"/><circle cx="15" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Output will appear here once the agent starts.';
+  empty.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.5rem;opacity:0.4"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>Output will appear here once the agent starts.';
   out.innerHTML = '';
   out.appendChild(empty);
   document.getElementById('clear-btn').style.display = 'none';
@@ -292,6 +463,12 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
   if (mode === 'connection' && !document.getElementById('artist').value.trim()) { _shakeField('artist'); return; }
   if (mode === 'dna' && !document.getElementById('dna_track').value.trim()) { _shakeField('dna_track'); return; }
   if (mode === 'setlist' && !document.getElementById('setlist_artist').value.trim()) { _shakeField('setlist_artist'); return; }
+  if (mode === 'enhance' && !document.getElementById('enhance_playlist_id').value) { _shakeField('enhance_playlist_id'); return; }
+  if (mode === 'timeline' && !document.getElementById('timeline_genre').value.trim()) { _shakeField('timeline_genre'); return; }
+  if (mode === 'liked') {
+    const action = document.querySelector('input[name="liked_action"]:checked')?.value || 'new';
+    if (action === 'update' && !document.getElementById('liked_playlist_id').value) { _shakeField('liked_playlist_id'); return; }
+  }
   if (activeSource) { activeSource.close(); activeSource = null; }
 
   const btn = document.getElementById('run-btn');
@@ -316,6 +493,8 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
   }
 
   const data = new FormData(e.target);
+  const runLabel = _histLabel(data);
+  const runParams = _collectFormParams();
   const runLines = [];
   const eMin = parseInt(data.get('energy_min')||'0'), eMax = parseInt(data.get('energy_max')||'100');
   data.delete('energy_min'); data.delete('energy_max');
@@ -331,7 +510,7 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
 
   let resp;
   try {
-    resp = await fetch('/run', { method: 'POST', headers: { 'X-CSRF-Token': csrfToken }, body: new URLSearchParams(data) });
+    resp = await fetch('/run', { method: 'POST', body: new URLSearchParams(data) });
   } catch (err) {
     appendLine(out, '[error] Network error: ' + err.message, 'err');
     btn.disabled = false; btn.textContent = 'Generate playlist';
@@ -373,8 +552,7 @@ document.getElementById('run-form').addEventListener('submit', async (e) => {
     document.querySelector('.output-panel').classList.remove('running');
     document.getElementById('run-dot').classList.add('hidden');
     document.getElementById('clear-btn').style.display = '';
-    // The server persists run history itself; just refresh the panel.
-    _renderHistory();
+    if (runLines.length > 0) _saveHistory(runLabel, runLines, runParams);
   };
   es.addEventListener('done', onDone);
   es.onerror = () => {
@@ -390,14 +568,42 @@ async function cancelRun() {
   if (!currentRunId) return;
   const cancelBtn = document.getElementById('cancel-btn');
   cancelBtn.disabled = true; cancelBtn.textContent = 'Stopping…';
-  await fetch('/run/' + currentRunId, { method: 'DELETE', headers: { 'X-CSRF-Token': csrfToken } }).catch(() => {});
+  await fetch('/run/' + currentRunId, { method: 'DELETE' }).catch(() => {});
 }
 
 // ── History ──────────────────────────────────────────────────────────────────
 
+function _histLabel(data) {
+  const mode = data.get('mode');
+  if (mode === 'dna') return `DNA: "${data.get('dna_track') || ''}"`;
+  if (mode === 'connection') return `Connection: "${data.get('artist') || ''}"`;
+  if (mode === 'rediscovery') return 'Rediscovery';
+  if (mode === 'expand') return 'Expand: horizon discovery';
+  if (mode === 'setlist') return `Setlist: "${data.get('setlist_artist') || ''}"`;
+  if (mode === 'liked') {
+    if (data.get('liked_action') === 'update') return `Liked Export → "${data.get('liked_playlist_name') || 'existing playlist'}"`;
+    return `Liked Export: "${data.get('liked_name') || 'My Liked Songs'}"`;
+  }
+  if (mode === 'enhance') return `Enhance: "${data.get('enhance_playlist_name') || data.get('enhance_playlist_id') || 'playlist'}"`;
+  if (mode === 'timeline') return `Timeline: ${data.get('timeline_genre') || ''} ${data.get('timeline_from') || ''}–${data.get('timeline_to') || ''}`;
+  const p = (data.get('prompt') || '').trim();
+  return p ? `Sonic: "${p}"` : 'Sonic run';
+}
+
+async function _saveHistory(label, lines, params) {
+  try {
+    await fetch('/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label, lines: lines.slice(0, 100), params: params || null }),
+    });
+  } catch(e) {}
+  _renderHistory();
+}
+
 async function clearHistory() {
   try {
-    await fetch('/history', { method: 'DELETE', headers: { 'X-CSRF-Token': csrfToken } });
+    await fetch('/history', { method: 'DELETE' });
   } catch(e) {}
   _renderHistory();
 }
@@ -435,6 +641,14 @@ async function _renderHistory() {
       linkEl.onclick = e => e.stopPropagation();
       s.appendChild(linkEl);
     }
+    if (run.params && Object.keys(run.params).length > 0) {
+      const rerunBtn = document.createElement('button');
+      rerunBtn.type = 'button';
+      rerunBtn.className = 'btn btn-sm btn-ghost';
+      rerunBtn.textContent = 'Re-run';
+      rerunBtn.onclick = (e) => { e.stopPropagation(); _rerun(run.params); };
+      s.appendChild(rerunBtn);
+    }
     const c = document.createElement('div');
     c.className = 'history-content output-log';
     (run.lines || []).forEach(line => {
@@ -450,6 +664,14 @@ async function _renderHistory() {
 
 _renderHistory();
 
+// Pre-select mode from ?mode= URL param (e.g. linked from profile page).
+(function() {
+  const preset = new URLSearchParams(window.location.search).get('mode');
+  if (!preset) return;
+  const radio = document.querySelector(`input[name="mode"][value="${CSS.escape(preset)}"]`);
+  if (radio) { radio.checked = true; switchMode(preset); }
+})();
+
 function appendLine(container, text, cls) {
   const el = document.createElement('div');
   el.className = 'log-line' + (cls ? ' ' + cls : '');
@@ -461,10 +683,120 @@ function appendLine(container, text, cls) {
     a.href = m[2]; a.textContent = 'Open playlist';
     a.target = '_blank'; a.rel = 'noopener'; a.className = 'playlist-link';
     el.appendChild(a);
+    container.appendChild(el);
+    const pidMatch = m[2].match(/playlist\/([A-Za-z0-9]+)/);
+    if (pidMatch) _loadPreview(container, pidMatch[1]);
+    return;
   } else {
     el.textContent = text;
   }
   container.appendChild(el);
+}
+
+async function _loadPreview(container, playlistId) {
+  const loader = document.createElement('div');
+  loader.className = 'preview-loading';
+  loader.textContent = 'Loading preview…';
+  container.appendChild(loader);
+  try {
+    const r = await fetch('/preview?id=' + encodeURIComponent(playlistId));
+    loader.remove();
+    if (!r.ok) return;
+    const tracks = await r.json();
+    if (!tracks || tracks.length === 0) return;
+    const list = document.createElement('div');
+    list.className = 'preview-list';
+    tracks.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'preview-row';
+      if (t.image_url) {
+        const img = document.createElement('img');
+        img.src = t.image_url; img.className = 'preview-img'; img.alt = '';
+        row.appendChild(img);
+      }
+      const info = document.createElement('div');
+      info.className = 'preview-info';
+      const title = document.createElement('div');
+      title.className = 'preview-title'; title.textContent = t.title;
+      const artist = document.createElement('div');
+      artist.className = 'preview-artist'; artist.textContent = t.artist;
+      info.appendChild(title); info.appendChild(artist);
+      row.appendChild(info);
+      list.appendChild(row);
+    });
+    container.appendChild(list);
+  } catch(e) {
+    loader.remove();
+  }
+}
+
+function _collectFormParams() {
+  const form = document.getElementById('run-form');
+  const data = new FormData(form);
+  return {
+    mode:                data.get('mode') || 'sonic',
+    prompt:              data.get('prompt') || '',
+    artist:              data.get('artist') || '',
+    depth:               data.get('depth') || '2',
+    new_only:            data.get('new_only') === 'on',
+    match_sound:         data.get('match_sound') === 'on',
+    dna_track:           data.get('dna_track') || '',
+    dna_artist:          data.get('dna_artist') || '',
+    setlist_artist:      data.get('setlist_artist') || '',
+    setlist_pages:       data.get('setlist_pages') || '3',
+    expand_year:         data.get('expand_year') || 'all',
+    stale_days:          data.get('stale_days') || '90',
+    min_plays:           data.get('min_plays') || '3',
+    liked_action:        data.get('liked_action') || 'new',
+    liked_name:          data.get('liked_name') || '',
+    liked_description:   data.get('liked_description') || '',
+    liked_public:        data.get('liked_public') === 'on',
+    liked_playlist_id:   data.get('liked_playlist_id') || '',
+    liked_playlist_name: data.get('liked_playlist_name') || '',
+    enhance_playlist_id:   data.get('enhance_playlist_id') || '',
+    enhance_playlist_name: data.get('enhance_playlist_name') || '',
+    timeline_genre: data.get('timeline_genre') || '',
+    timeline_from:  data.get('timeline_from') || '1980',
+    timeline_to:    data.get('timeline_to') || '2020',
+    count:       data.get('count') || '20',
+    energy_min:  data.get('energy_min') || '0',
+    energy_max:  data.get('energy_max') || '100',
+    valence_min: data.get('valence_min') || '0',
+    valence_max: data.get('valence_max') || '100',
+    tempo_min:   data.get('tempo_min') || '40',
+    tempo_max:   data.get('tempo_max') || '300',
+  };
+}
+
+function _rerun(params) {
+  if (!params) return;
+  const mode = params.mode || 'sonic';
+  const radio = document.querySelector('input[name="mode"][value="' + mode + '"]');
+  if (radio) { radio.checked = true; switchMode(mode); }
+  const _set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+  const _check = (name, val) => { const el = document.querySelector('[name="' + name + '"]'); if (el) el.checked = !!val; };
+  _set('prompt', params.prompt);
+  _set('artist', params.artist);
+  _set('depth', params.depth);
+  _check('new_only', params.new_only);
+  _check('match_sound', params.match_sound);
+  _set('dna_track', params.dna_track);
+  _set('dna_artist', params.dna_artist);
+  _set('setlist_artist', params.setlist_artist);
+  _set('setlist_pages', params.setlist_pages);
+  _set('expand_year', params.expand_year);
+  _set('stale_days', params.stale_days);
+  _set('min_plays', params.min_plays);
+  const likedRadio = document.querySelector('input[name="liked_action"][value="' + (params.liked_action || 'new') + '"]');
+  if (likedRadio) { likedRadio.checked = true; switchLikedAction(params.liked_action || 'new'); }
+  _set('liked_name', params.liked_name);
+  _set('liked_description', params.liked_description);
+  _check('liked_public', params.liked_public);
+  _set('timeline_genre', params.timeline_genre);
+  _set('timeline_from', params.timeline_from);
+  _set('timeline_to', params.timeline_to);
+  _set('count', params.count);
+  document.querySelector('.form-panel').scrollIntoView({ behavior: 'smooth' });
 }
 </script>
 {{end}}

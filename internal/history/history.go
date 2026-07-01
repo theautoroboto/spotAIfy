@@ -31,10 +31,10 @@ type TrackStats struct {
 	TrackID         string
 	TrackName       string
 	ArtistName      string
-	PlayCount       int   // non-skipped plays only
-	MsPlayedTotal   int64 // listening time from non-skipped plays only
+	PlayCount       int
+	MsPlayedTotal   int64
 	CompletionCount int
-	SkipCount       int // skipped plays (not included in PlayCount)
+	SkipCount       int
 	LastPlayedAt    time.Time
 	// Enriched by Spotify API after load:
 	ImageURL   string
@@ -100,10 +100,8 @@ type Stats struct {
 	EarliestPlay      time.Time
 	LatestPlay        time.Time
 	TopTracks         []*TrackStats  // sorted by MsPlayedTotal desc, capped at 50
-	TopSkipped        []*TrackStats  // sorted by SkipCount desc, capped at 10
 	TopArtists        []*ArtistStats // sorted by MsPlayedTotal desc, capped at 20
 	HourlyPattern     [24]int        // play events by hour-of-day (local timezone)
-	WeekPattern       [7][24]int     // play events by weekday (0=Sunday) × hour-of-day
 	YearlyTrend       []*YearStats   // sorted by year asc
 }
 
@@ -124,10 +122,7 @@ func Load(dir string) (*Stats, error) {
 	artistMap := map[string]*ArtistStats{}
 	yearMap   := map[int]*YearStats{}
 	var hourly [24]int
-	var weekly [7][24]int
 	var earliest, latest time.Time
-	var totalMsAll int64  // all listening incl. skipped plays — "hours listened"
-	var totalPlaysAll int // all plays incl. skipped — skip/completion rate denominator
 
 	// Per-year ms and play-count accumulators keyed by artist name / track ID.
 	yearArtistMs := map[int]map[string]int64{}
@@ -154,12 +149,6 @@ func Load(dir string) (*Stats, error) {
 			}
 			trackID := strings.TrimPrefix(r.TrackURI, "spotify:track:")
 			ts, _ := time.Parse(time.RFC3339, r.Ts)
-			// Skipped plays count toward skip metrics and overall activity,
-			// but never toward "top" rankings or listening-time totals of a
-			// track/artist.
-			skipped := r.Skipped != nil && *r.Skipped
-			totalMsAll += r.MsPlayed
-			totalPlaysAll++
 
 			// Track stats
 			tk := trackMap[trackID]
@@ -171,14 +160,13 @@ func Load(dir string) (*Stats, error) {
 				}
 				trackMap[trackID] = tk
 			}
-			if skipped {
+			tk.PlayCount++
+			tk.MsPlayedTotal += r.MsPlayed
+			if r.ReasonEnd == "trackdone" {
+				tk.CompletionCount++
+			}
+			if r.Skipped != nil && *r.Skipped {
 				tk.SkipCount++
-			} else {
-				tk.PlayCount++
-				tk.MsPlayedTotal += r.MsPlayed
-				if r.ReasonEnd == "trackdone" {
-					tk.CompletionCount++
-				}
 			}
 			if ts.After(tk.LastPlayedAt) {
 				tk.LastPlayedAt = ts
@@ -191,10 +179,8 @@ func Load(dir string) (*Stats, error) {
 				as = &ArtistStats{ArtistName: artist}
 				artistMap[artist] = as
 			}
-			if !skipped {
-				as.MsPlayedTotal += r.MsPlayed
-				as.PlayCount++
-			}
+			as.MsPlayedTotal += r.MsPlayed
+			as.PlayCount++
 
 			// Global timeline
 			if !ts.IsZero() {
@@ -204,9 +190,7 @@ func Load(dir string) (*Stats, error) {
 				if ts.After(latest) {
 					latest = ts
 				}
-				local := ts.Local()
-				hourly[local.Hour()]++
-				weekly[local.Weekday()][local.Hour()]++
+				hourly[ts.Local().Hour()]++
 
 				yr := ts.Year()
 				ys := yearMap[yr]
@@ -217,20 +201,17 @@ func Load(dir string) (*Stats, error) {
 				ys.PlayCount++
 				ys.MsPlayed += r.MsPlayed
 
-				// Per-year top-list accumulators — skips excluded, like the
-				// all-time rankings.
-				if !skipped {
-					if yearArtistMs[yr] == nil {
-						yearArtistMs[yr] = map[string]int64{}
-						yearArtistCt[yr] = map[string]int{}
-						yearTrackMs[yr]  = map[string]int64{}
-						yearTrackCt[yr]  = map[string]int{}
-					}
-					yearArtistMs[yr][artist] += r.MsPlayed
-					yearArtistCt[yr][artist]++
-					yearTrackMs[yr][trackID] += r.MsPlayed
-					yearTrackCt[yr][trackID]++
+				// Per-year accumulators
+				if yearArtistMs[yr] == nil {
+					yearArtistMs[yr] = map[string]int64{}
+					yearArtistCt[yr] = map[string]int{}
+					yearTrackMs[yr]  = map[string]int64{}
+					yearTrackCt[yr]  = map[string]int{}
 				}
+				yearArtistMs[yr][artist] += r.MsPlayed
+				yearArtistCt[yr][artist]++
+				yearTrackMs[yr][trackID] += r.MsPlayed
+				yearTrackCt[yr][trackID]++
 			}
 		}
 	}
@@ -242,17 +223,19 @@ func Load(dir string) (*Stats, error) {
 		}
 	}
 
-	// Overall skip/completion rates keep ALL plays in the denominator so the
-	// percentages stay honest; the ranking fields above already exclude skips.
-	var totalSkips, totalCompletions int
+	// Total ms played + overall skip rate (across all tracks before capping)
+	var totalMs int64
+	var totalPlays, totalSkips, totalCompletions int
 	for _, tk := range trackMap {
+		totalMs += tk.MsPlayedTotal
+		totalPlays += tk.PlayCount
 		totalSkips += tk.SkipCount
 		totalCompletions += tk.CompletionCount
 	}
 	skipPct, completionPct := 0, 0
-	if totalPlaysAll > 0 {
-		skipPct = int(float64(totalSkips) / float64(totalPlaysAll) * 100)
-		completionPct = int(float64(totalCompletions) / float64(totalPlaysAll) * 100)
+	if totalPlays > 0 {
+		skipPct = int(float64(totalSkips) / float64(totalPlays) * 100)
+		completionPct = int(float64(totalCompletions) / float64(totalPlays) * 100)
 	}
 
 	// Sort and cap top tracks (50)
@@ -265,23 +248,6 @@ func Load(dir string) (*Stats, error) {
 	})
 	if len(allTracks) > 50 {
 		allTracks = allTracks[:50]
-	}
-
-	// Sort and cap most-skipped tracks (10)
-	skipped := make([]*TrackStats, 0, len(trackMap))
-	for _, t := range trackMap {
-		if t.SkipCount > 0 {
-			skipped = append(skipped, t)
-		}
-	}
-	sort.Slice(skipped, func(i, j int) bool {
-		if skipped[i].SkipCount != skipped[j].SkipCount {
-			return skipped[i].SkipCount > skipped[j].SkipCount
-		}
-		return skipped[i].MsPlayedTotal > skipped[j].MsPlayedTotal
-	})
-	if len(skipped) > 10 {
-		skipped = skipped[:10]
 	}
 
 	// Sort and cap top artists (20)
@@ -366,7 +332,7 @@ func Load(dir string) (*Stats, error) {
 	})
 
 	return &Stats{
-		TotalMsPlayed:     totalMsAll,
+		TotalMsPlayed:     totalMs,
 		UniqueTrackCount:  len(trackMap),
 		UniqueArtistCount: len(artistMap),
 		SkipPct:           skipPct,
@@ -374,10 +340,8 @@ func Load(dir string) (*Stats, error) {
 		EarliestPlay:      earliest,
 		LatestPlay:        latest,
 		TopTracks:         allTracks,
-		TopSkipped:        skipped,
 		TopArtists:        allArtists,
 		HourlyPattern:     hourly,
-		WeekPattern:       weekly,
 		YearlyTrend:       allYears,
 	}, nil
 }

@@ -6,9 +6,6 @@ services:
     volumes:
       - spotaify-data:/data
       - ./data/history:/data/history:ro
-      # Persist API result caches (genius, whosampled) across container
-      # rebuilds and share them with host CLI runs.
-      - ./data/cache:/app/data/cache
     environment:
       DB_PATH: /data/spotaify.db
       GRAPH_DIR: /data/graph

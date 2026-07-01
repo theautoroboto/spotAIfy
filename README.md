@@ -2,9 +2,7 @@
 
 A local AI agent that generates Spotify playlists using Claude Sonnet. Runs as a web app (Go + Python) or as a CLI tool.
 
-![spotAIfy demo](docs/demo.gif)
-
-Seven playlist modes:
+Six playlist modes:
 
 | Mode | How it works |
 |------|-------------|
@@ -14,7 +12,6 @@ Seven playlist modes:
 | **Rediscovery** | Build a playlist from tracks you used to love but haven't played in a while |
 | **Expand** | Discover new music by traversing your top artists' connection graphs and Spotify's recommendation engine |
 | **Setlist** | Build a playlist from an artist's actual live repertoire, ranked by how often they play each song |
-| **Everyone** | Combine the most-played tracks from every household member's imported listening history into one shared playlist |
 
 ---
 
@@ -144,17 +141,15 @@ The history is loaded once per session on first use. The web app injects the log
 
 ### Web App
 
-**Development (Go server only):**
 ```bash
-go run ./cmd/web
+# Windows
+run.bat web
+
+# Mac/Linux
+./run.sh web
 ```
 
-**Full stack with Docker (recommended):**
-```bash
-docker compose up
-```
-
-Open http://localhost:8000. Create an account (credentials set via the `USERS` env var — see `.env.example`), connect your Spotify, and generate playlists from the browser. All seven modes are available from the UI.
+Open http://localhost:8000. Create an account (credentials set via the `USERS` env var), connect your Spotify, and generate playlists from the browser. All six modes are available from the UI.
 
 ### CLI
 
@@ -167,9 +162,6 @@ run.bat "upbeat funk" --energy 0.7-1.0 --valence 0.6-1.0
 run.bat --artist "Trent Reznor" --connections --new-only
 run.bat --artist "Nine Inch Nails" --connections --match-sound --depth 2
 
-# Bridge — find the path between two artists
-run.bat --connect "Radiohead" "Kendrick Lamar"
-
 # DNA — deep-dive a track's creative lineage
 run.bat --dna "Hurt" --dna-artist "Nine Inch Nails"
 run.bat --dna "Straight Outta Compton" --dna-artist "N.W.A"
@@ -179,13 +171,9 @@ run.bat --rediscovery --stale-days 120 --min-plays 5 --count 20
 
 # Expand — discover new music from your history
 run.bat --expand --count 20
-run.bat --expand --expand-year 2019 --count 20   # seed from a specific year
 
 # Setlist — live repertoire for an artist
 run.bat --setlist --setlist-artist "Radiohead" --setlist-pages 3
-
-# Everyone — combine top tracks from all users' imported history
-run.bat --everyone-top --per-user-count 50
 ```
 
 Direct invocation with uv:
@@ -243,18 +231,18 @@ If the seed artist in Connection mode cannot be found on MusicBrainz, the agent 
 
 ```
 spotAIfy/
-├── cmd/web/main.go            # Go web server — auth, SSE streaming, Spotify OAuth, profile page
+├── cmd/web/main.go            # Go web server — auth, SSE streaming, Spotify OAuth, profile backgrounds
 ├── internal/
 │   ├── ai/
 │   │   ├── persona.go         # Claude-powered listening persona generation
-│   │   └── background.go      # HF FLUX.1-schnell background + avatar generation
-│   ├── auth/auth.go           # Session auth, CSRF tokens, bcrypt user store, rate limiting
+│   │   └── background.go      # HF FLUX.1-schnell profile background generation
+│   ├── auth/auth.go           # Session auth + bcrypt user store
 │   ├── db/db.go               # SQLite — run history, tokens, persona cache
 │   ├── history/history.go     # Parses Spotify Extended Streaming History export
 │   └── spotify/               # Spotify API — profile, recommendations, audio features
 ├── spotaify/
 │   ├── agent.py               # Claude agent loop and CLI entrypoint
-│   ├── agent_tools.py         # All tools available to the agent
+│   ├── agent_tools.py         # All 16 tools available to the agent
 │   ├── config.py              # Credentials from .env / OS keychain
 │   ├── clients/
 │   │   ├── spotify_client.py  # Spotify API — search, recommendations, playlists
@@ -263,28 +251,23 @@ spotAIfy/
 │   │   └── setlistfm_client.py  # setlist.fm — live setlist data ranked by frequency
 │   └── core/
 │       ├── artist_graph.py    # MusicBrainz artist connection graph (BFS, disk-cached)
-│       ├── color_mood.py      # Maps audio features to hue/saturation for the profile aura
-│       ├── embeddings.py      # Track embedding utilities for audio similarity
-│       ├── frame_extractor.py # Extracts frames from Spotify history for ranking
-│       ├── history_importer.py # Imports and normalises Spotify history exports
-│       ├── history_profile.py # Per-track listening signals from history export
-│       ├── index.py           # Package index / re-exports
-│       ├── push.py            # Pushes finalised playlists to Spotify
+│       ├── history_profile.py # Parses Spotify history export → per-track listening signals
 │       ├── taste_profile.py   # Audio fingerprint and era distribution (disk-cached)
-│       └── track_dna.py       # MusicBrainz recording-level credits for DNA mode
+│       ├── track_dna.py       # MusicBrainz recording-level credits for DNA mode
+│       └── tf_scorer.py       # Keras scoring model (learning track — not yet wired in)
 ├── static/style.css           # UI styles — dark/light theme, dual-range sliders
 ├── templates/
 │   ├── base.html              # Layout shell
-│   ├── index.html             # Main playlist builder (seven modes, vertical tab nav)
+│   ├── index.html             # Main playlist builder (six modes, vertical tab nav)
 │   ├── profile.html           # Per-user listening stats, persona, AI-generated background
 │   └── login.html             # Login page
 ├── tests/                     # Pytest suite
 ├── data/
-│   ├── graph/                 # Cached MusicBrainz graphs (auto-created, gitignored)
+│   ├── graph/                 # Cached MusicBrainz graphs (auto-created)
 │   ├── history/               # Place Spotify Extended Streaming History files here
 │   └── cache/                 # Genius and taste-profile caches (auto-created)
-├── run.bat                    # Windows CLI launcher
-├── run.sh                     # Mac/Linux CLI launcher
+├── run.bat                    # Windows launcher
+├── run.sh                     # Mac/Linux launcher
 ├── pyproject.toml             # Project metadata and dependencies
 └── .env.example               # Environment variable template
 ```
@@ -311,7 +294,7 @@ spotAIfy/
 
 ### Agent turn budget
 
-The agent has a 25-turn limit (`_MAX_TURNS` in `agent.py`). At turn 21 a wrap-up nudge is injected to ensure `rank_and_select` and `create_spotify_playlist` are called before the budget runs out. Connection mode is the most expensive — keep `--depth` at 1 or 2.
+The agent has a 12-turn limit (`_MAX_TURNS` in `agent.py`). At turn 9 a wrap-up nudge is injected to ensure `rank_and_select` and `create_spotify_playlist` are called before the budget runs out. Connection mode is the most expensive — keep `--depth` at 1 or 2.
 
 ### Spotify audio features deprecation
 
@@ -347,5 +330,5 @@ conn.commit()
 ### Running tests
 
 ```bash
-uv run --extra dev pytest tests/
+uv run --with pytest --with pytest-mock pytest tests/
 ```

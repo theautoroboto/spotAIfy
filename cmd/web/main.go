@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -16,7 +17,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -30,11 +30,16 @@ import (
 
 // ── Run registry ─────────────────────────────────────────────────────────────
 
+// run holds all output produced by a Python agent subprocess. Lines are
+// accumulated in a replay slice so late-connecting or reconnecting SSE clients
+// get the full history. A notify channel is closed and replaced each time new
+// data arrives, letting consumers block without polling.
 type run struct {
-	username string
-	lines    chan string
-	done     chan struct{}
-	cancel   context.CancelFunc
+	cancel context.CancelFunc
+	mu     sync.Mutex
+	lines  []string     // all output lines ever produced (never removed)
+	isDone bool         // true once the producer goroutine has finished
+	notify chan struct{} // closed when new lines are appended or isDone is set
 }
 
 var (
@@ -42,13 +47,33 @@ var (
 	runs   = make(map[string]*run)
 )
 
-func newRun(username string, cancel context.CancelFunc) (string, *run) {
+func newRun(cancel context.CancelFunc) (string, *run) {
 	id := randomHex(16)
-	r := &run{username: username, lines: make(chan string, 256), done: make(chan struct{}), cancel: cancel}
+	r := &run{cancel: cancel, notify: make(chan struct{})}
 	runsMu.Lock()
 	runs[id] = r
 	runsMu.Unlock()
 	return id, r
+}
+
+// addLine appends a line and wakes up any waiting SSE consumers.
+func (r *run) addLine(line string) {
+	r.mu.Lock()
+	r.lines = append(r.lines, line)
+	old := r.notify
+	r.notify = make(chan struct{})
+	r.mu.Unlock()
+	close(old)
+}
+
+// finish marks the run complete and wakes up any waiting SSE consumers.
+func (r *run) finish() {
+	r.mu.Lock()
+	r.isDone = true
+	old := r.notify
+	r.notify = make(chan struct{})
+	r.mu.Unlock()
+	close(old)
 }
 
 func getRun(id string) (*run, bool) {
@@ -72,14 +97,6 @@ var tmplFuncs = template.FuncMap{
 	"add":        func(a, b int) int { return a + b },
 	"pct":        func(f float64) int { return int(f * 100) },
 	"paragraphs": func(s string) []string { return strings.Split(strings.TrimSpace(s), "\n\n") },
-	// heat maps a cell count to a CSS opacity for the week heatmap: zero
-	// stays faint, the busiest cell is fully opaque.
-	"heat": func(v, max int) string {
-		if v == 0 || max == 0 {
-			return "0.05"
-		}
-		return fmt.Sprintf("%.2f", 0.15+0.85*float64(v)/float64(max))
-	},
 }
 
 func loadTemplates() {
@@ -91,14 +108,11 @@ func loadTemplates() {
 	}
 }
 
-func render(w http.ResponseWriter, r *http.Request, name string, data map[string]any) {
+func render(w http.ResponseWriter, name string, data any) {
 	t, ok := tmpls[name]
 	if !ok {
 		http.Error(w, "unknown template: "+name, http.StatusInternalServerError)
 		return
-	}
-	if nonce, ok := r.Context().Value(nonceKey).(string); ok {
-		data["Nonce"] = nonce
 	}
 	if err := t.ExecuteTemplate(w, "base", data); err != nil {
 		log.Printf("template %s: %v", name, err)
@@ -122,12 +136,9 @@ func envOr(key, fallback string) string {
 }
 
 // realIP returns the client IP, preferring X-Forwarded-For set by Caddy.
-// Caddy appends the true client IP as the LAST entry; earlier entries are
-// client-supplied and spoofable, so never trust the first one.
 func realIP(r *http.Request) string {
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		parts := strings.Split(xff, ",")
-		if ip := strings.TrimSpace(parts[len(parts)-1]); ip != "" {
+		if ip := strings.TrimSpace(strings.SplitN(xff, ",", 2)[0]); ip != "" {
 			return ip
 		}
 	}
@@ -171,23 +182,15 @@ func (sw *statusWriter) Flush() {
 	}
 }
 
-// nonceKey carries the per-request CSP nonce through the request context.
-type ctxKey int
-
-const nonceKey ctxKey = 0
-
-// securityHeaders adds defensive HTTP headers to every response. Scripts are
-// allowed only with the per-request nonce — no unsafe-inline, no third-party
-// script hosts.
+// securityHeaders adds defensive HTTP headers to every response.
 func securityHeaders(next http.Handler) http.Handler {
+	const csp = "default-src 'self'; " +
+		"script-src 'self' 'unsafe-inline' https://unpkg.com; " +
+		"style-src 'self' 'unsafe-inline'; " +
+		"img-src 'self' data: https://*.scdn.co https://*.spotifycdn.com; " +
+		"connect-src 'self'; " +
+		"frame-ancestors 'none'"
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		nonce := randomHex(16)
-		csp := "default-src 'self'; " +
-			"script-src 'self' 'nonce-" + nonce + "'; " +
-			"style-src 'self' 'unsafe-inline'; " +
-			"img-src 'self' data: https://*.scdn.co https://*.spotifycdn.com; " +
-			"connect-src 'self'; " +
-			"frame-ancestors 'none'"
 		h := w.Header()
 		h.Set("X-Frame-Options", "DENY")
 		h.Set("X-Content-Type-Options", "nosniff")
@@ -195,7 +198,7 @@ func securityHeaders(next http.Handler) http.Handler {
 		h.Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
 		h.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 		h.Set("Content-Security-Policy", csp)
-		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), nonceKey, nonce)))
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -217,23 +220,23 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	render(w, r, "index.html", map[string]any{
+	render(w, "index.html", map[string]any{
+		"Page":          "home",
 		"Username":      username,
 		"SpotifyLinked": db.HasToken(username),
 		"ExpandYears":   expandYears,
-		"CSRFToken":     auth.CSRFToken(r),
 	})
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		render(w, r, "login.html", map[string]any{"Next": r.URL.Query().Get("next")})
+		render(w, "login.html", map[string]any{"Next": r.URL.Query().Get("next")})
 		return
 	}
 	next := safeNext(r.FormValue("next"))
 
 	if !auth.LoginAllowed(realIP(r)) {
-		render(w, r, "login.html", map[string]any{
+		render(w, "login.html", map[string]any{
 			"Error": "Too many login attempts. Please try again later.",
 			"Next":  next,
 		})
@@ -243,7 +246,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	username := strings.TrimSpace(r.FormValue("username"))
 	password := r.FormValue("password")
 	if !auth.CheckPassword(username, password) {
-		render(w, r, "login.html", map[string]any{"Error": "Invalid username or password.", "Next": next})
+		render(w, "login.html", map[string]any{"Error": "Invalid username or password.", "Next": next})
 		return
 	}
 	auth.SetSession(w, username)
@@ -251,10 +254,6 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleLogout(w http.ResponseWriter, r *http.Request) {
-	if !auth.ValidateCSRF(r) {
-		http.Error(w, "invalid CSRF token", http.StatusForbidden)
-		return
-	}
 	auth.ClearSession(w)
 	http.Redirect(w, r, "/login", http.StatusFound)
 }
@@ -318,6 +317,10 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 	// Get a fresh Spotify token and write a spotipy-compatible cache file.
 	accessToken, err := spotify.FreshToken(username)
 	if err != nil {
+		if errors.Is(err, spotify.ErrTokenExpired) {
+			http.Redirect(w, r, "/spotify/connect", http.StatusFound)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -327,37 +330,12 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !auth.ValidateCSRF(r) {
-		http.Error(w, "invalid CSRF token", http.StatusForbidden)
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
-	runID, run := newRun(username, cancel)
-	label := runLabel(r)
+	runID, run := newRun(cancel)
 
 	go func() {
-		// emit records every line server-side and forwards it to the live
-		// stream without blocking — if no browser is draining the channel,
-		// the line is still persisted and the agent never stalls on a full
-		// pipe.
-		var saved []string
-		emit := func(line string) {
-			saved = append(saved, line)
-			select {
-			case run.lines <- line:
-			default:
-			}
-		}
 		defer func() {
-			// Persist before close(run.done) so a history refresh triggered
-			// by the stream's done event already sees this run.
-			if len(saved) > 0 {
-				if err := db.InsertRun(username, label, saved); err != nil {
-					log.Printf("run[%s]: failed to save run history: %v", username, err)
-				}
-			}
-			close(run.done)
+			run.finish()
 			deleteRun(runID)
 			os.Remove(cachePath)
 			cancel()
@@ -374,27 +352,20 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
-			emit("[error] " + err.Error())
+			run.addLine("[error] " + err.Error())
 			return
 		}
 		if err := cmd.Start(); err != nil {
-			emit("[error] " + err.Error())
+			run.addLine("[error] " + err.Error())
 			return
 		}
 
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
-			emit(scanner.Text())
+			run.addLine(scanner.Text())
 		}
-		if err := cmd.Wait(); err != nil {
-			switch ctx.Err() {
-			case context.DeadlineExceeded:
-				emit("[error] run timed out after 20 minutes")
-			case context.Canceled:
-				emit("[error] run cancelled")
-			default:
-				emit("[error] agent exited: " + err.Error())
-			}
+		if err := cmd.Wait(); err != nil && ctx.Err() == nil {
+			run.addLine("[error] agent exited: " + err.Error())
 		}
 	}()
 
@@ -402,53 +373,15 @@ func handleRun(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"runId": runID})
 }
 
-// runLabel builds the run-history label from the submitted form, mirroring
-// the labels the UI previously generated client-side.
-func runLabel(r *http.Request) string {
-	switch r.FormValue("mode") {
-	case "connection":
-		if a := strings.TrimSpace(r.FormValue("artist")); a != "" {
-			return "Connection: " + a
-		}
-		return "Connection run"
-	case "dna":
-		if t := strings.TrimSpace(r.FormValue("dna_track")); t != "" {
-			return "DNA: " + t
-		}
-		return "DNA run"
-	case "rediscovery":
-		return "Rediscovery"
-	case "expand":
-		if y := r.FormValue("expand_year"); y != "" {
-			return "Expand: " + y
-		}
-		return "Expand run"
-	case "setlist":
-		if a := strings.TrimSpace(r.FormValue("setlist_artist")); a != "" {
-			return "Setlist: " + a
-		}
-		return "Setlist run"
-	case "everyone":
-		return "Everyone's Top Songs"
-	default:
-		if p := strings.TrimSpace(r.FormValue("prompt")); p != "" {
-			return `Sonic: "` + p + `"`
-		}
-		return "Sonic run"
-	}
-}
-
 // handleStream is the SSE endpoint. HTMX connects here after /run returns a runId.
+// Late-connecting or reconnecting browsers receive the full replay of all lines
+// produced so far, then stream live updates. A keepalive ping is sent every 20s
+// to prevent proxy and browser idle-connection timeouts during long API calls.
 func handleStream(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
 	run, ok := getRun(runID)
 	if !ok {
-		http.Error(w, "not found", http.StatusNotFound)
-		return
-	}
-	username, _ := auth.GetSession(r)
-	if run.username != username {
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, "run not found", http.StatusNotFound)
 		return
 	}
 
@@ -463,29 +396,37 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ticker := time.NewTicker(20 * time.Second)
+	defer ticker.Stop()
+
+	pos := 0
 	for {
-		select {
-		case line, open := <-run.lines:
-			if !open {
-				fmt.Fprintf(w, "event: done\ndata: \n\n")
-				flusher.Flush()
-				return
-			}
+		// Snapshot current state atomically so we don't miss lines added between
+		// the read and the wait.
+		run.mu.Lock()
+		newLines := append([]string(nil), run.lines[pos:]...)
+		isDone := run.isDone
+		notifyCh := run.notify
+		run.mu.Unlock()
+
+		for _, line := range newLines {
 			fmt.Fprintf(w, "data: %s\n\n", line)
 			flusher.Flush()
-		case <-run.done:
-			// Drain remaining lines.
-			for {
-				select {
-				case line := <-run.lines:
-					fmt.Fprintf(w, "data: %s\n\n", line)
-					flusher.Flush()
-				default:
-					fmt.Fprintf(w, "event: done\ndata: \n\n")
-					flusher.Flush()
-					return
-				}
-			}
+		}
+		pos += len(newLines)
+
+		if isDone {
+			fmt.Fprintf(w, "event: done\ndata: \n\n")
+			flusher.Flush()
+			return
+		}
+
+		select {
+		case <-notifyCh:
+			// new lines or run finished — loop to drain
+		case <-ticker.C:
+			fmt.Fprintf(w, ": ping\n\n")
+			flusher.Flush()
 		case <-r.Context().Done():
 			return
 		}
@@ -508,6 +449,10 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch Spotify API data for user info + metadata enrichment.
 	accessToken, spotifyErr := spotify.FreshToken(username)
+	if errors.Is(spotifyErr, spotify.ErrTokenExpired) {
+		http.Redirect(w, r, "/spotify/connect", http.StatusFound)
+		return
+	}
 	var pd *spotify.ProfileData
 	if spotifyErr == nil {
 		pd, _ = spotify.FetchProfileData(accessToken)
@@ -523,16 +468,9 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		log.Printf("profile[%s]: no top tracks in history, skipping enrichment", username)
 	}
 	if spotifyErr == nil && len(hist.TopTracks) > 0 {
-		ids := make([]string, 0, len(hist.TopTracks)+len(hist.TopSkipped))
-		seenIDs := map[string]bool{}
+		ids := make([]string, 0, len(hist.TopTracks))
 		for _, t := range hist.TopTracks {
 			ids = append(ids, t.TrackID)
-			seenIDs[t.TrackID] = true
-		}
-		for _, t := range hist.TopSkipped {
-			if !seenIDs[t.TrackID] {
-				ids = append(ids, t.TrackID)
-			}
 		}
 		trackMeta := spotify.FetchTracksMeta(accessToken, ids)
 		audioFeatures = spotify.FetchAudioFeaturesSummary(accessToken, ids)
@@ -548,13 +486,6 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 					artistIDByTrackID[t.TrackID] = m.ArtistID
 					uniqueArtistIDs[m.ArtistID] = struct{}{}
 				}
-			}
-		}
-
-		for _, t := range hist.TopSkipped {
-			if m, ok := trackMeta[t.TrackID]; ok {
-				t.ImageURL = m.ImageURL
-				t.SpotifyURL = m.SpotifyURL
 			}
 		}
 
@@ -719,59 +650,14 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Cache-busting timestamp for the background image URL. Using the file's
 	// mod-time ensures the browser fetches a fresh image whenever the file changes.
-	// Genre hours: attribute each enriched top artist's listening time to its
-	// primary genre — approximate, but the top artists dominate total hours.
-	type genreHours struct {
-		Genre  string
-		Hours  float64
-		BarPct int
-	}
-	byGenre := map[string]float64{}
-	for _, a := range hist.TopArtists {
-		if len(a.Genres) > 0 {
-			byGenre[a.Genres[0]] += a.HoursPlayed()
-		}
-	}
-	genreHrs := make([]genreHours, 0, len(byGenre))
-	for g, hrs := range byGenre {
-		genreHrs = append(genreHrs, genreHours{Genre: g, Hours: hrs})
-	}
-	sort.Slice(genreHrs, func(i, j int) bool { return genreHrs[i].Hours > genreHrs[j].Hours })
-	if len(genreHrs) > 8 {
-		genreHrs = genreHrs[:8]
-	}
-	if len(genreHrs) > 0 {
-		maxH := genreHrs[0].Hours
-		for i := range genreHrs {
-			genreHrs[i].BarPct = int(genreHrs[i].Hours * 100 / maxH)
-		}
-	}
-
-	// Busiest week-heatmap cell, for intensity normalization.
-	weekMax := 0
-	for _, day := range hist.WeekPattern {
-		for _, v := range day {
-			if v > weekMax {
-				weekMax = v
-			}
-		}
-	}
-
-	// When no cached image exists yet, fall back to the current time so the
-	// URL stays unique — reusing ?t=0 would let the browser serve a stale
-	// immutable-cached image from before the cache was cleared.
 	bgDir := envOr("BG_CACHE_DIR", "/data/backgrounds")
-	bgTimestamp := time.Now().Unix()
+	var bgTimestamp int64
 	if info, err := os.Stat(filepath.Join(bgDir, username+".jpg")); err == nil {
 		bgTimestamp = info.ModTime().Unix()
 	}
-	avatarDir := envOr("AVATAR_CACHE_DIR", "/data/avatars")
-	avatarTimestamp := time.Now().Unix()
-	if info, err := os.Stat(filepath.Join(avatarDir, username+".jpg")); err == nil {
-		avatarTimestamp = info.ModTime().Unix()
-	}
 
-	render(w, r, "profile.html", map[string]any{
+	render(w, "profile.html", map[string]any{
+		"Page":            "profile",
 		"Title":           "Profile",
 		"Username":        username,
 		"SpotifyLinked":   db.HasToken(username),
@@ -781,12 +667,7 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		"Aura":            aura,
 		"Recommendations": recommendations,
 		"Persona":         persona,
-		"GenreHours":      genreHrs,
-		"WeekHeatMax":     weekMax,
-		"DayNames":        []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"},
 		"BGTimestamp":     bgTimestamp,
-		"AvatarTimestamp": avatarTimestamp,
-		"CSRFToken":       auth.CSRFToken(r),
 	})
 }
 
@@ -814,25 +695,7 @@ func handleProfileBg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	imgBytes, err := ai.GenerateBackground(buildBackgroundInput(username))
-	if err != nil {
-		log.Printf("background: generation failed for %s: %v", username, err)
-		http.Error(w, "background generation failed", http.StatusServiceUnavailable)
-		return
-	}
-
-	if err := os.WriteFile(cachePath, imgBytes, 0o644); err != nil {
-		log.Printf("background: failed to cache for %s: %v", username, err)
-	}
-
-	w.Header().Set("Content-Type", "image/jpeg")
-	w.Header().Set("Cache-Control", "max-age=86400, immutable")
-	_, _ = io.Copy(w, bytes.NewReader(imgBytes))
-}
-
-// buildBackgroundInput gathers cached persona + history + aura for the image
-// generation prompts. Shared by the banner and avatar handlers.
-func buildBackgroundInput(username string) ai.BackgroundInput {
+	// Build generation inputs from cached persona + history + aura.
 	var inp ai.BackgroundInput
 
 	if cached, err := db.GetPersonaJSON(username); err == nil {
@@ -878,37 +741,16 @@ func buildBackgroundInput(username string) ai.BackgroundInput {
 	inp.Energy = aura.Energy
 	inp.Valence = aura.Valence
 	inp.Acoustic = aura.Acoustic
-	return inp
-}
 
-// handleProfileAvatar serves the persona-mood profile picture, generated once
-// and cached to /data/avatars/{username}.jpg — same pattern as the banner.
-func handleProfileAvatar(w http.ResponseWriter, r *http.Request) {
-	username, _ := auth.GetSession(r)
-
-	avatarDir := envOr("AVATAR_CACHE_DIR", "/data/avatars")
-	if err := os.MkdirAll(avatarDir, 0o755); err != nil {
-		http.Error(w, "cache dir error", http.StatusInternalServerError)
-		return
-	}
-	cachePath := filepath.Join(avatarDir, username+".jpg")
-
-	if img, err := os.ReadFile(cachePath); err == nil {
-		w.Header().Set("Content-Type", "image/jpeg")
-		w.Header().Set("Cache-Control", "max-age=3600")
-		_, _ = w.Write(img)
-		return
-	}
-
-	imgBytes, err := ai.GenerateAvatar(buildBackgroundInput(username))
+	imgBytes, err := ai.GenerateBackground(inp)
 	if err != nil {
-		log.Printf("avatar: generation failed for %s: %v", username, err)
-		http.Error(w, "avatar generation failed", http.StatusServiceUnavailable)
+		log.Printf("background: generation failed for %s: %v", username, err)
+		http.Error(w, "background generation failed", http.StatusServiceUnavailable)
 		return
 	}
 
 	if err := os.WriteFile(cachePath, imgBytes, 0o644); err != nil {
-		log.Printf("avatar: failed to cache for %s: %v", username, err)
+		log.Printf("background: failed to cache for %s: %v", username, err)
 	}
 
 	w.Header().Set("Content-Type", "image/jpeg")
@@ -932,11 +774,56 @@ func handleHistoryGet(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(runs)
 }
 
-func handleHistoryClear(w http.ResponseWriter, r *http.Request) {
-	if !auth.ValidateCSRF(r) {
-		http.Error(w, "invalid CSRF token", http.StatusForbidden)
+type saveRunReq struct {
+	Label  string          `json:"label"`
+	Lines  []string        `json:"lines"`
+	Params json.RawMessage `json:"params"`
+}
+
+func handleHistorySave(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+	var req saveRunReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
+	if err := db.InsertRun(username, req.Label, req.Lines, req.Params); err != nil {
+		http.Error(w, "db error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func handlePreview(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+	token, err := spotify.FreshToken(username)
+	if err != nil {
+		if errors.Is(err, spotify.ErrTokenExpired) {
+			http.Redirect(w, r, "/spotify/connect", http.StatusFound)
+			return
+		}
+		http.Error(w, "no spotify token", http.StatusBadRequest)
+		return
+	}
+	playlistID := strings.TrimSpace(r.URL.Query().Get("id"))
+	if playlistID == "" {
+		http.Error(w, "id required", http.StatusBadRequest)
+		return
+	}
+	tracks, err := spotify.FetchPlaylistPreview(token, playlistID, 20)
+	if err != nil {
+		log.Printf("handlePreview[%s]: %v", playlistID, err)
+		http.Error(w, "spotify error", http.StatusInternalServerError)
+		return
+	}
+	if tracks == nil {
+		tracks = []spotify.PreviewTrack{}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tracks)
+}
+
+func handleHistoryClear(w http.ResponseWriter, r *http.Request) {
 	username, _ := auth.GetSession(r)
 	if err := db.DeleteRuns(username); err != nil {
 		http.Error(w, "db error", http.StatusInternalServerError)
@@ -945,20 +832,35 @@ func handleHistoryClear(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func handleCancel(w http.ResponseWriter, r *http.Request) {
-	if !auth.ValidateCSRF(r) {
-		http.Error(w, "invalid CSRF token", http.StatusForbidden)
+// handlePlaylists returns the authenticated user's Spotify playlists as JSON.
+func handlePlaylists(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+	token, err := spotify.FreshToken(username)
+	if err != nil {
+		if errors.Is(err, spotify.ErrTokenExpired) {
+			http.Error(w, "spotify token expired", http.StatusUnauthorized)
+			return
+		}
+		http.Error(w, "no spotify token", http.StatusBadRequest)
 		return
 	}
+	playlists, err := spotify.FetchUserPlaylists(token)
+	if err != nil {
+		http.Error(w, "spotify error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if playlists == nil {
+		playlists = []spotify.UserPlaylist{}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(playlists)
+}
+
+func handleCancel(w http.ResponseWriter, r *http.Request) {
 	runID := r.PathValue("id")
 	run, ok := getRun(runID)
 	if !ok {
-		http.Error(w, "not found", http.StatusNotFound)
-		return
-	}
-	username, _ := auth.GetSession(r)
-	if run.username != username {
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, "run not found", http.StatusNotFound)
 		return
 	}
 	run.cancel()
@@ -971,6 +873,30 @@ func buildArgs(r *http.Request) []string {
 	var args []string
 
 	switch r.FormValue("mode") {
+	case "liked":
+		args = append(args, "--liked-export")
+		action := r.FormValue("liked_action")
+		if action == "update" {
+			if id := strings.TrimSpace(r.FormValue("liked_playlist_id")); id != "" {
+				args = append(args, "--liked-update-playlist", id)
+			}
+			if name := strings.TrimSpace(r.FormValue("liked_playlist_name")); name != "" {
+				args = append(args, "--liked-update-playlist-name", name)
+			}
+		} else {
+			name := strings.TrimSpace(r.FormValue("liked_name"))
+			if name == "" {
+				name = "My Liked Songs"
+			}
+			args = append(args, "--liked-name", name)
+			if r.FormValue("liked_public") == "on" {
+				args = append(args, "--liked-public")
+			}
+			if d := strings.TrimSpace(r.FormValue("liked_description")); d != "" {
+				args = append(args, "--liked-description", d)
+			}
+		}
+		return args // skip count/filter args — exports all liked songs
 	case "dna":
 		args = append(args, "--dna", r.FormValue("dna_track"))
 		if a := r.FormValue("dna_artist"); a != "" {
@@ -1000,6 +926,14 @@ func buildArgs(r *http.Request) []string {
 		if yr := r.FormValue("expand_year"); yr != "" && yr != "all" {
 			args = append(args, "--expand-year", yr)
 		}
+	case "enhance":
+		id := strings.TrimSpace(r.FormValue("enhance_playlist_id"))
+		if id != "" {
+			args = append(args, "--enhance-playlist", id)
+		}
+		if name := strings.TrimSpace(r.FormValue("enhance_playlist_name")); name != "" {
+			args = append(args, "--enhance-playlist-name", name)
+		}
 	case "rediscovery":
 		args = append(args, "--rediscovery")
 		if v := r.FormValue("stale_days"); v != "" {
@@ -1008,14 +942,17 @@ func buildArgs(r *http.Request) []string {
 		if v := r.FormValue("min_plays"); v != "" {
 			args = append(args, "--min-plays", v)
 		}
-	case "everyone":
-		args = append(args, "--everyone-top")
-		if v := r.FormValue("per_user_count"); v != "" {
-			args = append(args, "--per-user-count", v)
+	case "timeline":
+		args = append(args, "--timeline")
+		if g := strings.TrimSpace(r.FormValue("timeline_genre")); g != "" {
+			args = append(args, "--timeline-genre", g)
 		}
-		// Deterministic mode — the shared count/energy/valence/tempo filters
-		// don't apply.
-		return args
+		if v := r.FormValue("timeline_from"); v != "" {
+			args = append(args, "--timeline-from", v)
+		}
+		if v := r.FormValue("timeline_to"); v != "" {
+			args = append(args, "--timeline-to", v)
+		}
 	default: // sonic
 		if prompt := strings.TrimSpace(r.FormValue("prompt")); prompt != "" {
 			args = append(args, prompt)
@@ -1172,11 +1109,10 @@ func writeTokenCache(username, accessToken string) (string, error) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 func main() {
-	// Auth setup. Refuse to start without a real secret — a known default
-	// would let anyone forge session cookies.
-	secret := os.Getenv("SESSION_SECRET")
-	if secret == "" || secret == "dev-secret-change-me" {
-		log.Fatal("SESSION_SECRET is required — generate one with: openssl rand -hex 32")
+	// Auth setup.
+	secret := envOr("SESSION_SECRET", "dev-secret-change-me")
+	if secret == "dev-secret-change-me" {
+		log.Printf("WARNING: SESSION_SECRET is not set — using insecure default. Set it in your .env file.")
 	}
 	auth.SetSecret(secret)
 	auth.Users = auth.ParseUsers(os.Getenv("USERS"))
@@ -1205,9 +1141,6 @@ func main() {
 	mux.HandleFunc("GET /login", handleLogin)
 	mux.HandleFunc("POST /login", handleLogin)
 	mux.HandleFunc("GET /static/", func(w http.ResponseWriter, r *http.Request) {
-		// Always revalidate so deploys take effect immediately; unchanged files
-		// still answer 304 via Last-Modified.
-		w.Header().Set("Cache-Control", "no-cache")
 		http.StripPrefix("/static/", http.FileServer(http.Dir("static"))).ServeHTTP(w, r)
 	})
 
@@ -1222,9 +1155,11 @@ func main() {
 	protected.HandleFunc("DELETE /run/{id}", handleCancel)
 	protected.HandleFunc("GET /profile", handleProfile)
 	protected.HandleFunc("GET /profile/bg", handleProfileBg)
-	protected.HandleFunc("GET /profile/avatar", handleProfileAvatar)
 	protected.HandleFunc("GET /history", handleHistoryGet)
+	protected.HandleFunc("POST /history", handleHistorySave)
 	protected.HandleFunc("DELETE /history", handleHistoryClear)
+	protected.HandleFunc("GET /playlists", handlePlaylists)
+	protected.HandleFunc("GET /preview", handlePreview)
 
 	mux.Handle("/", auth.RequireAuth(protected))
 

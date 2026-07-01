@@ -413,6 +413,110 @@ func computeVibe(s *AudioFeaturesSummary) (label, emoji, desc string) {
 	}
 }
 
+// ── User playlists ────────────────────────────────────────────────────────────
+
+type UserPlaylist struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	TrackCount int    `json:"track_count"`
+	ImageURL   string `json:"image_url"`
+	Public     bool   `json:"public"`
+}
+
+// FetchUserPlaylists returns all playlists owned or followed by the user,
+// paging through the Spotify API until exhausted.
+func FetchUserPlaylists(token string) ([]UserPlaylist, error) {
+	const base = "https://api.spotify.com/v1"
+	var all []UserPlaylist
+	path := "/me/playlists?limit=50"
+	for path != "" {
+		var resp struct {
+			Items []struct {
+				ID     string    `json:"id"`
+				Name   string    `json:"name"`
+				Images []spImage `json:"images"`
+				Tracks struct {
+					Total int `json:"total"`
+				} `json:"tracks"`
+				Public *bool `json:"public"`
+			} `json:"items"`
+			Next string `json:"next"`
+		}
+		if err := spotifyGet(token, path, &resp); err != nil {
+			return nil, err
+		}
+		for i, item := range resp.Items {
+			if item.ID == "" || item.Name == "" {
+				continue
+			}
+			pub := false
+			if item.Public != nil {
+				pub = *item.Public
+			}
+			if len(all) == 0 && i < 3 {
+				log.Printf("[FetchUserPlaylists] item[%d]: id=%q name=%q tracks_total=%d", i, item.ID, item.Name, item.Tracks.Total)
+			}
+			all = append(all, UserPlaylist{
+				ID:         item.ID,
+				Name:       item.Name,
+				TrackCount: item.Tracks.Total,
+				ImageURL:   bestImage(item.Images),
+				Public:     pub,
+			})
+		}
+		if resp.Next == "" {
+			break
+		}
+		if strings.HasPrefix(resp.Next, base) {
+			path = resp.Next[len(base):]
+		} else {
+			break
+		}
+	}
+	return all, nil
+}
+
+// ── Playlist preview ──────────────────────────────────────────────────────────
+
+type PreviewTrack struct {
+	Title    string `json:"title"`
+	Artist   string `json:"artist"`
+	ImageURL string `json:"image_url"`
+}
+
+// FetchPlaylistPreview returns up to limit tracks from a playlist, with title,
+// artist, and album art — enough to render a compact preview list.
+func FetchPlaylistPreview(token, playlistID string, limit int) ([]PreviewTrack, error) {
+	if limit <= 0 || limit > 20 {
+		limit = 20
+	}
+	var resp struct {
+		Items []struct {
+			Track *spTrackItem `json:"track"`
+		} `json:"items"`
+	}
+	path := fmt.Sprintf("/playlists/%s/tracks?limit=%d", playlistID, limit)
+	if err := spotifyGet(token, path, &resp); err != nil {
+		return nil, err
+	}
+	var tracks []PreviewTrack
+	for _, item := range resp.Items {
+		if item.Track == nil || item.Track.Name == "" {
+			continue
+		}
+		artist := ""
+		if len(item.Track.Artists) > 0 {
+			artist = item.Track.Artists[0].Name
+		}
+		tracks = append(tracks, PreviewTrack{
+			Title:    item.Track.Name,
+			Artist:   artist,
+			ImageURL: bestImage(item.Track.Album.Images),
+		})
+	}
+	return tracks, nil
+}
+
 // ── Metadata enrichment ───────────────────────────────────────────────────────
 
 type TrackMeta struct {

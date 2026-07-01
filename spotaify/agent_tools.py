@@ -31,6 +31,14 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {
          "query": {"type": "string"}, "limit": {"type": "integer", "default": 10, "maximum": 10}},
          "required": ["query"]}},
+    {"name": "search_catalog_by_year",
+     "description": "Search the Spotify catalog filtered to a specific year range. Use specific artist and track names in genre_query for best results. Use this in Timeline mode to resolve a known track to its Spotify ID within an era.",
+     "input_schema": {"type": "object", "properties": {
+         "genre_query": {"type": "string", "description": "Search terms: artist name, track name, or genre keywords"},
+         "year_from": {"type": "integer", "description": "Earliest release year (inclusive)"},
+         "year_to":   {"type": "integer", "description": "Latest release year (inclusive)"},
+         "limit":     {"type": "integer", "default": 5, "maximum": 10}},
+         "required": ["genre_query", "year_from", "year_to"]}},
     {"name": "rank_and_select",
      "description": "Score and rank candidate tracks, select the final N for the playlist.",
      "input_schema": {"type": "object", "properties": {
@@ -71,7 +79,8 @@ TOOLS = [
     {"name": "resolve_samples",
      "description": "Find specific tracks on Spotify from a list of {title, artist, dna_path, dna_link_type} objects. Pass items from fetch_whosampled `samples` with dna_link_type='samples_from', and items from `sampled_by` with dna_link_type='sampled_by'. Returns only those exact tracks — no additional artist tracks.",
      "input_schema": {"type": "object", "properties": {
-         "samples": {"type": "array", "items": {"type": "object"}}}, "required": ["samples"]}},
+         "samples": {"type": "array", "items": {"type": "object"}}}, "required": ["samples"]},
+     "cache_control": {"type": "ephemeral"}},
     {"name": "fetch_whosampled",
      "description": "Scrape WhoSampled.com for a track's sample relationships: what it samples and what samples it.",
      "input_schema": {"type": "object", "properties": {
@@ -110,6 +119,11 @@ TOOLS = [
      "description": "Get Spotify's recommendations seeded from the user's top history tracks. Returns fresh discovery candidates the user likely hasn't heard.",
      "input_schema": {"type": "object", "properties": {
          "limit": {"type": "integer", "default": 50, "maximum": 100}}}},
+    {"name": "get_playlist_tracks",
+     "description": "Fetch all tracks from an existing Spotify playlist by its ID. Use this as the first step in Enhance mode to read the current contents.",
+     "input_schema": {"type": "object", "properties": {
+         "playlist_id": {"type": "string", "description": "Spotify playlist ID"}},
+         "required": ["playlist_id"]}},
     {"name": "create_spotify_playlist",
      "description": "Save the final playlist to the user's Spotify account. Always call this as the last step.",
      "input_schema": {"type": "object", "properties": {
@@ -171,6 +185,13 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
         tracks = _get_spotify_client().search_catalog(inputs["query"], limit=inputs.get("limit", 10))
         return {"tracks": _slim(tracks), "count": len(tracks)}
 
+    if name == "search_catalog_by_year":
+        yr_from = inputs["year_from"]
+        yr_to   = inputs.get("year_to", yr_from)
+        query   = f"{inputs['genre_query']} year:{yr_from}-{yr_to}"
+        tracks  = _get_spotify_client().search_catalog(query, limit=inputs.get("limit", 5))
+        return {"tracks": _slim(tracks), "count": len(tracks)}
+
     if name == "rank_and_select":
         candidates = inputs["candidates"]
         boost = inputs.get("boost_discovery", False)
@@ -186,13 +207,14 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
         return {"playlist": ranked[: inputs.get("count", 20)]}
 
     if name == "create_spotify_playlist":
+        track_ids = inputs["track_ids"]
         url = _user_client().create_playlist(
             inputs["name"],
-            inputs["track_ids"],
+            track_ids,
             public=inputs.get("public", False),
             description=inputs.get("description", ""),
         )
-        return {"status": "created", "url": url}
+        return {"status": "created", "url": url, "count": len(track_ids)}
 
     if name == "map_artist_connections":
         graph = traverse_graph(inputs["artist_name"], depth=inputs.get("depth", 1))
@@ -303,6 +325,10 @@ def _execute_tool_inner(name: str, inputs: dict) -> dict:
             return {"error": "No listening history found for seeding recommendations", "tracks": []}
         tracks = _user_client().get_recommendations(top_ids, limit=inputs.get("limit", 50))
         enrich_candidates(tracks)
+        return {"tracks": _slim(tracks), "count": len(tracks)}
+
+    if name == "get_playlist_tracks":
+        tracks = _user_client().playlist_tracks(inputs["playlist_id"])
         return {"tracks": _slim(tracks), "count": len(tracks)}
 
     if name == "get_taste_profile":

@@ -39,6 +39,8 @@ func Init(path string) error {
 	if err != nil {
 		return err
 	}
+	// Idempotent migration: add params column if it doesn't exist yet.
+	DB.Exec(`ALTER TABLE runs ADD COLUMN params TEXT NOT NULL DEFAULT '{}'`)
 	if _, err = DB.Exec(`CREATE INDEX IF NOT EXISTS runs_user_ts ON runs (username, ts DESC)`); err != nil {
 		return err
 	}
@@ -103,23 +105,33 @@ func HasToken(username string) bool {
 	return err == nil
 }
 
+func DeleteToken(username string) error {
+	_, err := DB.Exec("DELETE FROM spotify_tokens WHERE username = ?", username)
+	return err
+}
+
 // ── Run history ───────────────────────────────────────────────────────────────
 
 type Run struct {
-	Ts    int64    `json:"ts"`    // Unix ms (ready for new Date(ts) in JS)
-	Label string   `json:"label"`
-	Lines []string `json:"lines"`
+	Ts     int64           `json:"ts"`     // Unix ms (ready for new Date(ts) in JS)
+	Label  string          `json:"label"`
+	Lines  []string        `json:"lines"`
+	Params json.RawMessage `json:"params"` // form state for re-run
 }
 
-func InsertRun(username, label string, lines []string) error {
+func InsertRun(username, label string, lines []string, params json.RawMessage) error {
 	linesJSON, err := json.Marshal(lines)
 	if err != nil {
 		return err
 	}
+	paramsJSON := string(params)
+	if paramsJSON == "" || paramsJSON == "null" {
+		paramsJSON = "{}"
+	}
 	ts := time.Now().Unix()
 	if _, err := DB.Exec(
-		`INSERT INTO runs (username, ts, label, lines) VALUES (?, ?, ?, ?)`,
-		username, ts, label, string(linesJSON),
+		`INSERT INTO runs (username, ts, label, lines, params) VALUES (?, ?, ?, ?, ?)`,
+		username, ts, label, string(linesJSON), paramsJSON,
 	); err != nil {
 		return err
 	}
@@ -133,7 +145,7 @@ func InsertRun(username, label string, lines []string) error {
 
 func GetRuns(username string) ([]Run, error) {
 	rows, err := DB.Query(
-		`SELECT ts, label, lines FROM runs WHERE username = ? ORDER BY ts DESC LIMIT ?`,
+		`SELECT ts, label, lines, COALESCE(params, '{}') FROM runs WHERE username = ? ORDER BY ts DESC LIMIT ?`,
 		username, runsMax,
 	)
 	if err != nil {
@@ -144,14 +156,15 @@ func GetRuns(username string) ([]Run, error) {
 	for rows.Next() {
 		var r Run
 		var ts int64
-		var linesJSON string
-		if err := rows.Scan(&ts, &r.Label, &linesJSON); err != nil {
+		var linesJSON, paramsJSON string
+		if err := rows.Scan(&ts, &r.Label, &linesJSON, &paramsJSON); err != nil {
 			return nil, err
 		}
 		r.Ts = ts * 1000 // convert seconds → ms for JS new Date()
 		if err := json.Unmarshal([]byte(linesJSON), &r.Lines); err != nil {
 			r.Lines = []string{}
 		}
+		r.Params = json.RawMessage(paramsJSON)
 		runs = append(runs, r)
 	}
 	return runs, rows.Err()

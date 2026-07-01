@@ -14,14 +14,15 @@
 
 <!-- ── Profile identity — avatar overlaps banner bottom edge ── -->
 <div class="profile-identity">
-  <!-- AI persona-mood avatar; falls back to the Spotify photo, then the placeholder -->
-  <img class="profile-avatar" id="persona-avatar" src="/profile/avatar?t={{.AvatarTimestamp}}" alt="" width="88" height="88"
-       {{if and $sp $sp.User.ImageURL}}data-fallback="{{$sp.User.ImageURL}}"{{end}}>
-  <div class="profile-avatar-placeholder" id="avatar-placeholder" style="display:none">
+  {{if and $sp $sp.User.ImageURL}}
+  <img class="profile-avatar" src="{{$sp.User.ImageURL}}" alt="" width="88" height="88">
+  {{else}}
+  <div class="profile-avatar-placeholder">
     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
     </svg>
   </div>
+  {{end}}
   <div class="profile-hero-info">
     <h1 class="profile-name">
       {{if and $sp $sp.User.DisplayName}}{{$sp.User.DisplayName}}{{else}}{{.Username}}{{end}}
@@ -33,6 +34,9 @@
       {{end}}
       {{if and $sp $sp.MissingScopes}}
         <a href="/spotify/connect" class="btn btn-sm btn-spotify" style="margin-left:0.5rem">Reconnect for full stats</a>
+      {{end}}
+      {{if .SpotifyLinked}}
+        <a href="/?mode=liked" class="btn btn-sm btn-ghost" style="margin-left:0.5rem">Export liked songs</a>
       {{end}}
     </div>
   </div>
@@ -238,7 +242,7 @@
 
 <!-- ── Year-by-year timeline ── -->
 {{if $h.YearlyTrend}}
-<details class="profile-section" open>
+<details class="profile-section">
   <summary class="section-title">Year by Year <span class="section-sub">listening history</span></summary>
   <div class="year-timeline">
     {{range $h.YearlyTrend}}
@@ -350,12 +354,11 @@
 
 <!-- ── Full top artists grid ── -->
 {{if $h.TopArtists}}
-<details class="profile-section" open>
+<details class="profile-section">
   <summary class="section-title">All Artists <span class="section-sub">by listening time</span></summary>
-  <div class="top-grid">
+  <div class="top-grid" id="top-artists-grid">
     {{range $i, $a := $h.TopArtists}}
-    {{if lt $i 10}}
-    <a class="top-card{{if $a.SpotifyURL}}{{else}} top-card-nolink{{end}}"
+    <a class="top-card{{if not $a.SpotifyURL}} top-card-nolink{{end}}{{if ge $i 10}} top-card-extra{{end}}"
        {{if $a.SpotifyURL}}href="{{$a.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
       <div class="top-card-rank">{{add $i 1}}</div>
       {{if $a.ImageURL}}
@@ -374,19 +377,22 @@
       </div>
     </a>
     {{end}}
-    {{end}}
   </div>
+  {{if gt (len $h.TopArtists) 10}}
+  <button class="show-more-btn" id="show-more-artists" onclick="showMore('artists')">
+    Show all {{len $h.TopArtists}} artists
+  </button>
+  {{end}}
 </details>
 {{end}}
 
 <!-- ── Full top tracks list ── -->
 {{if $h.TopTracks}}
-<details class="profile-section" open>
+<details class="profile-section">
   <summary class="section-title">All Tracks <span class="section-sub">by listening time</span></summary>
-  <div class="track-list">
+  <div class="track-list" id="top-tracks-list">
     {{range $i, $t := $h.TopTracks}}
-    {{if lt $i 20}}
-    <a class="track-row{{if not $t.SpotifyURL}} track-row-nolink{{end}}"
+    <a class="track-row{{if not $t.SpotifyURL}} track-row-nolink{{end}}{{if ge $i 20}} track-row-extra{{end}}"
        {{if $t.SpotifyURL}}href="{{$t.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
       <span class="track-rank">{{add $i 1}}</span>
       {{if $t.ImageURL}}
@@ -408,46 +414,18 @@
       </div>
     </a>
     {{end}}
-    {{end}}
   </div>
-</details>
-{{end}}
-
-<!-- ── Most skipped tracks ── -->
-{{if $h.TopSkipped}}
-<details class="profile-section" open>
-  <summary class="section-title">Most Skipped <span class="section-sub">top 10 by skip count</span></summary>
-  <div class="track-list">
-    {{range $i, $t := $h.TopSkipped}}
-    <a class="track-row{{if not $t.SpotifyURL}} track-row-nolink{{end}}"
-       {{if $t.SpotifyURL}}href="{{$t.SpotifyURL}}" target="_blank" rel="noopener"{{end}}>
-      <span class="track-rank">{{add $i 1}}</span>
-      {{if $t.ImageURL}}
-      <img class="track-img" src="{{$t.ImageURL}}" alt="" width="44" height="44" loading="lazy">
-      {{else}}
-      <div class="track-img track-img-placeholder">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-        </svg>
-      </div>
-      {{end}}
-      <div class="track-info">
-        <div class="track-title">{{$t.TrackName}}</div>
-        <div class="track-artist">{{$t.ArtistName}}</div>
-      </div>
-      <div class="track-stats">
-        <div class="track-stat-primary">{{$t.SkipCount}} skips</div>
-        <div class="track-stat-secondary">{{$t.PlayCount}} plays</div>
-      </div>
-    </a>
-    {{end}}
-  </div>
+  {{if gt (len $h.TopTracks) 20}}
+  <button class="show-more-btn" id="show-more-tracks" onclick="showMore('tracks')">
+    Show all {{len $h.TopTracks}} tracks
+  </button>
+  {{end}}
 </details>
 {{end}}
 
 <!-- ── Taste DNA + Listening patterns ── -->
 {{if or (and $sp $sp.Insights.TopGenres) $h.HourlyPattern}}
-<details class="profile-section" open>
+<details class="profile-section">
   <summary class="section-title">Listening Patterns</summary>
   <div class="insights-grid">
 
@@ -467,45 +445,11 @@
     </div>
     {{end}}
 
-    {{if .GenreHours}}
-    <div class="stat-card">
-      <div class="stat-card-label">Top Genres <span class="section-sub">hours, from your top artists</span></div>
-      <div class="genre-hours">
-        {{range .GenreHours}}
-        <div class="gh-row">
-          <span class="gh-name" title="{{.Genre}}">{{.Genre}}</span>
-          <div class="gh-bar-wrap"><div class="gh-bar" style="width:{{.BarPct}}%"></div></div>
-          <span class="gh-val">{{printf "%.0f" .Hours}}h</span>
-        </div>
-        {{end}}
-      </div>
-    </div>
-    {{end}}
-
     {{if $h.HourlyPattern}}
     <div class="stat-card">
-      <div class="stat-card-label">When You Listen <span class="section-sub">by hour of day</span></div>
+      <div class="stat-card-label">When You Listen</div>
       <div class="hourly-chart" id="hourly-chart" data-vals="{{range $h.HourlyPattern}}{{.}} {{end}}"></div>
       <div class="hourly-labels">
-        <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
-      </div>
-    </div>
-    {{end}}
-
-    {{if .WeekHeatMax}}
-    <div class="stat-card heatmap-card">
-      <div class="stat-card-label">Weekly Rhythm <span class="section-sub">by weekday and hour</span></div>
-      <div class="week-heatmap">
-        {{$root := .}}
-        {{$max := .WeekHeatMax}}
-        {{range $d, $day := $h.WeekPattern}}
-        <div class="wh-row">
-          <span class="wh-day">{{index $root.DayNames $d}}</span>
-          {{range $day}}<span class="wh-cell" style="opacity:{{heat . $max}}"></span>{{end}}
-        </div>
-        {{end}}
-      </div>
-      <div class="hourly-labels heatmap-labels">
         <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
       </div>
     </div>
@@ -564,7 +508,7 @@
         <div class="rec-name">{{.ArtistName}}</div>
         {{if .Genres}}<div class="rec-genre">{{index .Genres 0}}</div>{{end}}
         {{if .SampleTrack}}
-        <a class="rec-track" href="{{.TrackURL}}" target="_blank" rel="noopener">
+        <a class="rec-track" href="{{.TrackURL}}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
           ♪ {{.SampleTrack}}
         </a>
         {{end}}
@@ -576,32 +520,7 @@
 {{end}}
 
 <!-- ── Scripts ── -->
-<script nonce="{{.Nonce}}">
-// ── Avatar fallback: Spotify photo, then placeholder ─────────────────────────
-(function() {
-  const av = document.getElementById('persona-avatar');
-  if (!av) return;
-  function fallback() {
-    if (av.dataset.fallback) {
-      const src = av.dataset.fallback;
-      delete av.dataset.fallback;
-      av.src = src;
-    } else {
-      av.style.display = 'none';
-      const ph = document.getElementById('avatar-placeholder');
-      if (ph) ph.style.display = 'flex';
-    }
-  }
-  av.addEventListener('error', fallback);
-  // The image may have already failed before this script ran.
-  if (av.complete && av.naturalWidth === 0) fallback();
-})();
-
-// Keep sample-track links from triggering their parent card.
-document.querySelectorAll('.rec-track').forEach((a) => {
-  a.addEventListener('click', (e) => e.stopPropagation());
-});
-
+<script>
 // ── AI background fade-in ────────────────────────────────────────────────────
 (function() {
   const img = document.getElementById('aura-bg');
@@ -767,6 +686,15 @@ document.querySelectorAll('.rec-track').forEach((a) => {
     wrap.appendChild(bar);
   });
 })();
+
+// ── Show-more for artists / tracks ────────────────────────────────────────────
+function showMore(type) {
+  const extraClass = type === 'artists' ? 'top-card-extra' : 'track-row-extra';
+  const btnId = type === 'artists' ? 'show-more-artists' : 'show-more-tracks';
+  document.querySelectorAll('.' + extraClass).forEach(el => el.classList.add('visible'));
+  const btn = document.getElementById(btnId);
+  if (btn) btn.remove();
+}
 
 // ── Relative timestamps ────────────────────────────────────────────────────────
 document.querySelectorAll('.track-time[data-ts]').forEach(el => {

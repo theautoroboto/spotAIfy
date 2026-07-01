@@ -2,6 +2,7 @@ package spotify
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,6 +11,11 @@ import (
 
 	"spotaify-web/internal/db"
 )
+
+// ErrTokenExpired is returned by FreshToken when the refresh token has expired
+// (Spotify invalid_grant). Callers should discard the stored token and redirect
+// the user through the Spotify OAuth flow to obtain a new one.
+var ErrTokenExpired = errors.New("spotify refresh token expired — please reconnect your account")
 
 // Config is populated from env vars by main.go.
 var Config struct {
@@ -76,6 +82,9 @@ func postToken(data url.Values) (*tokenResponse, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&t); err != nil {
 		return nil, err
 	}
+	if t.Error == "invalid_grant" {
+		return nil, ErrTokenExpired
+	}
 	if t.Error != "" {
 		return nil, fmt.Errorf("spotify: %s — %s", t.Error, t.ErrorDesc)
 	}
@@ -108,6 +117,12 @@ func FreshToken(username string) (string, error) {
 	// Token expired — refresh.
 	t, err := refreshToken(tok.RefreshToken)
 	if err != nil {
+		if errors.Is(err, ErrTokenExpired) {
+			// Refresh token has expired (Spotify invalid_grant). Discard it so the
+			// next request doesn't retry a dead token, then surface the sentinel so
+			// the caller can redirect the user through the OAuth flow.
+			_ = db.DeleteToken(username)
+		}
 		return "", err
 	}
 	newTok := &db.SpotifyToken{
