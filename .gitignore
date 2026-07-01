@@ -18,3 +18,4 @@ data/history/**/*.json
 data/cache/*
 
 data/history/*/*.json
+data/backup/*/*.json

@@ -97,6 +97,16 @@ var tmplFuncs = template.FuncMap{
 	"add":        func(a, b int) int { return a + b },
 	"pct":        func(f float64) int { return int(f * 100) },
 	"paragraphs": func(s string) []string { return strings.Split(strings.TrimSpace(s), "\n\n") },
+	// staticVersion cache-busts /static assets using the file's mod-time, so
+	// browsers (or any proxy/cache in between) always fetch a fresh copy after
+	// a deploy instead of reusing a stale cached response.
+	"staticVersion": func(relPath string) int64 {
+		info, err := os.Stat(filepath.Join("static", relPath))
+		if err != nil {
+			return 0
+		}
+		return info.ModTime().Unix()
+	},
 }
 
 func loadTemplates() {
@@ -648,12 +658,17 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 	// Derive per-user aura parameters from listening history when audio features unavailable.
 	aura := computeAura(hist, audioFeatures, username)
 
-	// Cache-busting timestamp for the background image URL. Using the file's
+	// Cache-busting timestamps for the AI-generated image URLs. Using each file's
 	// mod-time ensures the browser fetches a fresh image whenever the file changes.
 	bgDir := envOr("BG_CACHE_DIR", "/data/backgrounds")
 	var bgTimestamp int64
 	if info, err := os.Stat(filepath.Join(bgDir, username+".jpg")); err == nil {
 		bgTimestamp = info.ModTime().Unix()
+	}
+	avatarDir := envOr("AVATAR_CACHE_DIR", "/data/avatars")
+	var avatarTimestamp int64
+	if info, err := os.Stat(filepath.Join(avatarDir, username+".jpg")); err == nil {
+		avatarTimestamp = info.ModTime().Unix()
 	}
 
 	render(w, "profile.html", map[string]any{
@@ -668,34 +683,15 @@ func handleProfile(w http.ResponseWriter, r *http.Request) {
 		"Recommendations": recommendations,
 		"Persona":         persona,
 		"BGTimestamp":     bgTimestamp,
+		"AvatarTimestamp": avatarTimestamp,
 	})
 }
 
-// ── Profile background ────────────────────────────────────────────────────────
+// ── Profile background & avatar ───────────────────────────────────────────────
 
-// handleProfileBg serves the AI-generated album-art background for the logged-in
-// user. On the first request it calls the HF Inference API (may take ~20 s), caches
-// the result to /data/backgrounds/{username}.jpg, and then serves it. All subsequent
-// requests are served instantly from the cache.
-func handleProfileBg(w http.ResponseWriter, r *http.Request) {
-	username, _ := auth.GetSession(r)
-
-	bgDir := envOr("BG_CACHE_DIR", "/data/backgrounds")
-	if err := os.MkdirAll(bgDir, 0o755); err != nil {
-		http.Error(w, "cache dir error", http.StatusInternalServerError)
-		return
-	}
-	cachePath := filepath.Join(bgDir, username+".jpg")
-
-	// Serve cached image if present.
-	if img, err := os.ReadFile(cachePath); err == nil {
-		w.Header().Set("Content-Type", "image/jpeg")
-		w.Header().Set("Cache-Control", "max-age=3600")
-		_, _ = w.Write(img)
-		return
-	}
-
-	// Build generation inputs from cached persona + history + aura.
+// buildImageInput assembles the persona + listening-history + aura data shared
+// by both the background and avatar image generators.
+func buildImageInput(username string) ai.BackgroundInput {
 	var inp ai.BackgroundInput
 
 	if cached, err := db.GetPersonaJSON(username); err == nil {
@@ -709,31 +705,7 @@ func handleProfileBg(w http.ResponseWriter, r *http.Request) {
 
 	histBase := envOr("HISTORY_DIR", "data/history")
 	hist, _ := history.Load(filepath.Join(histBase, username))
-
-	var topGenres []string
-	seen := map[string]bool{}
-	for _, a := range hist.TopArtists {
-		for _, g := range a.Genres {
-			if !seen[g] {
-				topGenres = append(topGenres, g)
-				seen[g] = true
-			}
-			if len(topGenres) >= 5 {
-				break
-			}
-		}
-		if len(topGenres) >= 5 {
-			break
-		}
-	}
-	inp.TopGenres = topGenres
-
-	for _, a := range hist.TopArtists {
-		inp.TopArtists = append(inp.TopArtists, a.ArtistName)
-		if len(inp.TopArtists) >= 5 {
-			break
-		}
-	}
+	inp.TopGenres, inp.TopArtists = topGenresAndArtists(hist, 5)
 
 	aura := computeAura(hist, nil, username)
 	inp.Hue = aura.Hue
@@ -742,20 +714,132 @@ func handleProfileBg(w http.ResponseWriter, r *http.Request) {
 	inp.Valence = aura.Valence
 	inp.Acoustic = aura.Acoustic
 
-	imgBytes, err := ai.GenerateBackground(inp)
+	return inp
+}
+
+// topGenresAndArtists extracts up to limit unique genres and artist names from
+// a listener's top artists, in listening-time order.
+func topGenresAndArtists(hist *history.Stats, limit int) (genres, artists []string) {
+	seen := map[string]bool{}
+	for _, a := range hist.TopArtists {
+		for _, g := range a.Genres {
+			if !seen[g] {
+				genres = append(genres, g)
+				seen[g] = true
+			}
+			if len(genres) >= limit {
+				break
+			}
+		}
+		if len(genres) >= limit {
+			break
+		}
+	}
+	for _, a := range hist.TopArtists {
+		artists = append(artists, a.ArtistName)
+		if len(artists) >= limit {
+			break
+		}
+	}
+	return genres, artists
+}
+
+// serveGeneratedImage serves a cached image from cachePath if present, otherwise
+// generates it via genFn, caches the result to disk, and serves it.
+func serveGeneratedImage(w http.ResponseWriter, cacheDir, username string, genFn func(ai.BackgroundInput) ([]byte, error), logLabel string) {
+	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+		http.Error(w, "cache dir error", http.StatusInternalServerError)
+		return
+	}
+	cachePath := filepath.Join(cacheDir, username+".jpg")
+
+	// Serve cached image if present.
+	if img, err := os.ReadFile(cachePath); err == nil {
+		w.Header().Set("Content-Type", "image/jpeg")
+		w.Header().Set("Cache-Control", "max-age=3600")
+		_, _ = w.Write(img)
+		return
+	}
+
+	inp := buildImageInput(username)
+
+	imgBytes, err := genFn(inp)
 	if err != nil {
-		log.Printf("background: generation failed for %s: %v", username, err)
-		http.Error(w, "background generation failed", http.StatusServiceUnavailable)
+		log.Printf("%s: generation failed for %s: %v", logLabel, username, err)
+		http.Error(w, logLabel+" generation failed", http.StatusServiceUnavailable)
 		return
 	}
 
 	if err := os.WriteFile(cachePath, imgBytes, 0o644); err != nil {
-		log.Printf("background: failed to cache for %s: %v", username, err)
+		log.Printf("%s: failed to cache for %s: %v", logLabel, username, err)
 	}
 
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Cache-Control", "max-age=86400, immutable")
 	_, _ = io.Copy(w, bytes.NewReader(imgBytes))
+}
+
+// handleProfileBg serves the AI-generated album-art background for the logged-in
+// user. On the first request it calls the HF Inference API (may take ~20 s), caches
+// the result to /data/backgrounds/{username}.jpg, and then serves it. All subsequent
+// requests are served instantly from the cache.
+func handleProfileBg(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+	bgDir := envOr("BG_CACHE_DIR", "/data/backgrounds")
+	serveGeneratedImage(w, bgDir, username, ai.GenerateBackground, "background")
+}
+
+// handleProfileAvatar serves the AI-generated Alice in Wonderland avatar for the
+// logged-in user, replacing their real Spotify profile picture. Cached the same
+// way as handleProfileBg, to /data/avatars/{username}.jpg.
+func handleProfileAvatar(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+	avatarDir := envOr("AVATAR_CACHE_DIR", "/data/avatars")
+	serveGeneratedImage(w, avatarDir, username, ai.GenerateAvatar, "avatar")
+}
+
+// ── Quote ──────────────────────────────────────────────────────────────────────
+
+type quoteReq struct {
+	Text string `json:"text"`
+}
+
+// handleQuote takes a short free-text mood/situation from the user and returns
+// a relatable song lyric, preferring artists from their own listening history.
+func handleQuote(w http.ResponseWriter, r *http.Request) {
+	username, _ := auth.GetSession(r)
+
+	var req quoteReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	req.Text = strings.TrimSpace(req.Text)
+	if req.Text == "" {
+		http.Error(w, "text is required", http.StatusBadRequest)
+		return
+	}
+	if len(req.Text) > 500 {
+		req.Text = req.Text[:500]
+	}
+
+	histBase := envOr("HISTORY_DIR", "data/history")
+	hist, _ := history.Load(filepath.Join(histBase, username))
+	topGenres, topArtists := topGenresAndArtists(hist, 5)
+
+	result, err := ai.GenerateQuote(ai.QuoteInput{
+		Text:       req.Text,
+		TopArtists: topArtists,
+		TopGenres:  topGenres,
+	})
+	if err != nil {
+		log.Printf("quote: generation failed for %s: %v", username, err)
+		http.Error(w, "quote generation failed", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
 
 // ── History handlers ──────────────────────────────────────────────────────────
@@ -1155,6 +1239,8 @@ func main() {
 	protected.HandleFunc("DELETE /run/{id}", handleCancel)
 	protected.HandleFunc("GET /profile", handleProfile)
 	protected.HandleFunc("GET /profile/bg", handleProfileBg)
+	protected.HandleFunc("GET /profile/avatar", handleProfileAvatar)
+	protected.HandleFunc("POST /quote", handleQuote)
 	protected.HandleFunc("GET /history", handleHistoryGet)
 	protected.HandleFunc("POST /history", handleHistorySave)
 	protected.HandleFunc("DELETE /history", handleHistoryClear)

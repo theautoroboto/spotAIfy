@@ -308,6 +308,19 @@
   </section>
 </div>
 
+<!-- ── Quote generator ── -->
+<section class="quote-panel">
+  <h2>Get a quote</h2>
+  <p class="muted" style="font-size:0.85rem;margin:-0.5rem 0 0">Tell us what's going on — we'll find a relatable line from your music.</p>
+  <form id="quote-form">
+    <textarea id="quote_text" name="text" rows="2" maxlength="500"
+              placeholder="Today has been rough and customers suck" {{if not .SpotifyLinked}}disabled{{end}}></textarea>
+    <button id="quote-btn" type="submit" class="btn btn-primary"
+            {{if not .SpotifyLinked}}disabled title="Connect Spotify first"{{end}}>Get a quote</button>
+  </form>
+  <div id="quote-result" class="quote-result hidden"></div>
+</section>
+
 <!-- ── History ── -->
 <div id="history-panel" class="history-panel hidden">
   <div class="history-header">
@@ -797,6 +810,54 @@ function _rerun(params) {
   _set('timeline_to', params.timeline_to);
   _set('count', params.count);
   document.querySelector('.form-panel').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('run-btn').click();
 }
+
+// ── Quote generator ────────────────────────────────────────────────────────────
+document.getElementById('quote-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const textEl = document.getElementById('quote_text');
+  const text = textEl.value.trim();
+  if (!text) { _shakeField('quote_text'); return; }
+
+  const btn = document.getElementById('quote-btn');
+  const resultEl = document.getElementById('quote-result');
+  btn.disabled = true; btn.textContent = 'Finding a quote…';
+  resultEl.classList.add('hidden');
+  resultEl.innerHTML = '';
+
+  try {
+    const r = await fetch('/quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+    if (!r.ok) throw new Error((await r.text()) || ('HTTP ' + r.status));
+    const q = await r.json();
+
+    const lyric = document.createElement('div');
+    lyric.className = 'quote-lyric';
+    lyric.textContent = q.lyric;
+    resultEl.appendChild(lyric);
+    const meta = document.createElement('div');
+    meta.className = 'quote-meta';
+    meta.textContent = (q.song ? q.song + ', ' : '') + q.artist;
+    resultEl.appendChild(meta);
+    if (q.inspiration) {
+      const inspiration = document.createElement('div');
+      inspiration.className = 'quote-inspiration';
+      inspiration.textContent = q.inspiration;
+      resultEl.appendChild(inspiration);
+    }
+  } catch (err) {
+    const errEl = document.createElement('div');
+    errEl.className = 'quote-error';
+    errEl.textContent = 'Couldn’t find a quote: ' + err.message;
+    resultEl.appendChild(errEl);
+  } finally {
+    resultEl.classList.remove('hidden');
+    btn.disabled = false; btn.textContent = 'Get a quote';
+  }
+});
 </script>
 {{end}}

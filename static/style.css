@@ -228,7 +228,8 @@ label {
 
 input[type="text"],
 input[type="number"],
-input[type="password"] {
+input[type="password"],
+textarea {
   width: 100%;
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -240,6 +241,7 @@ input[type="password"] {
   transition: border-color 0.15s, box-shadow 0.15s;
   accent-color: var(--accent);
 }
+textarea { font-family: inherit; resize: vertical; }
 input[type="number"] { max-width: 180px; }
 input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,160,40,0.15); }
 input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
@@ -648,8 +650,99 @@ input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
 /* ── Card depth ─────────────────────────────────────────────────────────────── */
 .form-panel,
 .output-panel,
-.history-panel {
+.history-panel,
+.quote-panel {
   box-shadow: var(--shadow);
+}
+
+/* ── Quote generator ────────────────────────────────────────────────────────── */
+.quote-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+.quote-panel h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.quote-panel form {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.quote-panel textarea {
+  flex: 1;
+  min-height: 2.5rem;
+}
+@keyframes quoteIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.quote-result {
+  position: relative;
+  margin-top: 0.75rem;
+  padding: 1.25rem 1.5rem 1.25rem 2rem;
+  background: linear-gradient(160deg, var(--surface2) 0%, var(--surface) 100%);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  animation: quoteIn 0.35s ease-out both;
+}
+.quote-result.hidden { display: none; }
+.quote-result::before {
+  content: '“';
+  position: absolute;
+  top: -0.4rem;
+  left: 0.6rem;
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.28;
+  font-family: Georgia, 'Times New Roman', serif;
+  pointer-events: none;
+}
+.quote-lyric {
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+.quote-meta {
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.quote-meta::before {
+  content: '— ';
+}
+.quote-inspiration {
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.quote-error { font-size: 0.85rem; color: var(--err); }
+
+@media (max-width: 640px) {
+  .quote-panel form { flex-direction: column; }
+  .quote-panel .btn { width: 100%; }
 }
 
 /* ── Filters chevron ─────────────────────────────────────────────────────────── */
@@ -1051,7 +1144,7 @@ input[type="checkbox"], input[type="range"] { accent-color: var(--accent); }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center center;
   pointer-events: none;
   opacity: 0;
   transition: opacity 1s ease;

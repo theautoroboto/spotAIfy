@@ -14,15 +14,13 @@
 
 <!-- ── Profile identity — avatar overlaps banner bottom edge ── -->
 <div class="profile-identity">
-  {{if and $sp $sp.User.ImageURL}}
-  <img class="profile-avatar" src="{{$sp.User.ImageURL}}" alt="" width="88" height="88">
-  {{else}}
-  <div class="profile-avatar-placeholder">
+  <img class="profile-avatar" id="profile-avatar-img" src="/profile/avatar?t={{.AvatarTimestamp}}" alt="" width="88" height="88"
+       onerror="this.style.display='none';document.getElementById('profile-avatar-fallback').style.display='flex';">
+  <div class="profile-avatar-placeholder" id="profile-avatar-fallback" style="display:none">
     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
     </svg>
   </div>
-  {{end}}
   <div class="profile-hero-info">
     <h1 class="profile-name">
       {{if and $sp $sp.User.DisplayName}}{{$sp.User.DisplayName}}{{else}}{{.Username}}{{end}}
