@@ -1,6 +1,7 @@
 # agent.py
 import argparse
 import json
+import math
 import re
 import sys
 import time
@@ -300,7 +301,7 @@ def _run_liked_export(args) -> None:
     print(f"\nDone — {url}", flush=True)
 
 
-def run_agent(prompt: str) -> None:
+def run_agent(prompt: str, count: int = 20) -> None:
     if not ANTHROPIC_API_KEY:
         raise ValueError("ANTHROPIC_API_KEY not found in .env file.")
 
@@ -310,12 +311,22 @@ def run_agent(prompt: str) -> None:
     # so track IDs from early batches are still visible at create_spotify_playlist time.
     keep_turns = 12 if is_timeline else 3
 
+    if is_timeline:
+        # Worst case every batch also needs a fallback search (rule 3), so budget
+        # for 2 turns per batch of 10, plus room for narration and playlist creation.
+        search_turns = math.ceil(count / 10)
+        max_turns = max(_MAX_TURNS, search_turns * 2 + 4)
+        wrap_up_turn = max_turns - 3
+    else:
+        max_turns = _MAX_TURNS
+        wrap_up_turn = _WRAP_UP_TURN
+
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     messages = [{"role": "user", "content": prompt}]
     print(f"\nPrompt: {prompt}\n{'─' * 60}", flush=True)
 
     turn = 0
-    while turn < _MAX_TURNS:
+    while turn < max_turns:
         response = _call_with_retry(
             client,
             model="claude-sonnet-4-6",
@@ -406,24 +417,24 @@ def run_agent(prompt: str) -> None:
             messages.append({"role": "user", "content": tool_results})
             messages = _prune_messages(messages, keep_turns=keep_turns)
             turn += 1
-            if turn == _WRAP_UP_TURN:
+            if turn == wrap_up_turn:
                 print(f"\n[Turn {turn}] Injecting wrap-up nudge.", flush=True)
                 messages.append({"role": "user", "content": wrap_up_msg})
         else:
             print(f"\n[Agent stopped: stop_reason={response.stop_reason}]", flush=True)
             break
 
-    if turn >= _MAX_TURNS:
-        print(f"\nReached {_MAX_TURNS}-turn limit — stopping.", flush=True)
+    if turn >= max_turns:
+        print(f"\nReached {max_turns}-turn limit — stopping.", flush=True)
 
 
 def build_prompt(args: argparse.Namespace) -> str:
     parts = []
 
     if args.timeline:
-        # Cap at 50 — searches run in batches of 10 per turn so no single API call
-        # generates enough output tokens to hit rate limits.
-        args.count = min(args.count, 50)
+        # Cap at 200 — searches run in batches of 10 per turn; run_agent scales the
+        # turn budget to match so large counts still have room to finish.
+        args.count = min(args.count, 200)
         parts.append(f"Timeline mode: trace the evolution of {args.timeline_genre} from {args.timeline_from} to {args.timeline_to}.")
         parts.append(f"Identify the key inflection points across those {args.timeline_to - args.timeline_from} years and find one defining track per moment.")
 
@@ -531,7 +542,7 @@ def main():
         return
 
     try:
-        run_agent(prompt)
+        run_agent(prompt, count=args.count)
     except Exception as e:
         print(f"\nAn error occurred: {e}")
 
