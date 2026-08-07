@@ -2,7 +2,9 @@
 
 A local AI agent that generates Spotify playlists using Claude Sonnet. Runs as a web app (Go + Python) or as a CLI tool.
 
-Six playlist modes:
+![spotAIfy demo](docs/demo.gif)
+
+Nine playlist modes:
 
 | Mode | How it works |
 |------|-------------|
@@ -12,6 +14,9 @@ Six playlist modes:
 | **Rediscovery** | Build a playlist from tracks you used to love but haven't played in a while |
 | **Expand** | Discover new music by traversing your top artists' connection graphs and Spotify's recommendation engine |
 | **Setlist** | Build a playlist from an artist's actual live repertoire, ranked by how often they play each song |
+| **Enhance** | Analyze an existing Spotify playlist's vibe and extend it with new matching tracks |
+| **Liked Export** | Export your Spotify liked songs into a new (or updated) playlist |
+| **Timeline** | Trace a genre's evolution across a year range, one defining track per inflection point |
 
 ---
 
