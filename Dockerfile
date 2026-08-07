@@ -1,5 +1,5 @@
 # ── Stage 1: build the Go web server ─────────────────────────────────────────
-FROM golang:1.22-alpine AS go-builder
+FROM golang:1.25-alpine AS go-builder
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
